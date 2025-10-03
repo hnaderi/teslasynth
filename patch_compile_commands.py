@@ -19,7 +19,8 @@ to_add = [
 ]
 flags = " ".join(to_add)
 for entry in db:
-    entry["command"] += f" {flags}"
+    command = entry["command"].replace("-std=gnu17", "-std=gnu++17")
+    entry["command"] = command + f" {flags}"
 
 with open("compile_commands.json", "w") as f:
     json.dump(db, f, indent=2)

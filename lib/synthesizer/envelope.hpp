@@ -1,55 +1,65 @@
 #pragma once
 
 #include "core.hpp"
-#include <algorithm>
-#include <cstdint>
-#include <stdint.h>
+#include <cmath>
 
 enum CurveType { Lin, Exp };
 
 class EnvelopeLevel {
-  uint8_t value;
+  float _value;
 
 public:
-  explicit EnvelopeLevel(int level) {
-    if (level > 100)
-      value = 100;
+  explicit EnvelopeLevel(float level) {
+    if (level > 1)
+      _value = 1.f;
     else if (level < 0)
-      value = 0;
+      _value = 0.f;
     else
-      value = level;
+      _value = level;
   }
 
   EnvelopeLevel operator+(const EnvelopeLevel &b) const {
-    return EnvelopeLevel(value + b.value);
+    return EnvelopeLevel(_value + b._value);
   }
   EnvelopeLevel &operator+=(const EnvelopeLevel &b) {
-    if (100 - value < b.value)
-      value = 100;
+    if (1.f - _value < b._value)
+      _value = 1.f;
     else
-      value += b.value;
+      _value += b._value;
+    return *this;
+  }
+  float operator-(const EnvelopeLevel &b) const { return _value - b._value; }
+  EnvelopeLevel operator+(float b) const { return EnvelopeLevel(_value + b); }
+  EnvelopeLevel &operator+=(float b) {
+    _value += b;
+    if (_value > 1.f)
+      _value = 1.f;
+    else if (_value < 0)
+      _value = 0.f;
     return *this;
   }
 
-  Duration operator*(const Duration &b) const { return b * (value / 100.f); }
+  Duration operator*(const Duration &b) const { return b * _value; }
   constexpr bool operator<(const EnvelopeLevel &b) const {
-    return value < b.value;
+    return _value < b._value;
   }
   constexpr bool operator>(const EnvelopeLevel &b) const {
-    return value > b.value;
+    return _value > b._value;
   }
   constexpr bool operator==(const EnvelopeLevel &b) const {
-    return value == b.value;
+    return std::fabs(_value - b._value) < 1e-3f;
   }
   constexpr bool operator!=(const EnvelopeLevel &b) const {
-    return value != b.value;
+    return _value != b._value;
   }
   constexpr bool operator<=(const EnvelopeLevel &b) const {
-    return value <= b.value;
+    return _value <= b._value;
   }
   constexpr bool operator>=(const EnvelopeLevel &b) const {
-    return value >= b.value;
+    return _value >= b._value;
   }
+
+  constexpr operator float() const { return _value; }
 };
 
 struct ADSR {
@@ -59,15 +69,32 @@ struct ADSR {
   enum CurveType type;
 };
 
+union CurveState {
+  float tau;   // Exp
+  float slope; // Lin
+};
+
 class Curve {
   const EnvelopeLevel _target;
+  const CurveType _type;
+  const Duration _total;
+  Duration _elapsed;
   EnvelopeLevel _current;
+  CurveState _state;
+  bool _target_reached = false;
+
+public:
+  Curve(EnvelopeLevel start, EnvelopeLevel target, Duration total,
+        CurveType type);
+  EnvelopeLevel update(Duration delta);
+  bool is_target_reached() { return _target_reached; }
 };
 
 class Envelope {
   const ADSR &_configs;
+  Curve _current;
 
 public:
-  Envelope(const ADSR &configs) : _configs(configs) {}
+  Envelope(const ADSR &configs);
   EnvelopeLevel update(Duration delta, bool on);
 };

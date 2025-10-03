@@ -10,56 +10,63 @@ struct Pulse {
 };
 
 class Duration {
-  uint32_t value;
+  uint32_t _value;
 
-  explicit Duration(uint32_t v) : value(v) {}
+  explicit Duration(uint32_t v) : _value(v) {}
   explicit Duration(int v) = delete;
 
 public:
-  Duration() : value(0) {}
+  Duration() : _value(0) {}
   static Duration nanos(uint32_t v) { return Duration(v); }
   static Duration micros(uint32_t v) { return Duration(v * 1000); }
   static Duration millis(uint32_t v) { return Duration(v * 1'000'000); }
+  constexpr uint32_t value() const { return _value/1000; }
 
   Duration operator+(const Duration &b) const {
-    return Duration(value + b.value);
+    return Duration(_value + b._value);
   }
-  Duration operator*(const int b) const { return Duration(value * b); }
+  Duration operator*(const int b) const { return Duration(_value * b); }
   Duration operator*(const float b) const {
-    return Duration(static_cast<uint32_t>(value * b));
+    return Duration(static_cast<uint32_t>(_value * b));
   }
   Duration &operator+=(const Duration &b) {
-    value += b.value;
+    _value += b._value;
     return *this;
   }
   Duration &operator*=(const Duration &b) {
-    value *= b.value;
+    _value *= b._value;
     return *this;
   }
 
-  constexpr bool operator<(const Duration &b) const { return value < b.value; }
-  constexpr bool operator>(const Duration &b) const { return value > b.value; }
+  constexpr bool operator<(const Duration &b) const {
+    return _value < b._value;
+  }
+  constexpr bool operator>(const Duration &b) const {
+    return _value > b._value;
+  }
   constexpr bool operator==(const Duration &b) const {
-    return value == b.value;
+    return _value == b._value;
   }
   constexpr bool operator!=(const Duration &b) const {
-    return value != b.value;
+    return _value != b._value;
   }
   constexpr bool operator<=(const Duration &b) const {
-    return value <= b.value;
+    return _value <= b._value;
   }
   constexpr bool operator>=(const Duration &b) const {
-    return value >= b.value;
+    return _value >= b._value;
   }
+  constexpr bool is_zero() const { return _value == 0; }
+
   inline std::string print() const {
-    if (value > 1'000'000'000) {
-      return std::to_string(value / 1e9) + "S";
-    } else if (value > 1'000'000) {
-      return std::to_string(value / 1e6) + "ms";
-    } else if (value > 1'000) {
-      return std::to_string(value / 1e3) + "us";
+    if (_value > 1'000'000'000) {
+      return std::to_string(_value / 1e9) + "S";
+    } else if (_value > 1'000'000) {
+      return std::to_string(_value / 1e6) + "ms";
+    } else if (_value > 1'000) {
+      return std::to_string(_value / 1e3) + "us";
     } else {
-      return std::to_string(value) + "ns";
+      return std::to_string(_value) + "ns";
     }
   }
 };
