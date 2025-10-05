@@ -2,7 +2,9 @@
 
 #include "core.hpp"
 #include <cmath>
+#include <string>
 
+constexpr float epsilon = 0.001;
 enum CurveType { Lin, Exp };
 
 class EnvelopeLevel {
@@ -60,6 +62,7 @@ public:
   }
 
   constexpr operator float() const { return _value; }
+  inline operator std::string() const { return std::to_string(_value); }
 };
 
 struct ADSR {
@@ -75,9 +78,10 @@ union CurveState {
 };
 
 class Curve {
-  const EnvelopeLevel _target;
-  const CurveType _type;
-  const Duration _total;
+  EnvelopeLevel _target;
+  CurveType _type;
+  Duration _total;
+
   Duration _elapsed;
   EnvelopeLevel _current;
   CurveState _state;
@@ -87,7 +91,10 @@ public:
   Curve(EnvelopeLevel start, EnvelopeLevel target, Duration total,
         CurveType type);
   EnvelopeLevel update(Duration delta);
-  bool is_target_reached() { return _target_reached; }
+  bool is_target_reached() const { return _target_reached; }
+  bool will_reach_target(const Duration &dt) const {
+    return dt + _elapsed >= _total;
+  }
 };
 
 class Envelope {
@@ -95,6 +102,13 @@ class Envelope {
   Curve _current;
 
 public:
+  enum Stage { Attack, Decay, Sustain, Release, Off };
+
   Envelope(const ADSR &configs);
   EnvelopeLevel update(Duration delta, bool on);
+  Stage stage() const { return _stage; }
+  bool is_off() const { return _stage == Off; }
+
+private:
+  Stage _stage;
 };

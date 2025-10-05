@@ -9,8 +9,8 @@ NotePulse pulse;
 
 #define TEST_ASSERT_EQUAL_DURATION(expected, actual)                           \
   {                                                                            \
-    std::string msg = (std::string("Expected: ") + expected.print() +          \
-                       " Actual: " + actual.print());                          \
+    std::string msg = (std::string("Expected: ") + std::string(expected) +     \
+                       " Actual: " + std::string(actual));                     \
     TEST_ASSERT_TRUE_MESSAGE((expected) == (actual), msg.c_str());             \
   };
 

@@ -2,9 +2,7 @@
 #include "core.hpp"
 #include <cmath>
 #include <cstdint>
-#include <stdio.h>
 
-constexpr float epsilon = 0.001;
 // -log_e(0.001)
 constexpr float logfactor = 6.907755278982137;
 
@@ -29,6 +27,10 @@ Curve::Curve(EnvelopeLevel start, EnvelopeLevel target, Duration total,
 EnvelopeLevel Curve::update(Duration delta) {
   if (_target_reached)
     return _target;
+  if (_elapsed + delta >= _total) {
+    _target_reached = true;
+    return _target;
+  }
 
   const uint32_t dt = delta.value();
   switch (_type) {
@@ -43,4 +45,37 @@ EnvelopeLevel Curve::update(Duration delta) {
   _elapsed += delta;
   _target_reached = _current == _target || _elapsed >= _total;
   return _current;
+}
+
+Envelope::Envelope(const ADSR &configs)
+    : _configs(configs), _current(Curve(EnvelopeLevel(0), EnvelopeLevel(1),
+                                        configs.attack, configs.type)),
+      _stage(Attack) {}
+
+EnvelopeLevel Envelope::update(Duration delta, bool on) {
+  if (_current.is_target_reached()) {
+    switch (_stage) {
+    case Attack:
+      _current = Curve(EnvelopeLevel(1), _configs.sustain, _configs.decay,
+                       _configs.type);
+      _stage = Decay;
+      break;
+    case Decay:
+      _current = Curve(_configs.sustain, _configs.sustain, 0_us, _configs.type);
+      _stage = Sustain;
+      break;
+    case Sustain:
+      if (!on) {
+        _current = Curve(_configs.sustain, EnvelopeLevel(0), _configs.release,
+                         _configs.type);
+        _stage = Release;
+      }
+      break;
+    case Release:
+    case Off:
+      break;
+    }
+  }
+  const auto lvl = _current.update(delta);
+  return lvl;
 }

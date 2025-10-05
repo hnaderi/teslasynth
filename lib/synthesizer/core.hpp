@@ -69,7 +69,7 @@ public:
   }
   constexpr bool is_zero() const { return _value == 0; }
 
-  inline std::string print() const {
+  inline operator std::string() const {
     if (_value > _coef_sec) {
       return std::to_string(_value / _coef_sec) + "S";
     } else if (_value > _coef_milli) {
