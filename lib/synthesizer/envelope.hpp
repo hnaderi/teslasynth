@@ -67,7 +67,8 @@ public:
 };
 
 struct ADSR {
-  Duration attack, decay;
+  Duration attack;
+  Duration decay;
   EnvelopeLevel sustain;
   Duration release;
   enum CurveType type;
@@ -98,14 +99,15 @@ public:
 };
 
 class Envelope {
-  const ADSR &_configs;
+  ADSR _configs;
   Curve _current;
 
   Duration progress(Duration delta, bool on);
+
 public:
   enum Stage { Attack, Decay, Sustain, Release, Off };
 
-  Envelope(const ADSR &configs);
+  Envelope(ADSR configs);
   EnvelopeLevel update(Duration delta, bool on);
   Stage stage() const { return _stage; }
   bool is_off() const { return _stage == Off; }

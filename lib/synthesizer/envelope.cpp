@@ -60,7 +60,7 @@ EnvelopeLevel Curve::update(Duration delta) {
   return _current;
 }
 
-Envelope::Envelope(const ADSR &configs)
+Envelope::Envelope(ADSR configs)
     : _configs(configs), _current(Curve(EnvelopeLevel(0), EnvelopeLevel(1),
                                         configs.attack, configs.type)),
       _stage(Attack) {}
@@ -92,7 +92,7 @@ Duration Envelope::progress(Duration delta, bool on) {
       _current = Curve(EnvelopeLevel(0));
       _stage = Off;
     case Off:
-      break;
+      return 0_ns;
     }
 
     remained = *dt;
