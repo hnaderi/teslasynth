@@ -70,5 +70,5 @@ public:
   void on_note_off(uint8_t number, uint8_t velocity, Duration time);
   void on_program_change(uint8_t value);
   void on_control_change(uint8_t value);
-  uint16_t render(Pulse *buffer, uint16_t max_size, uint16_t delta);
+  // uint16_t render(Pulse *buffer, uint16_t max_size, uint16_t delta);
 };

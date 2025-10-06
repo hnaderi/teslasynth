@@ -6,40 +6,52 @@
 #include <stdint.h>
 #include <string>
 
-struct Pulse {
-  uint16_t on, off;
-};
-
 class Duration {
   uint32_t _value;
 
-  explicit Duration(uint32_t v) : _value(v) {}
-  explicit Duration(int v) = delete;
   static constexpr uint32_t _coef_micro = 10;
   static constexpr uint32_t _coef_milli = 1000 * _coef_micro;
   static constexpr uint32_t _coef_sec = 1000 * _coef_milli;
 
+  explicit constexpr Duration(uint32_t v) : _value(v) {}
+  explicit Duration(int v) = delete;
+
 public:
-  Duration() : _value(0) {}
-  static Duration nanos(uint32_t v) { return Duration(v / 100); }
-  static Duration micros(uint32_t v) { return Duration(v * _coef_micro); }
-  static Duration millis(uint32_t v) { return Duration(v * _coef_milli); }
-  static Duration seconds(uint32_t v) { return Duration(v * _coef_sec); }
+  constexpr Duration() : _value(0) {}
+
+  static constexpr Duration nanos(uint32_t v) { return Duration(v / 100); }
+  static constexpr Duration micros(uint32_t v) {
+    return Duration(v * _coef_micro);
+  }
+  static constexpr Duration millis(uint32_t v) {
+    return Duration(v * _coef_milli);
+  }
+  static constexpr Duration seconds(uint32_t v) {
+    return Duration(v * _coef_sec);
+  }
   constexpr uint32_t value() const { return _value; }
 
-  Duration operator+(const Duration &b) const {
+  inline static constexpr Duration zero() {
+    return Duration(static_cast<uint32_t>(0));
+  }
+  inline static constexpr Duration max() { return Duration(UINT32_MAX); }
+
+  constexpr Duration operator+(const Duration &b) const {
     return Duration(_value + b._value);
   }
-  std::optional<Duration> operator-(const Duration &b) const {
+  constexpr std::optional<Duration> operator-(const Duration &b) const {
     if (_value >= b._value)
       return Duration(_value - b._value);
     else
       return {};
   }
-  Duration operator*(const int b) const { return Duration(_value * b); }
-  Duration operator*(const float b) const {
+  constexpr Duration operator*(const int b) const {
+    return Duration(_value * b);
+  }
+  constexpr Duration operator*(const float b) const {
     return Duration(static_cast<uint32_t>(_value * b));
   }
+
   Duration &operator+=(const Duration &b) {
     _value += b._value;
     return *this;
@@ -82,16 +94,16 @@ public:
   }
 };
 
-inline Duration operator""_ns(unsigned long long l) {
+inline constexpr Duration operator""_ns(unsigned long long l) {
   return Duration::nanos(static_cast<uint32_t>(l));
 }
-inline Duration operator""_us(unsigned long long l) {
+inline constexpr Duration operator""_us(unsigned long long l) {
   return Duration::micros(static_cast<uint32_t>(l));
 }
-inline Duration operator""_ms(unsigned long long l) {
+inline constexpr Duration operator""_ms(unsigned long long l) {
   return Duration::millis(static_cast<uint32_t>(l));
 }
-inline Duration operator""_s(unsigned long long l) {
+inline constexpr Duration operator""_s(unsigned long long l) {
   return Duration::seconds(static_cast<uint32_t>(l));
 }
 
@@ -100,12 +112,12 @@ class Hertz {
 
 public:
   explicit Hertz(int v) = delete;
-  explicit Hertz(uint32_t v) : value(std::max<uint32_t>(1, v)) {}
-  static Hertz kilohertz(uint32_t v) { return Hertz(v * 1000); }
-  static Hertz megahertz(uint32_t v) { return Hertz(v * 1'000'000); }
+  explicit constexpr Hertz(uint32_t v) : value(std::max<uint32_t>(1, v)) {}
+  static constexpr Hertz kilohertz(uint32_t v) { return Hertz(v * 1000); }
+  static constexpr Hertz megahertz(uint32_t v) { return Hertz(v * 1'000'000); }
 
-  Hertz operator*(const int b) const { return Hertz(value * b); }
-  Hertz operator*(const float b) const {
+  constexpr Hertz operator*(const int b) const { return Hertz(value * b); }
+  constexpr Hertz operator*(const float b) const {
     return Hertz(static_cast<uint32_t>(value * b));
   }
 
@@ -120,12 +132,12 @@ public:
   }
 };
 
-inline Hertz operator""_hz(unsigned long long n) {
+inline constexpr Hertz operator""_hz(unsigned long long n) {
   return Hertz(static_cast<uint32_t>(n));
 }
-inline Hertz operator""_khz(unsigned long long n) {
+inline constexpr Hertz operator""_khz(unsigned long long n) {
   return Hertz::kilohertz(static_cast<uint32_t>(n));
 }
-inline Hertz operator""_mhz(unsigned long long n) {
+inline constexpr Hertz operator""_mhz(unsigned long long n) {
   return Hertz::megahertz(static_cast<uint32_t>(n));
 }

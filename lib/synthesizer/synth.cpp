@@ -19,10 +19,10 @@ void SynthChannel::on_note_off(uint8_t number, uint8_t velocity,
 void SynthChannel::on_program_change(uint8_t value) {}
 void SynthChannel::on_control_change(uint8_t value) {}
 
-uint16_t SynthChannel::render(Pulse *buffer, uint16_t max_size,
-                              uint16_t delta) {
-  NotePulse pulse;
-  auto next = notes.next();
-  next.tick(_config, pulse);
-  return 0;
-}
+// uint16_t SynthChannel::render(Pulse *buffer, uint16_t max_size,
+//                               uint16_t delta) {
+//   NotePulse pulse;
+//   auto next = notes.next();
+//   next.tick(_config, pulse);
+//   return 0;
+// }

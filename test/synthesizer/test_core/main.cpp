@@ -30,6 +30,16 @@ void test_nanoseconds(void) {
 void test_seconds(void) {
   assert_duration_equal(1_s, 1000_ms);
   assert_duration_equal(1_s, 1000000_us);
+  assert_duration_equal(429_s, 429'000'000_us);
+}
+
+void test_duration_constants() {
+  constexpr Duration zero = Duration::zero();
+  constexpr Duration max = Duration::max();
+
+  assert_duration_equal(zero, Duration());
+  assert_duration_equal(zero, 0_ns);
+  TEST_ASSERT_TRUE(max - 429_s < 1_s);
 }
 
 void test_duration_minus(void) {
@@ -56,6 +66,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_seconds);
   RUN_TEST(test_microseconds);
   RUN_TEST(test_nanoseconds);
+  RUN_TEST(test_duration_constants);
   RUN_TEST(test_duration_minus);
   RUN_TEST(test_hertz);
   UNITY_END();
