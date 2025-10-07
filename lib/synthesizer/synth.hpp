@@ -2,6 +2,7 @@
 
 #include "core.hpp"
 #include "envelope.hpp"
+#include "instruments.hpp"
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -19,27 +20,40 @@ struct NotePulse {
   Duration start, off, end;
 };
 
+struct MidiNote {
+  uint8_t number;
+  uint8_t velocity;
+
+  constexpr Hertz frequency(const Config &config) const {
+    return config.a440 * std::exp2f((number - 69) / 12.0f);
+  }
+
+  constexpr EnvelopeLevel volume() const {
+    return EnvelopeLevel(velocity / 127.f);
+  }
+};
+
 class Note {
-  uint8_t _number = 0, _velocity = 0;
-  Duration _on, _release, _now;
-  Envelope _envelope;
-  bool _started = false;
+  Hertz _freq = Hertz(0);
+  Envelope _envelope =
+      Envelope(ADSR{0_ns, 0_ns, EnvelopeLevel(0), 0_ns, CurveType::Lin});
+  NotePulse _pulse;
+  Duration _release, _max_on_time;
   bool _active = false;
   bool _released = false;
 
 public:
-  Note();
-  Note(uint8_t number, uint8_t velocity, Duration time, uint8_t instrument);
-  Note(uint8_t number, uint8_t velocity, Duration time, Envelope env);
+  void start(const MidiNote &mnote, Duration time, const Instrument &instrument,
+             const Config &config);
+  void start(const MidiNote &mnote, Duration time, Envelope env,
+             const Config &config);
   void release(Duration time);
-  bool tick(const Config &config, NotePulse &out);
+
+  bool next();
+  const NotePulse &current() const { return _pulse; }
 
   bool is_active() const { return _active; }
   bool is_released() const { return _released; }
-  bool is_started() const { return _started; }
-  Duration time() const { return _now; }
-  uint8_t number() const { return _number; }
-  uint8_t velocity() const { return _velocity; }
 };
 
 class Notes {
@@ -51,8 +65,8 @@ public:
   Notes(size_t size);
   Notes(const Config &config);
   Note &next();
-  Note &start(uint8_t number, uint8_t velocity, uint8_t instrument,
-              Duration time);
+  Note &start(const MidiNote &mnote, Duration time,
+              const Instrument &instrument);
   void release(uint8_t number, Duration time);
   size_t active() const;
 };

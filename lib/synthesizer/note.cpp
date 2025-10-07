@@ -7,33 +7,37 @@
 #include <cstddef>
 #include <cstdint>
 
-Note::Note()
-    : _envelope(
-          Envelope(ADSR{0_ns, 0_ns, EnvelopeLevel(0), 0_ns, CurveType::Lin})) {}
-Note::Note(uint8_t number, uint8_t velocity, Duration time, Envelope env)
-    : _number(number), _velocity(velocity), _on(time), _now(time),
-      _envelope(env), _started(true), _active(true) {}
-
-Note::Note(uint8_t number, uint8_t velocity, Duration time, uint8_t instrument)
-    : Note(number, velocity, time, instruments[instrument].envelope) {}
+void Note::start(const MidiNote &mnote, Duration time, Envelope env,
+                 const Config &config) {
+  _freq = mnote.frequency(config);
+  _max_on_time = mnote.volume() * config.max_on_time;
+  _envelope = env;
+  _active = true;
+  _pulse.end = time;
+  next();
+}
+void Note::start(const MidiNote &mnote, Duration time,
+                 const Instrument &instrument, const Config &config) {
+  start(mnote, time, instrument.envelope, config);
+}
 
 void Note::release(Duration time) {
   _released = true;
   _release = time;
 }
-bool Note::tick(const Config &config, NotePulse &out) {
+
+bool Note::next() {
   bool active = _active;
   if (_active) {
-    Hertz freq = config.a440 * std::expf((_number - 69) / 12.0f);
-    Duration period = freq.period();
-    Duration level = config.max_on_time * (_velocity / 127.f);
-    Duration duty = std::min(config.max_on_time, level);
+    Duration period = _freq.period();
+    Duration duty = _max_on_time;
 
-    out.start = _now;
-    out.off = _now + duty;
-    out.end = _now + period;
-
-    _now += period;
+    Duration now = _pulse.end;
+    if (_released && (now + period) >= _release)
+      _active = false;
+    _pulse.start = now;
+    _pulse.off = now + duty;
+    _pulse.end = now + period;
   }
   return active;
 }
@@ -54,11 +58,11 @@ size_t Notes::active() const {
 
 Note &Notes::next() {
   auto out = 0;
-  auto min = notes[0].time();
-  for (int i = 1; i < _size; i++) {
+  auto min = notes[0].current().start;
+  for (size_t i = 1; i < _size; i++) {
     if (!notes[i].is_active())
       continue;
-    auto time = notes[i].time();
+    auto time = notes[i].current().start;
     if (time < min) {
       out = i;
       min = time;
@@ -67,16 +71,16 @@ Note &Notes::next() {
   return notes[out];
 }
 
-Note &Notes::start(uint8_t number, uint8_t velocity, uint8_t instrument,
-                   Duration time) {
+Note &Notes::start(const MidiNote &mnote, Duration time,
+                   const Instrument &instrument) {
   size_t idx = 0;
-  for (uint8_t i = 0; i < _size; i++) {
-    if (notes[i].is_active() && notes[i].number() != number)
-      continue;
-    idx = i;
-    break;
-  }
-  notes[idx] = Note(number, velocity, time, instrument);
+  // for (uint8_t i = 0; i < _size; i++) {
+  //   if (notes[i].is_active() && notes[i].number() != number)
+  //     continue;
+  //   idx = i;
+  //   break;
+  // }
+  // notes[idx].start(number, velocity, time, instrument);
   return notes[idx];
 }
 

@@ -12,17 +12,16 @@ class EnvelopeLevel {
   float _value;
 
 public:
-  explicit EnvelopeLevel(float level) {
-    if (level > 1)
-      _value = 1.f;
-    else if (level < 0)
-      _value = 0.f;
-    else
-      _value = level;
-  }
+  constexpr explicit EnvelopeLevel(float level)
+      : _value(level > 1   ? 1.f
+               : level < 0 ? 0.f
+                           : level) {}
 
-  EnvelopeLevel operator+(const EnvelopeLevel &b) const {
+  constexpr EnvelopeLevel operator+(const EnvelopeLevel &b) const {
     return EnvelopeLevel(_value + b._value);
+  }
+  constexpr EnvelopeLevel operator+(float b) const {
+    return EnvelopeLevel(_value + b);
   }
   EnvelopeLevel &operator+=(const EnvelopeLevel &b) {
     if (1.f - _value < b._value)
@@ -31,8 +30,6 @@ public:
       _value += b._value;
     return *this;
   }
-  float operator-(const EnvelopeLevel &b) const { return _value - b._value; }
-  EnvelopeLevel operator+(float b) const { return EnvelopeLevel(_value + b); }
   EnvelopeLevel &operator+=(float b) {
     _value += b;
     if (_value > 1.f)
@@ -41,8 +38,9 @@ public:
       _value = 0.f;
     return *this;
   }
+  float operator-(const EnvelopeLevel &b) const { return _value - b._value; }
 
-  Duration operator*(const Duration &b) const { return b * _value; }
+  constexpr Duration operator*(const Duration &b) const { return b * _value; }
   constexpr bool operator<(const EnvelopeLevel &b) const {
     return _value < b._value;
   }
