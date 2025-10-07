@@ -7,4 +7,6 @@ struct Vibrato {
   Hertz depth = 0_hz;
 
   Hertz offset(const Duration &now);
+
+  constexpr static Vibrato none() { return {}; }
 };

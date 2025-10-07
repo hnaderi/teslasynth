@@ -1,6 +1,7 @@
 #include "core.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
+#include "lfo.hpp"
 #include "synth.hpp"
 #include <algorithm>
 #include <cmath>
@@ -8,18 +9,24 @@
 #include <cstdint>
 
 void Note::start(const MidiNote &mnote, Duration time, Envelope env,
-                 const Config &config) {
+                 Vibrato vibrato, const Config &config) {
   _freq = mnote.frequency(config);
   _max_on_time = mnote.volume() * config.max_on_time;
   _envelope = env;
+  _vibrato = vibrato;
   _active = true;
   _duty = _max_on_time * _envelope.update(0_us, true);
   _pulse.end = time;
   next();
 }
+
+void Note::start(const MidiNote &mnote, Duration time, Envelope env,
+                 const Config &config) {
+  start(mnote, time, env, Vibrato::none(), config);
+}
 void Note::start(const MidiNote &mnote, Duration time,
                  const Instrument &instrument, const Config &config) {
-  start(mnote, time, instrument.envelope, config);
+  start(mnote, time, instrument.envelope, instrument.vibrato, config);
 }
 
 void Note::release(Duration time) {
@@ -31,7 +38,7 @@ bool Note::next() {
   if (_envelope.is_off())
     _active = false;
   if (_active) {
-    Duration period = _freq.period();
+    Duration period = (_freq + _vibrato.offset(now())).period();
     _pulse.start = now();
     _pulse.off = now() + _duty;
     _pulse.end = now() + period;

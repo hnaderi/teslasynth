@@ -3,6 +3,7 @@
 #include "core.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
+#include "lfo.hpp"
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -37,6 +38,7 @@ class Note {
   Hertz _freq = Hertz(0);
   Envelope _envelope =
       Envelope(ADSR{0_ns, 0_ns, EnvelopeLevel(0), 0_ns, CurveType::Lin});
+  Vibrato _vibrato;
   NotePulse _pulse;
   Duration _release, _max_on_time, _duty;
   bool _active = false;
@@ -47,6 +49,8 @@ public:
              const Config &config);
   void start(const MidiNote &mnote, Duration time, Envelope env,
              const Config &config);
+  void start(const MidiNote &mnote, Duration time, Envelope env,
+             Vibrato vibrato, const Config &config);
   void release(Duration time);
 
   bool next();

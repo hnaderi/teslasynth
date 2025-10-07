@@ -1,4 +1,5 @@
 #include "envelope.hpp"
+#include "lfo.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <synth.hpp>
 #include <unity.h>
@@ -138,6 +139,20 @@ void test_note_envelope(void) {
   TEST_ASSERT_FALSE(note.next());
 }
 
+void test_note_vibrato(void) {
+  Vibrato vib{1_hz, 50_hz};
+  note.start(mnote1, 0_us, Envelope(EnvelopeLevel(1)), vib, config);
+  assert_duration_equal(note.now(), 10_ms);
+  for (int i = 0; i < 5000; i++) {
+    auto start = note.current().start;
+    auto freq = 100_hz + vib.offset(start);
+    assert_duration_equal(note.current().off, start + 100_us);
+    assert_duration_equal(note.current().end, start + freq.period());
+
+    note.next();
+  }
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
@@ -148,6 +163,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_note_second_start);
   RUN_TEST(test_note_start_after_release);
   RUN_TEST(test_note_envelope);
+  RUN_TEST(test_note_vibrato);
   UNITY_END();
 }
 
