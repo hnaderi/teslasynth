@@ -1,3 +1,5 @@
 #pragma once
 
-void play();
+#include "freertos/FreeRTOS.h"
+
+void play(StreamBufferHandle_t sbuf);

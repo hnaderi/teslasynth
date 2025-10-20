@@ -1,3 +1,5 @@
 #pragma once
 
-bool ble_begin(const char *deviceName); 
+#include "freertos/FreeRTOS.h"
+
+StreamBufferHandle_t ble_begin(const char *deviceName);

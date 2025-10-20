@@ -12,6 +12,8 @@ static const char *const CHARACTERISTIC_UUID =
 
 static const char *TAG = "BLE_MIDI";
 
+StreamBufferHandle_t sbuf;
+
 class MIDIServerCallbacks : public BLEServerCallbacks {
 public:
   MIDIServerCallbacks() {}
@@ -27,22 +29,31 @@ protected:
 };
 
 class MIDICharacteristicCallbacks : public BLECharacteristicCallbacks {
+
 public:
   MIDICharacteristicCallbacks() {}
 
 protected:
   void onWrite(BLECharacteristic *characteristic, NimBLEConnInfo &connection) {
-    std::string rxValue = characteristic->getValue();
+    auto rxValue = characteristic->getValue();
     if (rxValue.length() > 0) {
-      ESP_LOGI(TAG, "Received:");
-      ESP_LOG_BUFFER_HEX_LEVEL(TAG, rxValue.data(), rxValue.length(),
-                               ESP_LOG_INFO);
+      if (xStreamBufferSend(sbuf, rxValue.begin(), rxValue.length(), 0) !=
+          rxValue.length()) {
+        ESP_LOGE(TAG, "Couldn't write all the data!");
+        // TODO
+      }
     }
   }
 };
 
-bool ble_begin(const char *deviceName) {
+StreamBufferHandle_t ble_begin(const char *deviceName) {
   BLEDevice::init(deviceName);
+
+  sbuf = xStreamBufferCreate(256, 1);
+  if (sbuf == NULL) {
+    ESP_LOGE(TAG, "Couldn't allocate BLE stream buffer!");
+    return sbuf;
+  }
 
   /**
    * Set the IO capabilities of the device, each option will trigger a different
@@ -60,12 +71,12 @@ bool ble_begin(const char *deviceName) {
    *
    *  These are the default values, only shown here for demonstration.
    */
-  // NimBLEDevice::setSecurityAuth(false, false, true);
+  NimBLEDevice::setSecurityAuth(false, false, true);
 
   //    NimBLEDevice::setSecurityAuth(/*BLE_SM_PAIR_AUTHREQ_BOND |
   //    BLE_SM_PAIR_AUTHREQ_MITM |*/ BLE_SM_PAIR_AUTHREQ_SC);
 
-  NimBLEDevice::setSecurityAuth(true, false, false);
+  // NimBLEDevice::setSecurityAuth(true, false, false);
 
   auto _server = BLEDevice::createServer();
   _server->setCallbacks(new MIDIServerCallbacks());
@@ -92,5 +103,5 @@ bool ble_begin(const char *deviceName) {
   _advertising->setName(deviceName);
   _advertising->start();
 
-  return true;
+  return sbuf;
 }
