@@ -10,6 +10,8 @@
 
 void Note::start(const MidiNote &mnote, Duration time, Envelope env,
                  Vibrato vibrato, const Config &config) {
+  if (_active && mnote.velocity == 0)
+    return release(time);
   _freq = mnote.frequency(config);
   _max_on_time = mnote.volume() * config.max_on_time;
   _envelope = env;
@@ -33,6 +35,8 @@ void Note::release(Duration time) {
   _released = true;
   _release = time;
 }
+
+void Note::off() { _active = false; }
 
 bool Note::next() {
   if (_envelope.is_off())
@@ -98,4 +102,9 @@ void Notes::release(uint8_t number, Duration time) {
       return;
     }
   }
+}
+
+void Notes::off() {
+  for (uint8_t i = 0; i < _size; i++)
+    _notes[i].off();
 }

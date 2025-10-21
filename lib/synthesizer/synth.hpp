@@ -59,8 +59,11 @@ public:
              Vibrato vibrato, const Config &config);
   void release(Duration time);
 
+  void off();
+
   bool next();
   const NotePulse &current() const { return _pulse; }
+
 
   bool is_active() const { return _active; }
   bool is_released() const { return _released; }
@@ -80,6 +83,7 @@ public:
   Note &start(const MidiNote &mnote, Duration time,
               const Instrument &instrument, const Config &config);
   void release(uint8_t number, Duration time);
+  void off();
 
   Note &next();
 

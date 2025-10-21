@@ -111,6 +111,17 @@ void test_should_release_note(void) {
   TEST_ASSERT_TRUE(note.is_released());
 }
 
+void test_should_release_note_on_start_with_zero_velocity(void) {
+  Notes notes;
+  auto mnote = mnotef(1);
+  assert_note(notes, mnote, 200_ms);
+  Note &note = notes.next();
+  TEST_ASSERT_FALSE(note.is_released());
+  notes.start({mnote.number, 0}, 3000_ms, instrument, config);
+  note = notes.next();
+  TEST_ASSERT_TRUE(note.is_released());
+}
+
 void test_should_not_release_other_notes(void) {
   Notes notes;
   assert_note(notes, mnotef(0), 100_ms);
@@ -132,6 +143,17 @@ void test_should_allow_the_minimum_size_of_one(void) {
   assert_hertz_equal(note.frequency(), mnotef(1).frequency(config));
 }
 
+void test_off(void) {
+  Notes notes;
+  assert_note(notes, mnotef(0), 200_ms);
+  assert_note(notes, mnotef(1), 200_ms);
+  TEST_ASSERT_EQUAL(2, notes.active());
+  notes.off();
+  TEST_ASSERT_EQUAL(0, notes.active());
+  Note &note = notes.next();
+  TEST_ASSERT_FALSE(note.is_active());
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
@@ -141,8 +163,10 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_return_the_note_with_least_time);
   RUN_TEST(test_should_return_the_note_with_least_time_after_tick);
   RUN_TEST(test_should_release_note);
+  RUN_TEST(test_should_release_note_on_start_with_zero_velocity);
   RUN_TEST(test_should_not_release_other_notes);
   RUN_TEST(test_should_allow_the_minimum_size_of_one);
+  RUN_TEST(test_off);
 
   UNITY_END();
 }

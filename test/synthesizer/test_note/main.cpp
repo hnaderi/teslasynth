@@ -85,6 +85,29 @@ void test_note_release(void) {
   assert_duration_equal(note.current().end, 30100_us);
 }
 
+void test_note_release_with_zero_velocity(void) {
+  note.start({mnote1.number, 0}, 30000_us, envelope, config);
+
+  TEST_ASSERT_TRUE(note.is_active());
+  TEST_ASSERT_TRUE(note.is_released());
+  TEST_ASSERT_TRUE(note.next());
+  TEST_ASSERT_TRUE(note.next());
+
+  TEST_ASSERT_FALSE(note.next());
+  TEST_ASSERT_FALSE(note.is_active());
+  TEST_ASSERT_TRUE(note.is_released());
+  assert_duration_equal(note.current().start, 20100_us);
+  assert_duration_equal(note.current().off, 20200_us);
+  assert_duration_equal(note.current().end, 30100_us);
+
+  TEST_ASSERT_FALSE(note.next());
+  TEST_ASSERT_FALSE(note.is_active());
+  TEST_ASSERT_TRUE(note.is_released());
+  assert_duration_equal(note.current().start, 20100_us);
+  assert_duration_equal(note.current().off, 20200_us);
+  assert_duration_equal(note.current().end, 30100_us);
+}
+
 void test_note_second_start(void) {
   note.next();
   assert_duration_equal(note.current().start, 10100_us);
@@ -159,6 +182,11 @@ void test_note_vibrato(void) {
   }
 }
 
+void test_off(void) {
+  note.off();
+  TEST_ASSERT_FALSE(note.is_active());
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
@@ -167,10 +195,12 @@ extern "C" void app_main(void) {
   RUN_TEST(test_started_note_initial_time);
   RUN_TEST(test_note_next);
   RUN_TEST(test_note_release);
+  RUN_TEST(test_note_release_with_zero_velocity);
   RUN_TEST(test_note_second_start);
   RUN_TEST(test_note_start_after_release);
   RUN_TEST(test_note_envelope);
   RUN_TEST(test_note_vibrato);
+  RUN_TEST(test_off);
   UNITY_END();
 }
 
