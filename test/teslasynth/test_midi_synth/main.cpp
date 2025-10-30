@@ -4,9 +4,9 @@
 #include "lfo.hpp"
 #include "midi_core.hpp"
 #include "midi_synth.hpp"
+#include "notes.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cstdint>
-#include "notes.hpp"
 #include <unity.h>
 #include <vector>
 
@@ -33,9 +33,12 @@ public:
     Duration time;
   };
 
+  struct Off {};
+
 private:
   std::vector<Started> started_;
   std::vector<Released> released_;
+  std::vector<Off> offs_;
 
 public:
   Note &start(const MidiNote &mnote, Duration time,
@@ -46,9 +49,11 @@ public:
   void release(uint8_t number, Duration time) {
     released_.push_back({number, time});
   }
+  void off() { offs_.push_back({}); }
 
   const std::vector<Started> started() const { return started_; }
   const std::vector<Released> released() const { return released_; }
+  const std::vector<Off> turned_off() const { return offs_; }
 };
 
 void test_empty(void) {
@@ -103,12 +108,38 @@ void test_should_handle_instrument_change(void) {
   }
 }
 
+void test_should_handle_all_note_off(void) {
+  for (auto c = 0; c < 16; c++) {
+    FakeNotes notes;
+    SynthChannel channel(config, notes);
+    TEST_ASSERT_EQUAL(0, notes.turned_off().size());
+    channel.handle(
+        MidiChannelMessage::control_change(c, ControlChange::ALL_NOTES_OFF, 0),
+        10_ms);
+    TEST_ASSERT_EQUAL(1, notes.turned_off().size());
+  }
+}
+
+void test_should_handle_all_sound_off(void) {
+  for (auto c = 0; c < 16; c++) {
+    FakeNotes notes;
+    SynthChannel channel(config, notes);
+    TEST_ASSERT_EQUAL(0, notes.turned_off().size());
+    channel.handle(
+        MidiChannelMessage::control_change(c, ControlChange::ALL_SOUND_OFF, 0),
+        10_ms);
+    TEST_ASSERT_EQUAL(1, notes.turned_off().size());
+  }
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
   RUN_TEST(test_should_handle_note_on);
   RUN_TEST(test_should_handle_note_off);
   RUN_TEST(test_should_handle_instrument_change);
+  RUN_TEST(test_should_handle_all_note_off);
+  RUN_TEST(test_should_handle_all_sound_off);
 
   UNITY_END();
 }

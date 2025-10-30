@@ -2,6 +2,7 @@
 
 #include "../midi/midi_core.hpp"
 #include "../synthesizer/notes.hpp"
+#include "core.hpp"
 #include <cstdint>
 
 template <class N = Notes> class SynthChannel {
@@ -31,6 +32,14 @@ public:
     case MidiMessageType::AfterTouchPoly:
       break;
     case MidiMessageType::ControlChange:
+      switch (static_cast<ControlChange>(msg.data0.value)) {
+      case ControlChange::ALL_SOUND_OFF:
+      case ControlChange::ALL_NOTES_OFF:
+        _notes.off();
+        break;
+      default:
+        break;
+      }
       break;
     case MidiMessageType::ProgramChange:
       _instrument = msg.data0;

@@ -77,6 +77,21 @@ void midi_status_system_realtime(void) {
   }
 }
 
+void midi_channel_mode_control(void) {
+  for (int i = 0; i < 16; i++) {
+    for (int c = 120; c < 128; c++) {
+      MidiChannelMessage msg{
+          .type = MidiMessageType::ControlChange,
+          .channel = i,
+          .data0 = c,
+          .data1 = 0,
+      };
+      TEST_ASSERT_TRUE(msg.is_control());
+      TEST_ASSERT_TRUE(msg.is_channel_mode_control());
+    }
+  }
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(print_sizes_midi);
@@ -86,6 +101,7 @@ extern "C" void app_main(void) {
   RUN_TEST(midi_status_channel);
   RUN_TEST(midi_status_system);
   RUN_TEST(midi_status_system_realtime);
+  RUN_TEST(midi_channel_mode_control);
   UNITY_END();
 }
 
