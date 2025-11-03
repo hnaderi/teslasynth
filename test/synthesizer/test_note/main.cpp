@@ -226,20 +226,24 @@ void test_note_envelope_constant(void) {
     note.start(mnote1, 100_ms, envelope, config);
     note.release(490_ms + Duration::millis(n));
 
-    // Let's fast forward to 500ms (sustain)
+    Duration duty = 10_us * n;
+
     for (int i = 0; note.now() < 500_ms; i++) {
       Duration time = 100_ms + 10_ms * i;
       assert_duration_equal(note.current().start, time);
-      assert_duration_equal(note.current().duty, 10_us * n);
+      assert_duration_equal(note.current().duty, duty);
       assert_duration_equal(note.current().period, 10_ms);
-      std::cout << std::string(note.current()) << std::endl;
       TEST_ASSERT_TRUE(note.next());
     }
 
-    // Now we're at 500ms and on sustain
     assert_duration_equal(note.now(), 500_ms);
 
-    TEST_ASSERT_FALSE(note.next());
+    for (int i = 0; i < 10; i++) {
+      TEST_ASSERT_FALSE(note.next());
+      assert_duration_equal(note.current().start, 490_ms);
+      assert_duration_equal(note.current().duty, duty);
+      assert_duration_equal(note.current().period, 10_ms);
+    }
   }
 }
 

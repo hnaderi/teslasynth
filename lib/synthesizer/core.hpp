@@ -7,28 +7,28 @@
 #include <string>
 
 class Duration {
-  uint32_t _value;
+  uint64_t _value;
 
-  static constexpr uint32_t _coef_micro = 10;
-  static constexpr uint32_t _coef_milli = 1000 * _coef_micro;
-  static constexpr uint32_t _coef_sec = 1000 * _coef_milli;
+  static constexpr uint64_t _coef_micro = 10;
+  static constexpr uint64_t _coef_milli = 1000 * _coef_micro;
+  static constexpr uint64_t _coef_sec = 1000 * _coef_milli;
 
-  explicit constexpr Duration(uint32_t v) : _value(v) {}
+  explicit constexpr Duration(uint64_t v) : _value(v) {}
   explicit Duration(int v) = delete;
 
 public:
   constexpr Duration() : _value(0) {}
 
-  static constexpr Duration nanos(uint32_t v) {
+  static constexpr Duration nanos(uint64_t v) {
     return Duration(v / (1000 / _coef_micro));
   }
-  static constexpr Duration micros(uint32_t v) {
+  static constexpr Duration micros(uint64_t v) {
     return Duration(v * _coef_micro);
   }
-  static constexpr Duration millis(uint32_t v) {
+  static constexpr Duration millis(uint64_t v) {
     return Duration(v * _coef_milli);
   }
-  static constexpr Duration seconds(uint32_t v) {
+  static constexpr Duration seconds(uint64_t v) {
     return Duration(v * _coef_sec);
   }
   constexpr uint32_t value() const { return _value; }
@@ -44,9 +44,9 @@ public:
   }
 
   inline static constexpr Duration zero() {
-    return Duration(static_cast<uint32_t>(0));
+    return Duration(static_cast<uint64_t>(0));
   }
-  inline static constexpr Duration max() { return Duration(UINT32_MAX); }
+  inline static constexpr Duration max() { return Duration(UINT64_MAX); }
 
   constexpr Duration operator+(const Duration &b) const {
     return Duration(_value + b._value);
@@ -61,7 +61,7 @@ public:
     return Duration(_value * b);
   }
   constexpr Duration operator*(const float b) const {
-    return Duration(static_cast<uint32_t>(_value * b));
+    return Duration(static_cast<uint64_t>(_value * b));
   }
 
   Duration &operator+=(const Duration &b) {
@@ -107,16 +107,16 @@ public:
 };
 
 inline constexpr Duration operator""_ns(unsigned long long l) {
-  return Duration::nanos(static_cast<uint32_t>(l));
+  return Duration::nanos(static_cast<uint64_t>(l));
 }
 inline constexpr Duration operator""_us(unsigned long long l) {
-  return Duration::micros(static_cast<uint32_t>(l));
+  return Duration::micros(static_cast<uint64_t>(l));
 }
 inline constexpr Duration operator""_ms(unsigned long long l) {
-  return Duration::millis(static_cast<uint32_t>(l));
+  return Duration::millis(static_cast<uint64_t>(l));
 }
 inline constexpr Duration operator""_s(unsigned long long l) {
-  return Duration::seconds(static_cast<uint32_t>(l));
+  return Duration::seconds(static_cast<uint64_t>(l));
 }
 
 class Hertz {

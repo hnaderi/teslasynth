@@ -19,6 +19,7 @@ const Config config{
 QueueHandle_t xQueue;
 const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
 Notes notes;
+TrackState track;
 SemaphoreHandle_t xNotesMutex;
 
 static const char *TAG = "APP";
@@ -42,27 +43,37 @@ void parser(void *pvParams) {
 }
 
 void synth(void *pvParams) {
-  SynthChannel ch(config, notes);
+  SynthChannel ch(config, notes, track);
   MidiChannelMessage msg;
-  int64_t time = esp_timer_get_time();
   while (true) {
     BaseType_t status = xQueueReceive(xQueue, &msg, xTicksToWait);
-    int64_t now = esp_timer_get_time();
-    Duration delta = Duration::micros(now - time);
+
+    // TODO duration overflows now
+    Duration now = Duration::micros(esp_timer_get_time());
 
     if (status) {
-      ESP_LOGI(TAG, "Received: %s", std::string(msg).c_str());
+      ESP_LOGI(TAG, "Received: %s at %s", std::string(msg).c_str(),
+               std::string(now).c_str());
       xSemaphoreTake(xNotesMutex, portMAX_DELAY);
-      ch.handle(msg, delta);
+      ch.handle(msg, now);
       xSemaphoreGive(xNotesMutex);
     }
   }
 }
 
 void render(void *pvParams) {
-  Sequencer<> seq(config, notes);
-  constexpr TickType_t prefillTime = pdMS_TO_TICKS(100),
-                       loopTime = pdMS_TO_TICKS(10);
+  // NotePulse pulses[] = {
+  //     {0_ms, 250_us, 1_ms}, {0_ms, 0_us, 1_ms},   {0_ms, 400_us, 1_ms},
+  //     {0_ms, 100_us, 1_ms}, {0_ms, 100_us, 6_ms},
+  // };
+  // while (true) {
+  //   vTaskDelay(pdMS_TO_TICKS(10));
+  //   pulse_write(pulses, 5);
+  // }
+
+  Sequencer<> seq(config, notes, track);
+  constexpr TickType_t prefillTime = pdMS_TO_TICKS(10),
+                       loopTime = pdMS_TO_TICKS(5);
   constexpr size_t BUFFER_SIZE = 20;
   vTaskDelay(prefillTime);
 
@@ -71,21 +82,32 @@ void render(void *pvParams) {
 
   while (true) {
     vTaskDelay(loopTime);
-    int64_t now = esp_timer_get_time();
-
     xSemaphoreTake(xNotesMutex, portMAX_DELAY);
+
+    int64_t now = esp_timer_get_time();
     for (size_t i = 0; processed < now; i++) {
       auto left = Duration::micros(now - processed);
       buffer[i] = seq.sample(left);
-      processed += buffer[i].period.micros<uint32_t>();
-      ESP_LOGI(TAG, "PULSE: %s, left: %u", std::string(buffer[i]).c_str(),
-               left.micros<uint32_t>());
+      processed += buffer[i].period.micros<uint64_t>();
       if (i == BUFFER_SIZE || processed >= now) {
-        ESP_LOGI(TAG, "Writting rmt buffer, %u p:%u", i + 1, processed);
         pulse_write(buffer, i + 1);
         i = 0;
       }
     }
+    xSemaphoreGive(xNotesMutex);
+  }
+}
+
+void debug_log(void *) {
+  while (true) {
+    vTaskDelay(pdMS_TO_TICKS(100));
+    xSemaphoreTake(xNotesMutex, portMAX_DELAY);
+    auto now = *(Duration::micros(esp_timer_get_time()) - track.started_time());
+    ESP_LOGI(TAG, "Started: %s, recv: %s, play: %s, now: %s",
+             std::string(track.started_time()).c_str(),
+             std::string(track.received_time()).c_str(),
+             std::string(track.played_time()).c_str(),
+             std::string(now).c_str());
     xSemaphoreGive(xNotesMutex);
   }
 }
@@ -99,4 +121,5 @@ void play(StreamBufferHandle_t sbuf) {
   xTaskCreatePinnedToCore(parser, "Parser", 8 * 1024, sbuf, 1, NULL, 1);
   xTaskCreatePinnedToCore(synth, "Synth", 8 * 1024, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(render, "Render", 8 * 1024, NULL, 1, NULL, 1);
+  // xTaskCreatePinnedToCore(debug_log, "Debug", 8 * 1024, NULL, 1, NULL, 1);
 }

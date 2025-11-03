@@ -40,7 +40,10 @@ void test_duration_constants() {
 
   assert_duration_equal(zero, Duration());
   assert_duration_equal(zero, 0_ns);
-  TEST_ASSERT_TRUE(max - 429_s < 1_s);
+
+  // Max time is more than 50 years...
+  TEST_ASSERT_TRUE(max > 3600_s * 24 * 365 * 50);
+  TEST_ASSERT_EQUAL(sizeof(uint64_t), sizeof(Duration));
 }
 
 void test_duration_arithmetics() {

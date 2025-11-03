@@ -80,8 +80,8 @@ size_t Notes::active() const {
 
 Note &Notes::next() {
   auto out = 0;
-  auto min = _notes[0].current().start;
-  for (size_t i = 1; i < _size; i++) {
+  auto min = Duration::max();
+  for (size_t i = 0; i < _size; i++) {
     if (!_notes[i].is_active())
       continue;
     auto time = _notes[i].current().start;

@@ -58,17 +58,21 @@ public:
 
 void test_empty(void) {
   FakeNotes notes;
-  SynthChannel channel(config, notes);
+  TrackState track;
+  SynthChannel channel(config, notes, track);
   TEST_ASSERT_EQUAL(0, channel.instrument_number());
+  TEST_ASSERT_FALSE(track.is_playing());
 }
 
 void test_should_handle_note_on(void) {
   FakeNotes notes;
-  SynthChannel channel(config, notes);
+  TrackState track;
+  SynthChannel channel(config, notes, track);
   for (auto i = 0; i < 10; i++) {
     const Duration now = 10_ms * i;
     channel.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), now);
 
+    TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, notes.started().size());
     assert_duration_equal(notes.started().back().time, now);
     TEST_ASSERT_EQUAL(69 + i, notes.started().back().mnote.number);
@@ -79,11 +83,13 @@ void test_should_handle_note_on(void) {
 
 void test_should_handle_note_off(void) {
   FakeNotes notes;
-  SynthChannel channel(config, notes);
+  TrackState track;
+  SynthChannel channel(config, notes, track);
   for (auto i = 0; i < 10; i++) {
     const auto now = 10_ms * i;
     channel.handle(MidiChannelMessage::note_off(0, 69 + i, 10 * i), now);
 
+    TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, notes.released().size());
     assert_duration_equal(notes.released().back().time, now);
     TEST_ASSERT_EQUAL(69 + i, notes.released().back().mnote);
@@ -94,42 +100,55 @@ void test_should_handle_instrument_change(void) {
   constexpr auto N = 10;
   FakeNotes notes;
   Instrument instruments[N];
-  SynthChannel channel(config, notes, instruments, N);
+  TrackState track;
+  SynthChannel channel(config, notes, track, instruments, N);
   for (auto i = 0; i < N; i++) {
     instruments[i] = instrument(i);
 
     channel.handle(MidiChannelMessage::program_change(0, i), 10_ms);
     TEST_ASSERT_EQUAL(i, channel.instrument_number());
+    TEST_ASSERT_TRUE(track.is_playing());
 
     channel.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), 0_ms);
 
+    TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, notes.started().size());
     assert_instrument_equal(notes.started().back().instrument, instrument(i));
   }
 }
 
-void test_should_handle_all_note_off(void) {
-  for (auto c = 0; c < 16; c++) {
-    FakeNotes notes;
-    SynthChannel channel(config, notes);
-    TEST_ASSERT_EQUAL(0, notes.turned_off().size());
-    channel.handle(
-        MidiChannelMessage::control_change(c, ControlChange::ALL_NOTES_OFF, 0),
-        10_ms);
-    TEST_ASSERT_EQUAL(1, notes.turned_off().size());
+void test_should_turnoff_when_needed(void) {
+  const std::vector<ControlChange> cc_event_types{
+      ControlChange::ALL_SOUND_OFF,
+      ControlChange::ALL_NOTES_OFF,
+      ControlChange::RESET_ALL_CONTROLLERS,
+  };
+  for (auto cc : cc_event_types) {
+    for (auto ch = 0; ch < 16; ch++) {
+      FakeNotes notes;
+      TrackState track;
+      SynthChannel channel(config, notes, track);
+      TEST_ASSERT_EQUAL(0, notes.turned_off().size());
+      channel.handle(MidiChannelMessage::control_change(ch, cc, 0), 10_ms);
+      TEST_ASSERT_EQUAL(1, notes.turned_off().size());
+      TEST_ASSERT_FALSE(track.is_playing());
+    }
   }
 }
 
-void test_should_handle_all_sound_off(void) {
-  for (auto c = 0; c < 16; c++) {
-    FakeNotes notes;
-    SynthChannel channel(config, notes);
-    TEST_ASSERT_EQUAL(0, notes.turned_off().size());
-    channel.handle(
-        MidiChannelMessage::control_change(c, ControlChange::ALL_SOUND_OFF, 0),
-        10_ms);
-    TEST_ASSERT_EQUAL(1, notes.turned_off().size());
-  }
+void test_should_start_playing_the_first_message(void) {
+  FakeNotes notes;
+  TrackState track;
+  SynthChannel channel(config, notes, track);
+  TEST_ASSERT_FALSE(track.is_playing());
+  channel.handle(MidiChannelMessage::note_on(0, 69, 127), 100_s);
+
+  TEST_ASSERT_TRUE(track.is_playing());
+  TEST_ASSERT_EQUAL(1, notes.started().size());
+  assert_duration_equal(notes.started().back().time, Duration::zero());
+  TEST_ASSERT_EQUAL(69, notes.started().back().mnote.number);
+  TEST_ASSERT_EQUAL(127, notes.started().back().mnote.velocity);
+  TEST_ASSERT_TRUE(notes.started().back().instrument == default_instrument());
 }
 
 extern "C" void app_main(void) {
@@ -138,8 +157,8 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_handle_note_on);
   RUN_TEST(test_should_handle_note_off);
   RUN_TEST(test_should_handle_instrument_change);
-  RUN_TEST(test_should_handle_all_note_off);
-  RUN_TEST(test_should_handle_all_sound_off);
+  RUN_TEST(test_should_turnoff_when_needed);
+  RUN_TEST(test_should_start_playing_the_first_message);
 
   UNITY_END();
 }

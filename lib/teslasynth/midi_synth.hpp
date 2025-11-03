@@ -5,36 +5,94 @@
 #include "core.hpp"
 #include <cstdint>
 
-template <class N = Notes> class SynthChannel {
+class TrackState {
+  Duration _started, _received, _played;
+  bool _playing = false;
+
+public:
+  constexpr bool is_playing() const { return _playing; }
+  constexpr Duration received_time() const { return _received; }
+  constexpr Duration started_time() const { return _started; }
+  constexpr Duration played_time() const { return _played; }
+
+  /**
+   * Stops and resets both track's clocks
+   */
+  void stop() {
+    _playing = false;
+    _started = _received = _played = Duration::zero();
+  }
+
+  /**
+   * Advances the receive clock, starts playing if not already playing
+   *
+   * @param time Absolute current time
+   * @return the absolute time of relative to track start time
+   */
+  Duration on_receive(Duration time) {
+    if (!_playing) {
+      _playing = true;
+      _started = time;
+    }
+
+    if (auto d = time - _started) {
+      _received = *d;
+      return _received;
+    }
+    return Duration::zero();
+  }
+
+  /**
+   * Advances the playback clock if the track is already playing
+   *
+   * @param delta The time to add to the current clock
+   * @return the amount of time that added to the clock
+   */
+  Duration on_play(Duration delta) {
+    if (!_playing) {
+      return Duration::zero();
+    }
+
+    _played += delta;
+    return delta;
+  }
+};
+
+template <class N = Notes, class TR = TrackState> class SynthChannel {
   uint8_t _instrument = 0;
   N &_notes;
+  TR &_track;
   const Config &_config;
   const Instrument *_instruments;
   const size_t _instruments_size;
 
 public:
-  SynthChannel(const Config &config, N &notes, const Instrument *instruments,
-               size_t instruments_size)
-      : _notes(notes), _config(config), _instruments(instruments),
-        _instruments_size(instruments_size) {}
+  SynthChannel(const Config &config, N &notes, TR &track,
+               const Instrument *instruments, size_t instruments_size)
+      : _notes(notes), _track(track), _config(config),
+        _instruments(instruments), _instruments_size(instruments_size) {}
 
-  SynthChannel(const Config &config, N &notes)
-      : SynthChannel(config, notes, NULL, 0) {}
+  SynthChannel(const Config &config, N &notes, TR &track)
+      : SynthChannel(config, notes, track, NULL, 0) {}
 
   void handle(MidiChannelMessage msg, Duration time) {
+    Duration delta = _track.on_receive(time);
+
     switch (msg.type) {
     case MidiMessageType::NoteOff:
-      _notes.release(msg.data0, time);
+      _notes.release(msg.data0, delta);
       break;
     case MidiMessageType::NoteOn:
-      _notes.start({msg.data0, msg.data1}, time, instrument(), _config);
+      _notes.start({msg.data0, msg.data1}, delta, instrument(), _config);
       break;
     case MidiMessageType::AfterTouchPoly:
       break;
     case MidiMessageType::ControlChange:
       switch (static_cast<ControlChange>(msg.data0.value)) {
       case ControlChange::ALL_SOUND_OFF:
+      case ControlChange::RESET_ALL_CONTROLLERS:
       case ControlChange::ALL_NOTES_OFF:
+        _track.stop();
         _notes.off();
         break;
       default:
@@ -51,7 +109,7 @@ public:
     }
   }
 
-  uint8_t instrument_number() const { return _instrument; }
+  constexpr uint8_t instrument_number() const { return _instrument; }
 
   inline const Instrument &instrument() const {
     return _instrument < _instruments_size ? _instruments[_instrument]
@@ -59,40 +117,39 @@ public:
   }
 };
 
-template <class N = Notes> class Sequencer {
-  Duration clock_ = Duration::zero();
+template <class N = Notes, class TR = TrackState> class Sequencer {
   const Config &config_;
   N &notes_;
+  TrackState &track_;
 
 public:
-  Sequencer(const Config &config, N &notes) : config_(config), notes_(notes) {}
-
-  constexpr Duration clock() const { return clock_; }
+  Sequencer(const Config &config, N &notes, TR &track)
+      : config_(config), notes_(notes), track_(track) {}
 
   NotePulse sample(Duration max) {
     NotePulse res;
-    res.start = clock_;
+    res.start = track_.played_time();
 
     Note *note = &notes_.next();
     Duration next_edge = note->current().start;
-    while (next_edge < clock_ && note->is_active()) {
+    while (next_edge < track_.played_time() && note->is_active()) {
       note->next();
       note = &notes_.next();
       next_edge = note->current().start;
     }
 
-    Duration target = clock_ + max;
-    if (!note->is_active() || next_edge > target) {
+    Duration target = track_.played_time() + max;
+    if (!note->is_active() || next_edge > target || !track_.is_playing()) {
       res.period = max;
-      clock_ = target;
-    } else if (next_edge == clock_) {
+      track_.on_play(max);
+    } else if (next_edge == track_.played_time()) {
       res = note->current();
       note->next();
       res.period = res.duty + config_.min_deadtime;
-      clock_ += res.period;
-    } else if (next_edge < target && next_edge > clock_) {
-      res.period = *(next_edge - clock_);
-      clock_ = next_edge;
+      track_.on_play(res.period);
+    } else if (next_edge <= target && next_edge >= track_.played_time()) {
+      res.period = *(next_edge - track_.played_time());
+      track_.on_play(res.period);
     }
     return res;
   }

@@ -18,14 +18,16 @@
 static const char *TAG = "RMT-DRIVER";
 
 void symbol_for_idx(NotePulse const *current, rmt_symbol_word_t *symbol) {
-  if (current->is_zero())
+  if (current->is_zero()) {
+    uint16_t d0 = current->period.micros<uint16_t>() / 2,
+             d1 = current->period.micros<uint16_t>() - d0;
     *symbol = {
-        .duration0 = current->period.micros<uint16_t>(),
+        .duration0 = d0,
         .level0 = 0,
-        .duration1 = 0,
+        .duration1 = d1,
         .level1 = 0,
     };
-  else {
+  } else {
     *symbol = {
         .duration0 = current->duty.micros<uint16_t>(),
         .level0 = 1,
@@ -69,17 +71,25 @@ constexpr rmt_transmit_config_t tx_config = {
             .queue_nonblocking = 0,
         },
 };
+constexpr rmt_tx_channel_config_t tx_chan_config = {
+    .gpio_num = RMT_BUZZER_GPIO_NUM,
+    .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
+    .resolution_hz = RMT_BUZZER_RESOLUTION_HZ,
+    .mem_block_symbols = 64,
+    .trans_queue_depth = 10, // set the maximum number of transactions that
+                             // can pend in the background
+    .flags =
+        {
+            .invert_out = false,
+            .with_dma = false,
+            .io_loop_back = false,
+            .io_od_mode = false,
+            .allow_pd = false,
+        },
+};
 
 void rmt_driver(void) {
   ESP_LOGI(TAG, "Create RMT TX channel");
-  rmt_tx_channel_config_t tx_chan_config = {
-      .gpio_num = RMT_BUZZER_GPIO_NUM,
-      .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
-      .resolution_hz = RMT_BUZZER_RESOLUTION_HZ,
-      .mem_block_symbols = 64,
-      .trans_queue_depth = 10, // set the maximum number of transactions that
-                               // can pend in the background
-  };
   ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_config, &audio_chan));
 
   ESP_LOGI(TAG, "Install RMT encoder");

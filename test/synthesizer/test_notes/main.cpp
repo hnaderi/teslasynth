@@ -2,10 +2,11 @@
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
+#include "notes.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cstddef>
 #include <cstdint>
-#include "notes.hpp"
+#include <iostream>
 #include <unity.h>
 
 Config config{.a440 = 100_hz};
@@ -154,6 +155,45 @@ void test_off(void) {
   TEST_ASSERT_FALSE(note.is_active());
 }
 
+void test_should_return_the_note_with_least_time2(void) {
+  Notes notes;
+  Note *note1 = &notes.start(mnotef(1), 200_us, instrument, config),
+       *note2 = &notes.start(mnotef(2), 1_s, instrument, config),
+       *note3 = &notes.start(mnotef(3), 2_s, instrument, config);
+  notes.release(mnotef(1), 1_s);
+  notes.release(mnotef(2), 2_s);
+  notes.release(mnotef(3), 3_s);
+
+  TEST_ASSERT_EQUAL(3, notes.active());
+  Note *note = &notes.next();
+  TEST_ASSERT_EQUAL(note1, note);
+
+  while (note->is_active()) {
+    assert_hertz_equal(note->frequency(), mnotef(1).frequency(config));
+    note->next();
+  }
+  TEST_ASSERT_FALSE(note1->is_active());
+
+  note->next();
+  note = &notes.next();
+  TEST_ASSERT_EQUAL(note2, note);
+  TEST_ASSERT_EQUAL(2, notes.active());
+  while (note->is_active()) {
+    assert_hertz_equal(note->frequency(), mnotef(2).frequency(config));
+    note->next();
+  }
+
+  note->next();
+  note = &notes.next();
+  TEST_ASSERT_EQUAL(note3, note);
+  TEST_ASSERT_EQUAL(1, notes.active());
+  while (note->is_active()) {
+    assert_hertz_equal(note->frequency(), mnotef(3).frequency(config));
+    note->next();
+  }
+  TEST_ASSERT_EQUAL(0, notes.active());
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
@@ -167,6 +207,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_not_release_other_notes);
   RUN_TEST(test_should_allow_the_minimum_size_of_one);
   RUN_TEST(test_off);
+  RUN_TEST(test_should_return_the_note_with_least_time2);
 
   UNITY_END();
 }
