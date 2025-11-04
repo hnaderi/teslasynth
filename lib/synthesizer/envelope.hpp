@@ -78,7 +78,7 @@ struct ADSR {
   enum CurveType type = CurveType::Const;
 
   constexpr static ADSR constant(EnvelopeLevel level) {
-    return {0_ns, 0_ns, level, 0_ns, Const};
+    return {0_us, 0_us, level, 0_us, Const};
   }
   constexpr static ADSR linear(Duration attack, Duration decay,
                                EnvelopeLevel sustain, Duration release) {

@@ -116,10 +116,10 @@ void test_curve_lin_negative2(void) {
 void test_curve_lin_negative_small(void) {
   Curve curve =
       Curve(EnvelopeLevel(1), EnvelopeLevel(0.65), 10_ms, CurveType::Lin);
-  assert_level_equal(curve.update(5_ns), EnvelopeLevel(1));
+  assert_level_equal(curve.update(5_us), EnvelopeLevel(1));
   TEST_ASSERT_FALSE(curve.is_target_reached());
 
-  assert_level_equal(curve.update(5_ns), EnvelopeLevel(1));
+  assert_level_equal(curve.update(5_us), EnvelopeLevel(1));
   TEST_ASSERT_FALSE(curve.is_target_reached());
 
   assert_level_equal(curve.update(10_ms), EnvelopeLevel(0.65));
@@ -223,7 +223,7 @@ void test_envelope_const_full(void) {
   assert_level_equal(env.update(3_ms, true), EnvelopeLevel(0.5));
   assert_level_equal(env.update(3000_ms, true), EnvelopeLevel(0.5));
   TEST_ASSERT_EQUAL(Envelope::Stage::Sustain, env.stage());
-  assert_level_equal(env.update(100_ns, false), EnvelopeLevel(0));
+  assert_level_equal(env.update(1_us, false), EnvelopeLevel(0));
   TEST_ASSERT_EQUAL(Envelope::Stage::Off, env.stage());
 }
 
@@ -234,7 +234,7 @@ void test_envelope_const_zero(void) {
   assert_level_equal(env.update(3_ms, true), EnvelopeLevel(0));
   assert_level_equal(env.update(3000_ms, true), EnvelopeLevel(0));
   TEST_ASSERT_EQUAL(Envelope::Stage::Sustain, env.stage());
-  assert_level_equal(env.update(100_ns, false), EnvelopeLevel(0));
+  assert_level_equal(env.update(1_us, false), EnvelopeLevel(0));
   TEST_ASSERT_EQUAL(Envelope::Stage::Off, env.stage());
 }
 void test_envelope_const_value(void) {

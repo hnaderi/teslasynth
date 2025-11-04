@@ -20,15 +20,20 @@ inline void assert_level_not_equal(EnvelopeLevel a, EnvelopeLevel b, int line) {
   UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
 }
 
-inline void assert_duration_equal(Duration a, Duration b, int line) {
+template <typename T>
+inline void assert_duration_equal(SimpleDuration<T> a, SimpleDuration<T> b,
+                                  int line) {
   UNITY_TEST_ASSERT(a == b, line, __msg_for(a, b).c_str());
 }
-inline void assert_duration_equal(std::optional<Duration> a, Duration b,
-                                  int line) {
+template <typename T>
+inline void assert_duration_equal(std::optional<SimpleDuration<T>> a,
+                                  SimpleDuration<T> b, int line) {
   UNITY_TEST_ASSERT(a, line, "No duration!");
   UNITY_TEST_ASSERT(a == b, line, __msg_for(*a, b).c_str());
 }
-inline void assert_duration_not_equal(Duration a, Duration b, int line) {
+template <typename T>
+inline void assert_duration_not_equal(SimpleDuration<T> a, SimpleDuration<T> b,
+                                      int line) {
   UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
 }
 inline void assert_hertz_equal(Hertz a, Hertz b, int line) {

@@ -1,7 +1,6 @@
 #include "envelope.hpp"
 #include "core.hpp"
 #include <cmath>
-#include <cstdint>
 #include <optional>
 
 // -log_e(0.001)
@@ -10,7 +9,7 @@ constexpr float logfactor = 6.907755278982137;
 Curve::Curve(EnvelopeLevel start, EnvelopeLevel target, Duration total,
              CurveType type)
     : _target(target), _type(type), _total(total), _current(start) {
-  const auto t = total.value();
+  const auto t = total.micros();
   if (t <= 0) {
     _target_reached = true;
     _current = target;
@@ -47,7 +46,7 @@ EnvelopeLevel Curve::update(Duration delta) {
     _elapsed = _total;
     _current = _target;
   } else {
-    const uint32_t dt = delta.value();
+    const auto dt = delta.micros();
     if (_type == Exp)
       _current +=
           (_target - _current) * (1 - std::expf(-(float)dt / _state.tau));
@@ -89,7 +88,7 @@ Duration Envelope::progress(Duration delta, bool on) {
                          _configs.type);
         _stage = Release;
       } else {
-        dt = 0_ns;
+        dt = 0_us;
       }
       break;
     case Release:
@@ -97,7 +96,7 @@ Duration Envelope::progress(Duration delta, bool on) {
       _stage = Off;
       break;
     case Off:
-      return 0_ns;
+      return 0_us;
     }
 
     remained = *dt;

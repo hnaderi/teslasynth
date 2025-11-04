@@ -1,6 +1,7 @@
 #include "synthesizer/helpers/assertions.hpp"
 #include <cmath>
 #include <core.hpp>
+#include <cstdint>
 #include <unity.h>
 
 void test_microseconds(void) {
@@ -20,14 +21,6 @@ void test_microseconds(void) {
   assert_duration_equal(10_us * 100, 1_ms);
 }
 
-void test_nanoseconds(void) {
-  // Resolution is 100ns
-  assert_duration_equal(1_ns, 0_ns);
-  assert_duration_equal(101_ns, 100_ns);
-  assert_duration_equal(1001_ns, 1_us);
-  assert_duration_equal(1099_ns, 1_us);
-}
-
 void test_seconds(void) {
   assert_duration_equal(1_s, 1000_ms);
   assert_duration_equal(1_s, 1000000_us);
@@ -39,11 +32,27 @@ void test_duration_constants() {
   constexpr Duration max = Duration::max();
 
   assert_duration_equal(zero, Duration());
-  assert_duration_equal(zero, 0_ns);
+  assert_duration_equal(zero, 0_us);
 
   // Max time is more than 50 years...
   TEST_ASSERT_TRUE(max > 3600_s * 24 * 365 * 50);
   TEST_ASSERT_EQUAL(sizeof(uint64_t), sizeof(Duration));
+}
+
+void test_duration32_constants() {
+  constexpr Duration32 zero = Duration32::zero();
+  constexpr Duration32 max = Duration32::max();
+
+  assert_duration_equal(zero, Duration32());
+  assert_duration_equal(zero, Duration32::zero());
+
+  TEST_ASSERT_TRUE_MESSAGE(max > Duration32::seconds(3600),
+                           "Must be more than one hour");
+  TEST_ASSERT_TRUE_MESSAGE(max > Duration32::seconds(71 * 60) &&
+                               Duration32::seconds(71 * 60) >
+                                   Duration32::seconds(72 * 60),
+                           "Must be more than 71 minutes");
+  TEST_ASSERT_EQUAL(sizeof(uint32_t), sizeof(Duration32));
 }
 
 void test_duration_arithmetics() {
@@ -67,7 +76,7 @@ void test_duration_minus(void) {
 void test_hertz(void) {
   TEST_ASSERT_TRUE(2_mhz > 100_khz);
   TEST_ASSERT_TRUE(20_khz < 100_khz);
-  assert_duration_equal((2_mhz).period(), 500_ns);
+  assert_duration_equal((1_mhz).period(), 1_us);
   assert_duration_equal((100_khz).period(), 10_us);
   assert_duration_equal((100_hz).period(), 10_ms);
   TEST_ASSERT_TRUE(Hertz::megahertz(2) == Hertz::kilohertz(2000));
@@ -94,8 +103,8 @@ extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_seconds);
   RUN_TEST(test_microseconds);
-  RUN_TEST(test_nanoseconds);
   RUN_TEST(test_duration_constants);
+  RUN_TEST(test_duration32_constants);
   RUN_TEST(test_duration_arithmetics);
   RUN_TEST(test_duration_minus);
   RUN_TEST(test_hertz);
