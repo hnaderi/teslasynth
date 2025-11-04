@@ -137,10 +137,10 @@ public:
   constexpr bool operator<(const Hertz &b) const { return _value < b._value; }
   constexpr bool operator>(const Hertz &b) const { return _value > b._value; }
   constexpr bool operator==(const Hertz &b) const {
-    return std::fabsf(_value - b._value) < 0.001;
+    return fabsf(_value - b._value) < 0.001;
   }
   constexpr bool operator!=(const Hertz &b) const {
-    return std::fabsf(_value - b._value) > 0.001;
+    return fabsf(_value - b._value) > 0.001;
   }
   constexpr bool operator<=(const Hertz &b) const { return _value <= b._value; }
   constexpr bool operator>=(const Hertz &b) const { return _value >= b._value; }

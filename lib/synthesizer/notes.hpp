@@ -35,7 +35,7 @@ struct MidiNote {
   uint8_t velocity;
 
   constexpr Hertz frequency(Hertz tuning = 440_hz) const {
-    return tuning * std::exp2f((number - 69) / 12.0f);
+    return tuning * exp2f((number - 69) / 12.0f);
   }
 
   constexpr Hertz frequency(const Config &config) const {

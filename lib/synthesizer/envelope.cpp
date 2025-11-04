@@ -49,7 +49,7 @@ EnvelopeLevel Curve::update(Duration delta) {
     const auto dt = delta.micros();
     if (_type == Exp)
       _current +=
-          (_target - _current) * (1 - std::expf(-(float)dt / _state.tau));
+          (_target - _current) * (1 - expf(-(float)dt / _state.tau));
     else if (_type == Lin)
       _current += _state.slope * dt;
 
