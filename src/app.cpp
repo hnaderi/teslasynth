@@ -14,7 +14,8 @@
 #include <string>
 
 const Config config{
-    .max_on_time = 500_us,
+    .max_on_time = 100_us,
+    .min_deadtime = 100_us,
 };
 QueueHandle_t xQueue;
 const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
@@ -74,29 +75,28 @@ void test_tune(void *pvParams) {
 
 void render(void *pvParams) {
   Sequencer<> seq(config, notes, track);
-  constexpr TickType_t prefillTime = pdMS_TO_TICKS(10),
-                       loopTime = pdMS_TO_TICKS(5);
+  constexpr TickType_t loopTime = pdMS_TO_TICKS(10);
   constexpr size_t BUFFER_SIZE = 20;
-  vTaskDelay(prefillTime);
 
   int64_t processed = esp_timer_get_time();
   Pulse buffer[BUFFER_SIZE];
 
   while (true) {
     vTaskDelay(loopTime);
-    xSemaphoreTake(xNotesMutex, portMAX_DELAY);
 
+    // TODO what if lags behind?
+    xSemaphoreTake(xNotesMutex, portMAX_DELAY);
     int64_t now = esp_timer_get_time();
-    for (size_t i = 0; processed < now; i++) {
+    size_t i = 0;
+    for (; processed < now && i < BUFFER_SIZE; i++) {
       auto left = Duration::micros(now - processed);
       buffer[i] = seq.sample(left);
-      processed += buffer[i].period.micros();
-      if (i == BUFFER_SIZE || processed >= now) {
-        pulse_write(buffer, i + 1);
-        i = 0;
-      }
+      processed += buffer[i].length().micros();
     }
     xSemaphoreGive(xNotesMutex);
+    if (i > 0) {
+      pulse_write(buffer, i);
+    }
   }
 }
 

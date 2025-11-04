@@ -20,17 +20,16 @@ void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
   if (current->is_zero()) {
     *symbol = {
         // TODO consider overflows
-        .duration0 = static_cast<uint16_t>(current->period.micros() - 1),
+        .duration0 = static_cast<uint16_t>(current->off.micros() - 1),
         .level0 = 0,
         .duration1 = 1,
         .level1 = 0,
     };
   } else {
     *symbol = {
-        .duration0 = static_cast<uint16_t>(current->duty.micros()),
+        .duration0 = static_cast<uint16_t>(current->on.micros()),
         .level0 = 1,
-        .duration1 = static_cast<uint16_t>(current->period.micros() -
-                                           current->duty.micros()), // NOTE
+        .duration1 = static_cast<uint16_t>(current->off.micros()), // NOTE
         .level1 = 0,
     };
   }
