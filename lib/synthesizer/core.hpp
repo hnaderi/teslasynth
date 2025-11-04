@@ -18,6 +18,11 @@ template <typename T = uint64_t> class SimpleDuration {
 public:
   constexpr SimpleDuration() : _value(0) {}
 
+  template <typename U,
+            typename = std::enable_if_t<std::is_convertible<U, T>::value>>
+  constexpr SimpleDuration(const SimpleDuration<U> &other)
+      : _value(static_cast<T>(other.micros())) {}
+
   static constexpr SimpleDuration micros(T v) { return SimpleDuration(v); }
   static constexpr SimpleDuration millis(T v) {
     return SimpleDuration(v * _coef_milli);
@@ -140,7 +145,9 @@ public:
   constexpr bool operator<=(const Hertz &b) const { return _value <= b._value; }
   constexpr bool operator>=(const Hertz &b) const { return _value >= b._value; }
   constexpr bool is_zero() const { return _value == 0; }
-  constexpr Duration period() const { return Duration::micros(1e6 / _value); }
+  constexpr Duration32 period() const {
+    return Duration32::micros(1e6 / _value);
+  }
 
   inline operator std::string() const {
     if (_value > _coef_mega) {

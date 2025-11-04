@@ -42,9 +42,12 @@ void test_duration_constants() {
 void test_duration32_constants() {
   constexpr Duration32 zero = Duration32::zero();
   constexpr Duration32 max = Duration32::max();
+  Duration max64 = max;
 
   assert_duration_equal(zero, Duration32());
   assert_duration_equal(zero, Duration32::zero());
+
+  assert_duration_equal(max, max64);
 
   TEST_ASSERT_TRUE_MESSAGE(max > Duration32::seconds(3600),
                            "Must be more than one hour");
@@ -53,6 +56,9 @@ void test_duration32_constants() {
                                    Duration32::seconds(72 * 60),
                            "Must be more than 71 minutes");
   TEST_ASSERT_EQUAL(sizeof(uint32_t), sizeof(Duration32));
+
+  TEST_ASSERT_TRUE_MESSAGE(Duration::max() > Duration32::max(),
+                           "Must be less than 64 bit duration max");
 }
 
 void test_duration_arithmetics() {
