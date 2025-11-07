@@ -6,6 +6,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: true
+      matrix:
+        board:
+          - lolin32
+          - esp32dev
     steps:
       - run: gcc --version
         name: Show gcc version
@@ -23,7 +29,25 @@ jobs:
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
-        run: pio run -e lolin32
+        run: pio run -e ${{ matrix.board }}
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gcc --version
+        name: Show gcc version
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
 
       - name: Run linting checks
         run: pio check

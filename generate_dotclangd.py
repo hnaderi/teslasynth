@@ -2,11 +2,15 @@
 
 import json
 from pathlib import Path
+Import("env")
+
+board = env.get("BOARD")
 
 home = Path.home()
-board = "lolin32"
 board_path = Path.cwd() / ".pio" / "build" / board
 db_path = str(board_path / "compile_commands.json")
+
+print(f"Generate compile commands for {board}")
 
 with open(db_path) as f:
     db = json.load(f)
@@ -50,6 +54,16 @@ xtensa_includes = [
     f"-I{packages / 'toolchain-xtensa-esp32' / 'xtensa-esp32-elf' / 'sys-include'}",
 ]
 
+flags_to_remove = [
+    "-fno-tree-switch-conversion",
+    "-fno-shrink-wrap",
+    "-mtext-section-literals",
+    "-mlongcalls",
+    "-fstrict-volatile-bitfields",
+    "-free",
+    "-fipa-pta",
+]
+
 
 def write(path):
     def obj(config):
@@ -68,18 +82,12 @@ write("src/.clangd")(
             + std_flags
             + espidf_includes
             + xtensa_includes,
-            "Remove": [
-                "-fno-tree-switch-conversion",
-                "-mtext-section-literals",
-                "-mlongcalls",
-                "-fstrict-volatile-bitfields",
-                "-free",
-                "-fipa-pta",
-            ],
+            "Remove": flags_to_remove,
         },
         "Diagnostics": {
             "Suppress": [
                 "pp_including_mainfile_in_preamble",
+                "pp_file_not_found",
                 "unknown_pragma",  # ESP-IDF pragmas
             ]
         },
@@ -91,7 +99,7 @@ write("lib/.clangd")(
         "CompileFlags": {
             "CompilationDatabase": db_path,
             "Add": std_flags,
-            "Remove": ["-D__XTENSA__*"],
+            "Remove": flags_to_remove + ["-D__XTENSA__*"],
         },
         "Diagnostics": {"Suppress": ["unknown_type_orthogonal"]},
     }
@@ -99,7 +107,10 @@ write("lib/.clangd")(
 
 write("test/.clangd")(
     {
-        "CompileFlags": {"Add": std_flags + test_includes, "Remove": ["-D__XTENSA__*"]},
+        "CompileFlags": {
+            "Add": std_flags + test_includes,
+            "Remove": flags_to_remove + ["-D__XTENSA__*"],
+        },
         "Diagnostics": {"Suppress": ["unknown_type_orthogonal"]},
     }
 )
