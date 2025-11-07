@@ -1,0 +1,12 @@
+menu "Teslasynth"
+
+config TESLASYNTH_GPIO_PIN
+    int "GPIO Pin"
+    default 4
+    range 0 39
+
+config TESLASYNTH_DEVICE_NAME
+    string "Advertised Device Name"
+    default "Teslasynth"
+
+endmenu

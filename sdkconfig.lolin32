@@ -432,6 +432,13 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
+# Teslasynth
+#
+CONFIG_TESLASYNTH_GPIO_PIN=4
+CONFIG_TESLASYNTH_DEVICE_NAME="Teslasynth"
+# end of Teslasynth
+
+#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEBUG=y

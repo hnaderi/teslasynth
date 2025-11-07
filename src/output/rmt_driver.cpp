@@ -12,7 +12,6 @@
 #include <stdio.h>
 
 #define RMT_BUZZER_RESOLUTION_HZ 1'000'000
-#define RMT_BUZZER_GPIO_NUM GPIO_NUM_4
 
 static const char *TAG = "RMT-DRIVER";
 
@@ -68,7 +67,7 @@ constexpr rmt_transmit_config_t tx_config = {
         },
 };
 constexpr rmt_tx_channel_config_t tx_chan_config = {
-    .gpio_num = RMT_BUZZER_GPIO_NUM,
+    .gpio_num = static_cast<gpio_num_t>(CONFIG_TESLASYNTH_GPIO_PIN),
     .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
     .resolution_hz = RMT_BUZZER_RESOLUTION_HZ,
     .mem_block_symbols = 64,
