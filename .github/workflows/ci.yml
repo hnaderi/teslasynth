@@ -12,6 +12,8 @@ jobs:
         board:
           - lolin32
           - esp32dev
+          - lilygo-display
+          - c3-super-mini
     steps:
       - run: gcc --version
         name: Show gcc version
