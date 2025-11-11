@@ -1,0 +1,10 @@
+dependencies:
+  idf:
+    version: '>=5.5.0'
+
+  nopnop2002/ssd1306:
+    path: components/ssd1306/
+    git: https://github.com/nopnop2002/esp-idf-ssd1306.git
+  h2zero/esp-nimble-cpp:
+    git: https://github.com/h2zero/esp-nimble-cpp.git
+    version: "2.3.3"

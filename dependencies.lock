@@ -1,0 +1,40 @@
+dependencies:
+  h2zero/esp-nimble-cpp:
+    component_hash: 8ed712a95bc72bf27c6f6cbf45fad7f3cf02531cd90cf10e7d555f9e7251be01
+    dependencies:
+    - name: espressif/esp_hosted
+      rules:
+      - if: target in [esp32p4]
+      version: '*'
+    - name: espressif/esp_wifi_remote
+      rules:
+      - if: target in [esp32p4]
+      version: '>=0.5.3'
+    - name: idf
+      rules:
+      - if: target in [esp32p4]
+      version: '>=5.3.0'
+    source:
+      git: https://github.com/h2zero/esp-nimble-cpp.git
+      path: .
+      type: git
+    version: 815c5556e0f1150e37d8b3ffc20c6340505a13ca
+  idf:
+    source:
+      type: idf
+    version: 5.5.0
+  nopnop2002/ssd1306:
+    component_hash: c118e111d989d2b427ff714bab329405d76deff181bd1bb7356b3b19e74c141b
+    dependencies: []
+    source:
+      git: https://github.com/nopnop2002/esp-idf-ssd1306.git
+      path: components/ssd1306/
+      type: git
+    version: 58881eb222d977d99f120d574b705386078a872e
+direct_dependencies:
+- h2zero/esp-nimble-cpp
+- idf
+- nopnop2002/ssd1306
+manifest_hash: 38d84ea81cccde526801f33ce36525b34bd49cc316682379fdd330166230373d
+target: esp32
+version: 2.0.0
