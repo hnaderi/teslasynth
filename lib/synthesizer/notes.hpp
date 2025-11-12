@@ -8,13 +8,25 @@
 #include <cstddef>
 #include <cstdint>
 
-struct Config {
-  static constexpr size_t max_notes = 4;
+#ifndef CONFIG_MAX_NOTES
+#define CONFIG_MAX_NOTES 4
+#endif
 
-  Duration min_on_time = Duration(), max_on_time = 100_us,
-           min_deadtime = 100_us;
+struct Config {
+  static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
+
+  Duration32 min_on_time = Duration(), max_on_time = 100_us,
+             min_deadtime = 100_us;
   Hertz a440 = 440_hz;
-  size_t notes = max_notes;
+  uint8_t notes = max_notes;
+
+  inline operator std::string() const {
+    return std::string("Concurrent notes: ") + std::to_string(notes) +
+           "\nTuning: " + std::string(a440) +
+           "\nMin on time: " + std::string(min_on_time) +
+           "\nMax on time: " + std::string(max_on_time) +
+           "\nMin deadtime: " + std::string(min_deadtime);
+  }
 };
 
 struct NotePulse {
@@ -94,7 +106,7 @@ class Notes {
 
 public:
   Notes();
-  Notes(size_t size);
+  Notes(uint8_t size);
   Notes(const Config &config);
   Note &start(const MidiNote &mnote, Duration time,
               const Instrument &instrument, const Config &config);

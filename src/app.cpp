@@ -8,15 +8,13 @@
 #include "midi_synth.hpp"
 #include "notes.hpp"
 #include "output/rmt_driver.h"
+#include "synth_config.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <string>
 
-const Config config{
-    .max_on_time = 100_us,
-    .min_deadtime = 100_us,
-};
+Config config;
 QueueHandle_t xQueue;
 const TickType_t xTicksToWait = pdMS_TO_TICKS(10);
 Notes notes;
@@ -115,6 +113,7 @@ void debug_log(void *) {
 }
 
 void play(StreamBufferHandle_t sbuf) {
+  config = load_config();
   rmt_driver();
   xQueue = xQueueCreate(8, sizeof(MidiChannelMessage));
   if (xQueue == NULL)

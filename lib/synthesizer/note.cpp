@@ -69,7 +69,7 @@ bool Note::next() {
 }
 
 Notes::Notes() : _size(Config::max_notes) {}
-Notes::Notes(size_t size) : _size(std::min(size, Config::max_notes)) {}
+Notes::Notes(uint8_t size) : _size(std::min(size, Config::max_notes)) {}
 Notes::Notes(const Config &config)
     : _size(std::min(config.notes, config.max_notes)) {}
 
