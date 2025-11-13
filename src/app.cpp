@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "configuration/synth.hpp"
 #include "core.hpp"
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -8,7 +9,6 @@
 #include "midi_synth.hpp"
 #include "notes.hpp"
 #include "output/rmt_driver.h"
-#include "synth_config.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -60,17 +60,6 @@ void synth(void *pvParams) {
   }
 }
 
-void test_tune(void *pvParams) {
-  Pulse pulses[] = {
-      {250_us, 1_ms}, {0_us, 1_ms},   {400_us, 1_ms},
-      {100_us, 1_ms}, {100_us, 6_ms},
-  };
-  while (true) {
-    vTaskDelay(pdMS_TO_TICKS(10));
-    pulse_write(pulses, 5);
-  }
-}
-
 void render(void *pvParams) {
   Sequencer<> seq(config, notes, track);
   constexpr TickType_t loopTime = pdMS_TO_TICKS(10);
@@ -98,20 +87,6 @@ void render(void *pvParams) {
   }
 }
 
-void debug_log(void *) {
-  while (true) {
-    vTaskDelay(pdMS_TO_TICKS(100));
-    xSemaphoreTake(xNotesMutex, portMAX_DELAY);
-    auto now = *(Duration::micros(esp_timer_get_time()) - track.started_time());
-    ESP_LOGI(TAG, "Started: %s, recv: %s, play: %s, now: %s",
-             std::string(track.started_time()).c_str(),
-             std::string(track.received_time()).c_str(),
-             std::string(track.played_time()).c_str(),
-             std::string(now).c_str());
-    xSemaphoreGive(xNotesMutex);
-  }
-}
-
 void play(StreamBufferHandle_t sbuf) {
   config = load_config();
   rmt_driver();
@@ -122,5 +97,4 @@ void play(StreamBufferHandle_t sbuf) {
   xTaskCreatePinnedToCore(parser, "Parser", 8 * 1024, sbuf, 1, NULL, 1);
   xTaskCreatePinnedToCore(synth, "Synth", 8 * 1024, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(render, "Render", 8 * 1024, NULL, 1, NULL, 1);
-  // xTaskCreatePinnedToCore(debug_log, "Debug", 8 * 1024, NULL, 1, NULL, 1);
 }

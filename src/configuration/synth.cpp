@@ -1,4 +1,4 @@
-#include "synth_config.hpp"
+#include "synth.hpp"
 #include "core.hpp"
 #include "esp_err.h"
 #include "esp_log.h"

@@ -1,14 +1,12 @@
+#include "configuration/synth.hpp"
 #include "core.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
 #include "notes.hpp"
-#include "synth_config.hpp"
 #include <cstdint>
 #include <cstdlib>
 #include <stdio.h>
 #include <string.h>
-
-static const char *TAG = "configuration_cmd";
 
 namespace keys {
 static constexpr const char *min_on_time = "min-on-time";
@@ -162,7 +160,7 @@ void register_configuration_commands(void) {
   const esp_console_cmd_t cfg_cmd = {
       .command = "config",
       .help = "Configuration commands",
-      .hint = "set <key1>=<val1> [<key2>=<val2> …] | show | reset", 
+      .hint = "set <key1>=<val1> [<key2>=<val2> …] | show | reset",
       .func = config_cmd,
   };
   ESP_ERROR_CHECK(esp_console_cmd_register(&cfg_cmd));

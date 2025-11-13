@@ -259,6 +259,7 @@ static void register_log_level(void) {
       .help = "Set log level for all tags or a specific tag.",
       .hint = NULL,
       .func = &log_level,
-      .argtable = &log_level_args};
+      .argtable = &log_level_args,
+  };
   ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
