@@ -161,11 +161,21 @@ public:
 };
 
 inline constexpr Hertz operator""_hz(unsigned long long n) {
-  return Hertz(static_cast<uint32_t>(n));
+  return Hertz(static_cast<float>(n));
 }
 inline constexpr Hertz operator""_khz(unsigned long long n) {
-  return Hertz::kilohertz(static_cast<uint32_t>(n));
+  return Hertz::kilohertz(static_cast<float>(n));
 }
 inline constexpr Hertz operator""_mhz(unsigned long long n) {
-  return Hertz::megahertz(static_cast<uint32_t>(n));
+  return Hertz::megahertz(static_cast<float>(n));
+}
+
+inline constexpr Hertz operator""_hz(long double n) {
+  return Hertz(static_cast<float>(n));
+}
+inline constexpr Hertz operator""_khz(long double n) {
+  return Hertz::kilohertz(static_cast<float>(n));
+}
+inline constexpr Hertz operator""_mhz(long double n) {
+  return Hertz::megahertz(static_cast<float>(n));
 }

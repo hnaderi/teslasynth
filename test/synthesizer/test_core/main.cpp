@@ -80,12 +80,14 @@ void test_duration_minus(void) {
 }
 
 void test_hertz(void) {
+  TEST_ASSERT_TRUE(0.5_hz < 1_hz);
   TEST_ASSERT_TRUE(2_mhz > 100_khz);
   TEST_ASSERT_TRUE(20_khz < 100_khz);
   assert_duration_equal((1_mhz).period(), 1_us);
   assert_duration_equal((100_khz).period(), 10_us);
   assert_duration_equal((100_hz).period(), 10_ms);
   TEST_ASSERT_TRUE(Hertz::megahertz(2) == Hertz::kilohertz(2000));
+  TEST_ASSERT_TRUE(1.5_hz * 2 == 3_hz);
 
   assert_hertz_not_equal(2_hz, -2_hz);
   assert_hertz_not_equal(-1_hz, -2_hz);
