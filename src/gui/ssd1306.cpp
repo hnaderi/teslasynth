@@ -15,6 +15,8 @@
 
 static const char *TAG = "display";
 
+#if CONFIG_TESLASYNTH_DISPLAY_PANEL_SSD1306_128x64
+
 #define I2C_BUS_PORT 0
 
 #define DISPLAY_LCD_PIXEL_CLOCK_HZ (400 * 1000)
@@ -106,3 +108,5 @@ lv_display_t *install_display() {
   lv_display_t *disp_handle = lvgl_port_add_disp(&disp_cfg);
   return disp_handle;
 }
+
+#endif
