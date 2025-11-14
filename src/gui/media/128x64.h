@@ -1,8 +1,10 @@
 #pragma once
 
+#include "draw/lv_image_dsc.h"
+#include "misc/lv_color.h"
 #include <stdint.h>
 
-static const uint8_t logo[] = {
+static const uint8_t logo_data[] = {
     0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
     0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
     0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
@@ -176,11 +178,33 @@ static const uint8_t logo[] = {
     0b00000000, 0b00000000, 0b00000000, 0b00000000,
 };
 
-static const uint8_t bluetooth_icon[] = {
+static const lv_image_dsc_t logo = {
+    .header =
+        {
+            .cf = LV_COLOR_FORMAT_A1,
+            .w = 128,
+            .h = 64,
+        },
+    .data_size = 128 * 64 / 8,
+    .data = logo_data,
+};
+
+static const uint8_t bluetooth_icon_data[] = {
     0b00000011, 0b11000000, 0b00000111, 0b11100000, 0b00001100, 0b00110000,
     0b00011001, 0b10011000, 0b00010001, 0b11001000, 0b00010101, 0b01101000,
     0b00010111, 0b01101000, 0b00010011, 0b11001000, 0b00010011, 0b11001000,
     0b00010111, 0b01101000, 0b00010101, 0b01101000, 0b00010001, 0b11001000,
     0b00011001, 0b10011000, 0b00001100, 0b00110000, 0b00000111, 0b11100000,
     0b00000011, 0b11000000,
+};
+
+static const lv_image_dsc_t bluetooth_icon = {
+    .header =
+        {
+            .cf = LV_COLOR_FORMAT_A1,
+            .w = 16,
+            .h = 16,
+        },
+    .data_size = 16 * 16 / 8,
+    .data = bluetooth_icon_data,
 };

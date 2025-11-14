@@ -1,3 +1,3 @@
 #pragma once
 
-void setup_display(void);
+void setup_ui(void);

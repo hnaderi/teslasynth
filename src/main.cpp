@@ -22,8 +22,8 @@ extern "C" void app_main(void) {
   initialize_nvs();
   load_config();
 
-#if CONFIG_TESLASYNTH_DISPLAY_ENABLED
-  setup_display();
+#if CONFIG_TESLASYNTH_GUI_ENABLED
+  setup_ui();
 #endif
   init_cli();
   auto sbuf = ble_begin();

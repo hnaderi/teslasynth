@@ -20,11 +20,49 @@ config CONFIG_MAX_NOTES
         You can configure max concurrent notes up to this value.
 endmenu
 
-menu "Display"
+menu "GUI"
 
-config TESLASYNTH_DISPLAY_ENABLED
+config TESLASYNTH_GUI_ENABLED
     bool "Enable display"
     default "n"
+
+choice TESLASYNTH_DISPLAY_PANEL
+    depends on TESLASYNTH_GUI_ENABLED
+    prompt "GUI display type"
+    default TESLASYNTH_DISPLAY_PANEL_SSD1306_128x64
+    help
+        Select GUI display device
+
+    config TESLASYNTH_DISPLAY_PANEL_SSD1306_128x64
+        bool "SSD1306 128x64"
+endchoice
+
+choice TESLASYNTH_DISPLAY_INTERFACE
+    depends on TESLASYNTH_GUI_ENABLED
+    prompt "GUI display interface type"
+    default TESLASYNTH_DISPLAY_INTERFACE_I2C
+    help
+        Select GUI display interface
+
+    config TESLASYNTH_DISPLAY_INTERFACE_I2C
+        bool "I2C"
+    config TESLASYNTH_DISPLAY_INTERFACE_SPI
+        bool "SPI"
+endchoice
+
+config TESLASYNTH_DISPLAY_INTERFACE_I2C_SDA
+    depends on TESLASYNTH_DISPLAY_INTERFACE_I2C
+    int "SDA Pin"
+    default 21
+    range 0 39
+
+config TESLASYNTH_DISPLAY_INTERFACE_I2C_SCL
+    depends on TESLASYNTH_DISPLAY_INTERFACE_I2C
+    int "SCL Pin"
+    default 22
+    range 0 39
+
+
 endmenu
 
 endmenu
