@@ -1,8 +1,6 @@
 #include "ble_midi.hpp"
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
-#include "midi_core.hpp"
-#include "midi_parser.hpp"
 #include <NimBLEDevice.h>
 
 // As specified in
@@ -15,7 +13,7 @@ static const char *const CHARACTERISTIC_UUID =
 
 static const char *TAG = "BLE_MIDI";
 
-QueueHandle_t xQueue;
+StreamBufferHandle_t sbuf;
 
 class MIDIServerCallbacks : public BLEServerCallbacks {
 public:
@@ -31,33 +29,27 @@ protected:
   }
 };
 
-void cbk(const MidiChannelMessage &msg) {
-  if (xQueueSendToBack(xQueue, &msg, 0) != pdPASS) {
-    ESP_LOGE(TAG, "Couldn't enqueue channel message!");
-  }
-}
-
 class MIDICharacteristicCallbacks : public BLECharacteristicCallbacks {
-
-  MidiParser parser;
-
 public:
-  MIDICharacteristicCallbacks() : parser(cbk) {}
+  MIDICharacteristicCallbacks() {}
 
 protected:
   void onWrite(BLECharacteristic *characteristic, NimBLEConnInfo &connection) {
     auto rxValue = characteristic->getValue();
     if (rxValue.length() > 0) {
-      parser.feed(rxValue.begin(), rxValue.length());
+      if (xStreamBufferSend(sbuf, rxValue.begin(), rxValue.length(), 0) !=
+          rxValue.length()) {
+        ESP_LOGE(TAG, "Couldn't write received BLE data!");
+      }
     }
   }
 };
 
-QueueHandle_t ble_begin() {
+StreamBufferHandle_t ble_begin() {
   BLEDevice::init(CONFIG_TESLASYNTH_DEVICE_NAME);
 
-  xQueue = xQueueCreate(20, sizeof(MidiChannelMessage));
-  if (xQueue == nullptr) {
+  sbuf = xStreamBufferCreate(256, 1);
+  if (sbuf == nullptr) {
     ESP_LOGE(TAG, "Couldn't allocate BLE stream buffer!");
     return nullptr;
   }
@@ -110,5 +102,5 @@ QueueHandle_t ble_begin() {
   _advertising->setName(CONFIG_TESLASYNTH_DEVICE_NAME);
   _advertising->start();
 
-  return xQueue;
+  return sbuf;
 }

@@ -183,7 +183,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_ignore_note_off_when_not_playing);
   RUN_TEST(test_should_handle_instrument_change);
   RUN_TEST(test_should_turnoff_when_needed);
-  RUN_TEST(test_should_start_playing_the_first_message);
+  RUN_TEST(test_should_start_playing_the_first_note_on_message);
   RUN_TEST(test_should_ignore_off_messages_when_not_playing);
 
   UNITY_END();

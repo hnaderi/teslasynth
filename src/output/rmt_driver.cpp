@@ -2,11 +2,13 @@
 #include "driver/rmt_encoder.h"
 #include "driver/rmt_tx.h"
 #include "driver/rmt_types.h"
+#include "esp_err.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "hal/rmt_types.h"
 #include "soc/gpio_num.h"
+#include <algorithm>
 #include <cstdint>
 #include <stddef.h>
 #include <stdio.h>
@@ -15,11 +17,10 @@
 
 static const char *TAG = "RMT-DRIVER";
 
-void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
+inline void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
   if (current->is_zero()) {
     *symbol = {
-        // TODO consider overflows
-        .duration0 = static_cast<uint16_t>(current->off.micros() - 1),
+        .duration0 = std::max<uint16_t>(1, current->off.micros() - 1),
         .level0 = 0,
         .duration1 = 1,
         .level1 = 0,
@@ -28,7 +29,7 @@ void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
     *symbol = {
         .duration0 = static_cast<uint16_t>(current->on.micros()),
         .level0 = 1,
-        .duration1 = static_cast<uint16_t>(current->off.micros()), // NOTE
+        .duration1 = std::max<uint16_t>(1, current->off.micros()),
         .level1 = 0,
     };
   }
@@ -63,7 +64,7 @@ constexpr rmt_transmit_config_t tx_config = {
     .flags =
         {
             .eot_level = 0,
-            .queue_nonblocking = 0,
+            .queue_nonblocking = 1,
         },
 };
 constexpr rmt_tx_channel_config_t tx_chan_config = {
@@ -94,8 +95,20 @@ void rmt_driver(void) {
   ESP_LOGI(TAG, "Enable RMT TX channel");
   ESP_ERROR_CHECK(rmt_enable(audio_chan));
 }
-
 void pulse_write(const Pulse *pulse, size_t len) {
-  ESP_ERROR_CHECK(rmt_transmit(audio_chan, encoder, pulse, len * sizeof(Pulse),
-                               &tx_config));
+  if (len == 0)
+    return;
+#if CONFIG_TESLASYNTH_DEBUG
+  static size_t counter = 0, min_i = std::numeric_limits<size_t>::max(),
+                max_i = 0, total = 0;
+  min_i = std::min(len, min_i);
+  max_i = std::max(len, max_i);
+  total += len;
+  if (counter++ % 100 == 0) {
+    ESP_LOGD(TAG, "RMT items stats, min: %u, max: %u, total: %u, avg: %u",
+             min_i, max_i, total, total / counter);
+  }
+#endif
+  ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_transmit(audio_chan, encoder, pulse,
+                                             len * sizeof(Pulse), &tx_config));
 }

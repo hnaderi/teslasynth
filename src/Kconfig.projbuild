@@ -65,4 +65,11 @@ config TESLASYNTH_DISPLAY_INTERFACE_I2C_SCL
 
 endmenu
 
+menu "Log"
+
+config TESLASYNTH_DEBUG
+    bool "Enable debug logs"
+    default "n"
+endmenu
+
 endmenu
