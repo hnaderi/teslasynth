@@ -85,6 +85,7 @@ void test_should_handle_note_off(void) {
   FakeNotes notes;
   TrackState track;
   SynthChannel channel(config, notes, track);
+  track.on_receive(Duration::zero());
   for (auto i = 0; i < 10; i++) {
     const auto now = 10_ms * i;
     channel.handle(MidiChannelMessage::note_off(0, 69 + i, 10 * i), now);
@@ -96,18 +97,31 @@ void test_should_handle_note_off(void) {
   }
 }
 
+void test_should_ignore_note_off_when_not_playing(void) {
+  FakeNotes notes;
+  TrackState track;
+  SynthChannel channel(config, notes, track);
+  for (auto i = 0; i < 10; i++) {
+    const auto now = 10_ms * i;
+    channel.handle(MidiChannelMessage::note_off(0, 69 + i, 10 * i), now);
+
+    TEST_ASSERT_FALSE(track.is_playing());
+    TEST_ASSERT_EQUAL(0, notes.released().size());
+  }
+}
+
 void test_should_handle_instrument_change(void) {
   constexpr auto N = 10;
   FakeNotes notes;
   Instrument instruments[N];
-  TrackState track;
-  SynthChannel channel(config, notes, track, instruments, N);
   for (auto i = 0; i < N; i++) {
     instruments[i] = instrument(i);
+    TrackState track;
+    SynthChannel channel(config, notes, track, instruments, N);
 
     channel.handle(MidiChannelMessage::program_change(0, i), 10_ms);
     TEST_ASSERT_EQUAL(i, channel.instrument_number());
-    TEST_ASSERT_TRUE(track.is_playing());
+    TEST_ASSERT_FALSE(track.is_playing());
 
     channel.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), 0_ms);
 
@@ -136,7 +150,7 @@ void test_should_turnoff_when_needed(void) {
   }
 }
 
-void test_should_start_playing_the_first_message(void) {
+void test_should_start_playing_the_first_note_on_message(void) {
   FakeNotes notes;
   TrackState track;
   SynthChannel channel(config, notes, track);
@@ -151,14 +165,26 @@ void test_should_start_playing_the_first_message(void) {
   TEST_ASSERT_TRUE(notes.started().back().instrument == default_instrument());
 }
 
+void test_should_ignore_off_messages_when_not_playing(void) {
+  FakeNotes notes;
+  TrackState track;
+  SynthChannel channel(config, notes, track);
+  TEST_ASSERT_FALSE(track.is_playing());
+  channel.handle(MidiChannelMessage::note_off(0, 69, 127), 100_s);
+  TEST_ASSERT_FALSE(track.is_playing());
+  TEST_ASSERT_EQUAL(0, notes.started().size());
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
   RUN_TEST(test_should_handle_note_on);
   RUN_TEST(test_should_handle_note_off);
+  RUN_TEST(test_should_ignore_note_off_when_not_playing);
   RUN_TEST(test_should_handle_instrument_change);
   RUN_TEST(test_should_turnoff_when_needed);
   RUN_TEST(test_should_start_playing_the_first_message);
+  RUN_TEST(test_should_ignore_off_messages_when_not_playing);
 
   UNITY_END();
 }

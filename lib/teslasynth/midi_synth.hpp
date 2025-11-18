@@ -76,15 +76,17 @@ public:
       : SynthChannel(config, notes, track, NULL, 0) {}
 
   void handle(MidiChannelMessage msg, Duration time) {
-    Duration delta = _track.on_receive(time);
-
     switch (msg.type) {
-    case MidiMessageType::NoteOff:
-      _notes.release(msg.data0, delta);
-      break;
-    case MidiMessageType::NoteOn:
+    case MidiMessageType::NoteOff: {
+      if (_track.is_playing()) {
+        Duration delta = _track.on_receive(time);
+        _notes.release(msg.data0, delta);
+      }
+    } break;
+    case MidiMessageType::NoteOn: {
+      Duration delta = _track.on_receive(time);
       _notes.start({msg.data0, msg.data1}, delta, instrument(), _config);
-      break;
+    } break;
     case MidiMessageType::AfterTouchPoly:
       break;
     case MidiMessageType::ControlChange:
@@ -100,7 +102,7 @@ public:
       }
       break;
     case MidiMessageType::ProgramChange:
-      _instrument = msg.data0;
+      change_instrument(msg.data0);
       break;
     case MidiMessageType::AfterTouchChannel:
       break;
@@ -109,6 +111,7 @@ public:
     }
   }
 
+  inline void change_instrument(uint8_t n) { _instrument = n; }
   constexpr uint8_t instrument_number() const { return _instrument; }
 
   inline const Instrument &instrument() const {
