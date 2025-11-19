@@ -2,6 +2,7 @@
 #include "cli.hpp"
 #include "configuration/synth.hpp"
 #include "display.hpp"
+#include "esp_event.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 #include <input/ble_midi.hpp>
@@ -21,6 +22,7 @@ void initialize_nvs() {
 extern "C" void app_main(void) {
   initialize_nvs();
   load_config();
+  ESP_ERROR_CHECK(esp_event_loop_create_default());
 
 #if CONFIG_TESLASYNTH_GUI_ENABLED
   setup_ui();

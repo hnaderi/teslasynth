@@ -1,11 +1,8 @@
 #include "cli.hpp"
 #include "commands.h"
 #include "esp_console.h"
-#include "esp_log.h"
 #include <stdio.h>
 #include <string.h>
-
-static const char *TAG = "cli";
 
 void init_cli(void) {
   esp_console_repl_t *repl = NULL;

@@ -1,4 +1,5 @@
 #include "ble_midi.hpp"
+#include "esp_event_base.h"
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
 #include <NimBLEDevice.h>
@@ -13,6 +14,8 @@ static const char *const CHARACTERISTIC_UUID =
 
 static const char *TAG = "BLE_MIDI";
 
+ESP_EVENT_DEFINE_BASE(EVENT_BLE_BASE);
+
 StreamBufferHandle_t sbuf;
 
 class MIDIServerCallbacks : public BLEServerCallbacks {
@@ -22,10 +25,14 @@ public:
 protected:
   void onConnect(BLEServer *server, NimBLEConnInfo &conn) {
     ESP_LOGI(TAG, "Connected!");
+    ESP_ERROR_CHECK(esp_event_post(EVENT_BLE_BASE, BLE_DEVICE_CONNECTED, NULL,
+                                   0, portMAX_DELAY));
   };
 
   void onDisconnect(BLEServer *server, NimBLEConnInfo &conn, int) {
     ESP_LOGI(TAG, "Disconnected!");
+    ESP_ERROR_CHECK(esp_event_post(EVENT_BLE_BASE, BLE_DEVICE_DISCONNECTED,
+                                   NULL, 0, portMAX_DELAY));
   }
 };
 
