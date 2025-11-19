@@ -27,7 +27,7 @@ void init_ui() {
 }
 
 void render_config(lv_obj_t *parent) {
-  Config &config = get_config();
+  const Config &config = get_config();
 
   lv_obj_t *label = lv_label_create(parent);
   lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);

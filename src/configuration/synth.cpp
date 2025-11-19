@@ -34,7 +34,7 @@ bool init_nvs_handle() {
   return true;
 }
 
-Config &load_config() {
+const Config &load_config() {
   if (init_nvs_handle()) {
     int8_t i8;
     uint32_t u32;
@@ -61,18 +61,22 @@ Config &load_config() {
   return config_;
 }
 
-Config &get_config() { return config_; }
+const Config &get_config() { return config_; }
+
+void update_config(const Config &config){
+  config_ = config;
+}
 
 void reset_config() {
   config_ = {};
   save_config();
 }
 void save_config() {
-  nvs_set_u8(handle, keys::notes, config_.notes);
-  if (config_.instrument) {
-    nvs_set_u8(handle, keys::instrument, *config_.instrument);
+  nvs_set_i8(handle, keys::notes, config_.notes);
+  if (config_.instrument.has_value()) {
+    nvs_set_i8(handle, keys::instrument, *config_.instrument);
   } else {
-    nvs_set_u8(handle, keys::instrument, -1);
+    nvs_set_i8(handle, keys::instrument, -1);
   }
 
   nvs_set_u32(handle, keys::tuning, config_.a440);

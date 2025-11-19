@@ -2,7 +2,8 @@
 
 #include "notes.hpp"
 
-Config &load_config();
-Config &get_config();
+const Config &load_config();
+const Config &get_config();
+void update_config(const Config &config);
 void reset_config();
 void save_config();

@@ -88,7 +88,7 @@ static bool parse_instrument(const char *s, std::optional<uint8_t> *out) {
 inline int invalid_duration(const char *value) {
   printf("Invalid duration value: %s\n"
          "Valid values unsigned integer values "
-         "followed by an optional time unit [us (default), ms, s]",
+         "followed by an optional time unit [us (default), ms, s]\n",
          value);
   return 1;
 }
@@ -96,7 +96,7 @@ inline int invalid_duration(const char *value) {
 inline int invalid_frequency(const char *value) {
   printf("Invalid frequency value: %s\n"
          "Valid values are floating point numbers followed by an optional unit "
-         "[Hz]",
+         "[Hz]\n",
          value);
   return 1;
 }
@@ -104,7 +104,7 @@ inline int invalid_frequency(const char *value) {
 inline int invalid_instrument(const char *value) {
   printf("Invalid instrument value: %s\n"
          "Valid values are optional integer numbers, negative values are "
-         "considered as no value. Max allowed value is %du",
+         "considered as no value. Max allowed value is %du\n",
          value, instruments_size);
   return 1;
 }
@@ -138,7 +138,7 @@ static int print_config() {
   }
 
 static int set_config(int argc, char **argv) {
-  Config &config = get_config();
+  Config config = get_config();
   for (int i = 0; i < argc; i++) {
     char *eq = strchr(argv[i], '=');
     if (!eq) {
@@ -174,6 +174,7 @@ static int set_config(int argc, char **argv) {
     }
   }
 
+  update_config(config);
   save_config();
   return 0;
 }
