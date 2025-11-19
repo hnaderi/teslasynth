@@ -13,7 +13,7 @@
 #include <sys/param.h>
 #include <unistd.h>
 
-static const char *TAG = "display";
+static const char *TAG = "DISPLAY";
 
 #if CONFIG_TESLASYNTH_DISPLAY_PANEL_SSD1306_128x64
 

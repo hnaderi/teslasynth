@@ -1,8 +1,9 @@
 #include "configuration/synth.hpp"
 #include "core.hpp"
+#include "esp_err.h"
+#include "esp_event.h"
 #include "esp_log.h"
 #include "esp_timer.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/idf_additions.h"
 #include "instruments.hpp"
 #include "midi_core.hpp"
@@ -11,10 +12,13 @@
 #include "notes.hpp"
 #include "output/rmt_driver.h"
 #include "portmacro.h"
+#include "synthesizer_events.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <string>
+
+ESP_EVENT_DEFINE_BASE(EVENT_SYNTHESIZER_BASE);
 
 Notes notes;
 TrackState track;
@@ -24,15 +28,17 @@ static const char *TAG = "SYNTH";
 
 void synth(void *pvParams) {
   MidiChannelMessage msg;
-  SynthChannel ch(get_config(), notes, track, instruments, instruments_size);
+  SynthChannel channel(get_config(), notes, track, instruments,
+                       instruments_size);
   MidiParser parser([&](const MidiChannelMessage msg) {
     auto now = Duration::micros(esp_timer_get_time());
     ESP_LOGD(TAG, "Received: %s at %s", std::string(msg).c_str(),
              std::string(now).c_str());
-    ch.handle(msg, now);
+    channel.handle(msg, now);
   });
   StreamBufferHandle_t sbuf = static_cast<StreamBufferHandle_t>(pvParams);
   uint8_t buffer[256];
+  bool playing = false, was_playing = playing;
   while (true) {
     size_t read =
         xStreamBufferReceive(sbuf, buffer, sizeof(buffer), portMAX_DELAY);
@@ -40,7 +46,19 @@ void synth(void *pvParams) {
     if (read) {
       xSemaphoreTake(xNotesMutex, portMAX_DELAY);
       parser.feed(buffer, read);
+      playing = track.is_playing();
       xSemaphoreGive(xNotesMutex);
+
+      if (playing != was_playing) {
+        if (playing) {
+          ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(
+              EVENT_SYNTHESIZER_BASE, SYNTHESIZER_PLAYING, NULL, 0, 0));
+        } else {
+          ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(
+              EVENT_SYNTHESIZER_BASE, SYNTHESIZER_STOPPED, NULL, 0, 0));
+        }
+        was_playing = playing;
+      }
     }
   }
 }

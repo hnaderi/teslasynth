@@ -1,9 +1,11 @@
 #include "synth.hpp"
 #include "core.hpp"
 #include "esp_err.h"
+#include "esp_event.h"
 #include "esp_log.h"
 #include "notes.hpp"
 #include "nvs.h"
+#include "synthesizer_events.hpp"
 #include <cstdint>
 #include <cstring>
 #include <optional>
@@ -63,12 +65,15 @@ const Config &load_config() {
 
 const Config &get_config() { return config_; }
 
-void update_config(const Config &config){
+void update_config(const Config &config) {
   config_ = config;
+  ESP_ERROR_CHECK(esp_event_post(EVENT_SYNTHESIZER_BASE,
+                                 SYNTHESIZER_CONFIG_UPDATED, NULL, 0,
+                                 portMAX_DELAY));
 }
 
 void reset_config() {
-  config_ = {};
+  update_config({});
   save_config();
 }
 void save_config() {

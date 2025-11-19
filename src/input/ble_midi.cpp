@@ -16,20 +16,18 @@ static const char *TAG = "BLE_MIDI";
 
 ESP_EVENT_DEFINE_BASE(EVENT_BLE_BASE);
 
-StreamBufferHandle_t sbuf;
-
 class MIDIServerCallbacks : public BLEServerCallbacks {
 public:
   MIDIServerCallbacks() {}
 
 protected:
-  void onConnect(BLEServer *server, NimBLEConnInfo &conn) {
+  void onConnect(BLEServer *, NimBLEConnInfo &) {
     ESP_LOGI(TAG, "Connected!");
     ESP_ERROR_CHECK(esp_event_post(EVENT_BLE_BASE, BLE_DEVICE_CONNECTED, NULL,
                                    0, portMAX_DELAY));
   };
 
-  void onDisconnect(BLEServer *server, NimBLEConnInfo &conn, int) {
+  void onDisconnect(BLEServer *, NimBLEConnInfo &, int) {
     ESP_LOGI(TAG, "Disconnected!");
     ESP_ERROR_CHECK(esp_event_post(EVENT_BLE_BASE, BLE_DEVICE_DISCONNECTED,
                                    NULL, 0, portMAX_DELAY));
@@ -37,11 +35,13 @@ protected:
 };
 
 class MIDICharacteristicCallbacks : public BLECharacteristicCallbacks {
+  StreamBufferHandle_t sbuf;
+
 public:
-  MIDICharacteristicCallbacks() {}
+  MIDICharacteristicCallbacks(StreamBufferHandle_t buffer) : sbuf(buffer) {}
 
 protected:
-  void onWrite(BLECharacteristic *characteristic, NimBLEConnInfo &connection) {
+  void onWrite(BLECharacteristic *characteristic, NimBLEConnInfo &) {
     auto rxValue = characteristic->getValue();
     if (rxValue.length() > 0) {
       if (xStreamBufferSend(sbuf, rxValue.begin(), rxValue.length(), 0) !=
@@ -53,59 +53,33 @@ protected:
 };
 
 StreamBufferHandle_t init_ble_midi() {
-  BLEDevice::init(CONFIG_TESLASYNTH_DEVICE_NAME);
+  NimBLEDevice::init(CONFIG_TESLASYNTH_DEVICE_NAME);
 
-  sbuf = xStreamBufferCreate(256, 1);
+  auto sbuf = xStreamBufferCreate(256, 1);
   if (sbuf == nullptr) {
     ESP_LOGE(TAG, "Couldn't allocate BLE stream buffer!");
     return nullptr;
   }
 
-  /**
-   * Set the IO capabilities of the device, each option will trigger a different
-   * pairing method. BLE_HS_IO_DISPLAY_ONLY    - Passkey pairing
-   *  BLE_HS_IO_DISPLAY_YESNO   - Numeric comparison pairing
-   *  BLE_HS_IO_NO_INPUT_OUTPUT - DEFAULT setting - just works pairing
-   */
-  // NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_ONLY); // use passkey
-  // NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_YESNO); //use numeric
-  // comparison
+  NimBLEDevice::setSecurityAuth(false, true, true);
 
-  /**
-   *  2 different ways to set security - both calls achieve the same result.
-   *  no bonding, no man in the middle protection, BLE secure connections.
-   *
-   *  These are the default values, only shown here for demonstration.
-   */
-  NimBLEDevice::setSecurityAuth(false, false, true);
-
-  //    NimBLEDevice::setSecurityAuth(/*BLE_SM_PAIR_AUTHREQ_BOND |
-  //    BLE_SM_PAIR_AUTHREQ_MITM |*/ BLE_SM_PAIR_AUTHREQ_SC);
-
-  // NimBLEDevice::setSecurityAuth(true, false, false);
-
-  auto _server = BLEDevice::createServer();
+  auto _server = NimBLEDevice::createServer();
   _server->setCallbacks(new MIDIServerCallbacks());
   _server->advertiseOnDisconnect(true);
 
-  // Create the BLE Service
   auto service = _server->createService(BLEUUID(SERVICE_UUID));
 
-  // Create a BLE Characteristic
   auto _characteristic = service->createCharacteristic(
       BLEUUID(CHARACTERISTIC_UUID),
       NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY |
           NIMBLE_PROPERTY::WRITE_NR);
 
-  _characteristic->setCallbacks(new MIDICharacteristicCallbacks());
+  _characteristic->setCallbacks(new MIDICharacteristicCallbacks(sbuf));
 
-  // Start the service
   service->start();
 
-  // Start advertising
   auto _advertising = _server->getAdvertising();
   _advertising->addServiceUUID(service->getUUID());
-  _advertising->setAppearance(0x00);
   _advertising->setName(CONFIG_TESLASYNTH_DEVICE_NAME);
   _advertising->start();
 

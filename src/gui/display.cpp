@@ -9,7 +9,9 @@
 #include "media/128x64.h"
 #include "misc/lv_area.h"
 #include "notes.hpp"
+#include "synthesizer_events.hpp"
 #include "widgets/label/lv_label.h"
+#include <cstdint>
 #include <sys/lock.h>
 #include <sys/param.h>
 #include <unistd.h>
@@ -26,15 +28,15 @@ void init_ui() {
   ESP_ERROR_CHECK(lvgl_port_init(&lvgl_cfg));
 }
 
-void render_config(lv_obj_t *parent) {
+lv_obj_t *label1, *label2;
+void render_config(void *) {
+  if (label1 == nullptr || label2 == nullptr)
+    return;
   const Config &config = get_config();
 
-  lv_obj_t *label = lv_label_create(parent);
-  lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
-  lv_label_set_text_fmt(label, "Max on: %s",
+  lv_label_set_text_fmt(label1, "Max on: %s",
                         std::string(config.max_on_time).c_str());
-  lv_obj_set_width(label, lv_display_get_horizontal_resolution(display));
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
+  lv_label_set_text_fmt(label2, "Notes: %u", config.notes);
 }
 
 void splash_load_cb(lv_event_t *e) {
@@ -42,7 +44,7 @@ void splash_load_cb(lv_event_t *e) {
   lv_screen_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, false);
 }
 
-lv_obj_t *bluetooth_indicator;
+lv_obj_t *bluetooth_indicator, *play_indicator;
 static lv_timer_t *blink_timer;
 
 static void blink_cb(lv_timer_t *t) {
@@ -53,18 +55,20 @@ static void blink_cb(lv_timer_t *t) {
   else
     lv_obj_add_flag(icon, LV_OBJ_FLAG_HIDDEN);
 }
-static void ui_on_connected(void) {
-  lv_timer_pause(blink_timer);
-  lv_obj_clear_flag(bluetooth_indicator, LV_OBJ_FLAG_HIDDEN);
+static void ui_on_connection_changed(void *event) {
+  if (static_cast<bool>(event)) {
+    lv_timer_pause(blink_timer);
+    lv_obj_clear_flag(bluetooth_indicator, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_timer_resume(blink_timer);
+  }
 }
-static void ui_on_disconnected(void) { lv_timer_resume(blink_timer); }
 
-static void ble_event_handler(void *handler_args, esp_event_base_t base,
-                              int32_t id, void *event_data) {
-  if (id == BLE_DEVICE_CONNECTED) {
-    lv_async_call((lv_async_cb_t)ui_on_connected, NULL);
-  } else if (id == BLE_DEVICE_DISCONNECTED) {
-    lv_async_call((lv_async_cb_t)ui_on_disconnected, NULL);
+static void ui_on_track_play_changed(void *event) {
+  if (static_cast<bool>(event)) {
+    lv_image_set_src(play_indicator, &play_icon);
+  } else {
+    lv_image_set_src(play_indicator, &pause_icon);
   }
 }
 
@@ -84,14 +88,40 @@ void init_main_screen() {
   lv_image_set_src(bluetooth_indicator, &bluetooth_icon);
   lv_obj_align(bluetooth_indicator, LV_ALIGN_TOP_LEFT, 0, 0);
 
-  lv_obj_t *label = lv_label_create(main_screen);
-  lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
-  lv_label_set_text(label, "TeslaSynth");
-  lv_obj_set_width(label, lv_display_get_horizontal_resolution(display));
-  lv_obj_align(label, LV_ALIGN_TOP_RIGHT, 20, 0);
+  play_indicator = lv_image_create(main_screen);
+  lv_image_set_src(play_indicator, &pause_icon);
+  lv_obj_align(play_indicator, LV_ALIGN_TOP_LEFT, 20, 0);
+
+  lv_obj_t *tslabel = lv_label_create(main_screen);
+  lv_label_set_long_mode(tslabel, LV_LABEL_LONG_SCROLL_CIRCULAR);
+  lv_label_set_text(tslabel, "TeslaSynth");
+  lv_obj_set_width(tslabel, lv_display_get_horizontal_resolution(display));
+  lv_obj_align(tslabel, LV_ALIGN_TOP_RIGHT, 40, 0);
 
   blink_timer = lv_timer_create(blink_cb, 750, bluetooth_indicator);
-  render_config(main_screen);
+
+  label1 = lv_label_create(main_screen);
+  lv_label_set_long_mode(label1, LV_LABEL_LONG_SCROLL_CIRCULAR);
+  lv_obj_set_width(label1, lv_display_get_horizontal_resolution(display));
+  lv_obj_align(label1, LV_ALIGN_LEFT_MID, 0, 0);
+
+  label2 = lv_label_create(main_screen);
+  lv_label_set_long_mode(label2, LV_LABEL_LONG_SCROLL_CIRCULAR);
+
+  lv_obj_set_width(label2, lv_display_get_horizontal_resolution(display));
+  lv_obj_align(label2, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+
+  render_config(nullptr);
+}
+
+static void ble_event_handler(void *, esp_event_base_t, int32_t id, void *) {
+  lv_async_call(ui_on_connection_changed, (void *)(id == BLE_DEVICE_CONNECTED));
+}
+static void track_event_handler(void *, esp_event_base_t, int32_t id, void *) {
+  lv_async_call(ui_on_track_play_changed, (void *)(id == SYNTHESIZER_PLAYING));
+}
+static void config_update_handler(void *, esp_event_base_t, int32_t, void *) {
+  lv_async_call(render_config, nullptr);
 }
 
 void init_gui() {
@@ -117,4 +147,14 @@ void init_gui() {
   ESP_ERROR_CHECK(esp_event_handler_instance_register(
       EVENT_BLE_BASE, BLE_DEVICE_DISCONNECTED, ble_event_handler, nullptr,
       nullptr));
+
+  ESP_ERROR_CHECK(esp_event_handler_instance_register(
+      EVENT_SYNTHESIZER_BASE, SYNTHESIZER_PLAYING, track_event_handler, nullptr,
+      nullptr));
+  ESP_ERROR_CHECK(esp_event_handler_instance_register(
+      EVENT_SYNTHESIZER_BASE, SYNTHESIZER_STOPPED, track_event_handler, nullptr,
+      nullptr));
+  ESP_ERROR_CHECK(esp_event_handler_instance_register(
+      EVENT_SYNTHESIZER_BASE, SYNTHESIZER_CONFIG_UPDATED, config_update_handler,
+      nullptr, nullptr));
 }
