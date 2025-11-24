@@ -1,13 +1,17 @@
 #include "configuration/synth.hpp"
 #include "core/lv_obj.h"
+#include "core/lv_obj_pos.h"
 #include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_lvgl_port.h"
 #include "freertos/task.h"
 #include "input/ble_midi.hpp"
+#include "lv_api_map_v8.h"
 #include "media/128x64.h"
 #include "misc/lv_area.h"
+#include "misc/lv_async.h"
+#include "misc/lv_types.h"
 #include "notes.hpp"
 #include "synthesizer_events.hpp"
 #include "widgets/label/lv_label.h"
@@ -78,14 +82,17 @@ static void ui_on_track_play_changed(void *event) {
   }
 }
 
+LV_IMG_DECLARE(teslasynth_240p_large);
+
 void init_splash_screen() {
   ESP_LOGI(TAG, "splash screen");
   splash_screen = lv_obj_create(nullptr);
 
-  lv_obj_t *icon = lv_image_create(splash_screen);
-  lv_image_set_src(icon, &logo);
-  lv_obj_align(icon, LV_ALIGN_TOP_LEFT, 0, 0);
+  lv_obj_t *welcome = lv_image_create(splash_screen);
+  lv_image_set_src(welcome, &teslasynth_240p_large);
+  lv_obj_align(welcome, LV_ALIGN_TOP_LEFT, 0, 0);
 }
+
 void init_main_screen() {
   ESP_LOGI(TAG, "main screen");
   main_screen = lv_obj_create(nullptr);
@@ -130,6 +137,18 @@ static void config_update_handler(void *, esp_event_base_t, int32_t, void *) {
   lv_async_call(render_config, nullptr);
 }
 
+void start_gui() {
+  /* Rotation of the screen */
+  // lv_disp_set_rotation(display, LV_DISPLAY_ROTATION_0);
+
+  init_splash_screen();
+  init_main_screen();
+
+  lv_obj_add_event_cb(splash_screen, splash_load_cb, LV_EVENT_SCREEN_LOADED,
+                      NULL);
+  lv_scr_load(splash_screen);
+}
+
 void init_gui() {
   init_ui();
   display = install_display();
@@ -139,16 +158,7 @@ void init_gui() {
 
   ESP_LOGI(TAG, "starting the UI");
   if (lvgl_port_lock(0)) {
-    /* Rotation of the screen */
-    // lv_disp_set_rotation(display, LV_DISPLAY_ROTATION_0);
-
-    init_splash_screen();
-    init_main_screen();
-
-    lv_obj_add_event_cb(splash_screen, splash_load_cb, LV_EVENT_SCREEN_LOADED,
-                        NULL);
-    lv_scr_load(splash_screen);
-    // Release the mutex
+    start_gui();
     lvgl_port_unlock();
   }
   ESP_ERROR_CHECK(

@@ -93,6 +93,6 @@ void init_synth(StreamBufferHandle_t sbuf) {
   notes = Notes(config);
   rmt_driver();
   xNotesMutex = xSemaphoreCreateMutex();
-  xTaskCreatePinnedToCore(synth, "Synth", 8 * 1024, sbuf, 2, NULL, 1);
-  xTaskCreatePinnedToCore(render, "Render", 8 * 1024, NULL, 2, NULL, 1);
+  xTaskCreatePinnedToCore(synth, "Synth", 8 * 1024, sbuf, 10, NULL, 1);
+  xTaskCreatePinnedToCore(render, "Render", 8 * 1024, NULL, 10, NULL, 1);
 }

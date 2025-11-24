@@ -2,7 +2,7 @@
 
 #if CONFIG_TESLASYNTH_DISPLAY_RESOLUTION_320x240
 
-#define DISPLAY_WIDTH  320
+#define DISPLAY_WIDTH 320
 #define DISPLAY_HEIGHT 240
 
 #endif
@@ -13,3 +13,6 @@
 #define LCD_BK_LIGHT_ON_LEVEL 0
 #endif
 #define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
+
+#define LCD_MIRROR_X (true)
+#define LCD_MIRROR_Y (false)

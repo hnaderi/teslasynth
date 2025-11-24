@@ -10,3 +10,4 @@
 .clangd
 /build/
 /managed_components/
+/src/images/*.c

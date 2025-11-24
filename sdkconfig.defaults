@@ -9,3 +9,10 @@ CONFIG_BT_NIMBLE_ENABLED=y
 
 # Kernel
 CONFIG_FREERTOS_HZ=1000
+
+# partitions, this is overridden by PIO, but let's keep it for later
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
+
+# flash size
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y

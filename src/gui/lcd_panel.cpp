@@ -73,7 +73,7 @@ esp_lcd_panel_handle_t install_panel(esp_lcd_panel_io_handle_t io_handle) {
   esp_lcd_panel_dev_config_t panel_config = {
       .reset_gpio_num =
           static_cast<gpio_num_t>(CONFIG_TESLASYNTH_DISPLAY_INTERFACE_SPI_RS),
-      .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+      .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
       .bits_per_pixel = 16,
   };
 #if CONFIG_TESLASYNTH_DISPLAY_PANEL_ILI9341
@@ -87,7 +87,8 @@ esp_lcd_panel_handle_t install_panel(esp_lcd_panel_io_handle_t io_handle) {
 #endif
   ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
   ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
-  ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, false, false));
+  ESP_ERROR_CHECK(
+      esp_lcd_panel_mirror(panel_handle, LCD_MIRROR_X, LCD_MIRROR_Y));
 
   // user can flush pre-defined pattern to the screen before we turn on the
   // screen or backlight
@@ -117,14 +118,14 @@ lv_display_t *install_display() {
       .rotation =
           {
               .swap_xy = false,
-              .mirror_x = false,
-              .mirror_y = false,
+              .mirror_x = LCD_MIRROR_X,
+              .mirror_y = LCD_MIRROR_Y,
           },
       .color_format = LV_COLOR_FORMAT_RGB565,
       .flags =
           {
               .buff_dma = true,
-              .swap_bytes = false,
+              .swap_bytes = true,
           },
   };
   return lvgl_port_add_disp(&disp_cfg);
