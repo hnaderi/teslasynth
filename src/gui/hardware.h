@@ -14,5 +14,7 @@
 #endif
 #define LCD_BK_LIGHT_OFF_LEVEL !LCD_BK_LIGHT_ON_LEVEL
 
+#define LCD_BACKLIGHT_LEDC_CH (1)
+
 #define LCD_MIRROR_X (true)
 #define LCD_MIRROR_Y (false)

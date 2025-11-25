@@ -5,6 +5,7 @@
 #include "esp_flash.h"
 #include "esp_log.h"
 #include "freertos/task.h"
+#include "helpers/sysinfo.h"
 #include "sdkconfig.h"
 #include <cstdint>
 #include <inttypes.h>
@@ -47,60 +48,23 @@ void register_system_common(void) {
 
 /* 'version' command */
 static int get_version(int argc, char **argv) {
-  const char *model;
-  esp_chip_info_t info;
-  uint32_t flash_size;
-  esp_chip_info(&info);
-
-  switch (info.model) {
-  case CHIP_ESP32:
-    model = "ESP32";
-    break;
-  case CHIP_ESP32S2:
-    model = "ESP32-S2";
-    break;
-  case CHIP_ESP32S3:
-    model = "ESP32-S3";
-    break;
-  case CHIP_ESP32C3:
-    model = "ESP32-C3";
-    break;
-  case CHIP_ESP32H2:
-    model = "ESP32-H2";
-    break;
-  case CHIP_ESP32C2:
-    model = "ESP32-C2";
-    break;
-  case CHIP_ESP32P4:
-    model = "ESP32-P4";
-    break;
-  case CHIP_ESP32C5:
-    model = "ESP32-C5";
-    break;
-  default:
-    model = "Unknown";
-    break;
-  }
-
-  if (esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
-    printf("Get flash size failed");
+  ChipInfo info;
+  if (get_chip_info(info) != ESP_OK) {
     return 1;
   }
+
   auto app_version = esp_app_get_description();
   printf("\n%s\n", BANNER);
   printf("version:%s\ncompiled at:%s %s\n\n", app_version->version,
          app_version->date, app_version->time);
   printf("IDF Version:%s\r\n", esp_get_idf_version());
   printf("Chip info:\r\n");
-  printf("\tmodel:%s\r\n", model);
+  printf("\tmodel:%s\r\n", info.model);
   printf("\tcores:%d\r\n", info.cores);
-  printf("\tfeature:%s%s%s%s%" PRIu32 "%s\r\n",
-         info.features & CHIP_FEATURE_WIFI_BGN ? "/802.11bgn" : "",
-         info.features & CHIP_FEATURE_BLE ? "/BLE" : "",
-         info.features & CHIP_FEATURE_BT ? "/BT" : "",
-         info.features & CHIP_FEATURE_EMB_FLASH ? "/Embedded-Flash:"
-                                                : "/External-Flash:",
-         flash_size / (1024 * 1024), " MB");
+  printf("\tfeature:%s%s%s%s%" PRIu32 "%s\r\n", info.wifi ? "/802.11bgn" : "",
+         info.ble ? "/BLE" : "", info.bt ? "/BT" : "",
+         info.emb_flash ? "/Embedded-Flash:" : "/External-Flash:",
+         info.flash_size, " MB");
   printf("\trevision number:%d\r\n", info.revision);
   return 0;
 }

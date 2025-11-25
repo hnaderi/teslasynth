@@ -8,9 +8,11 @@
 #include "esp_log.h"
 #include "esp_lvgl_port_disp.h"
 #include "freertos/task.h"
+#include "hal/ledc_types.h"
 #include "hardware.h"
 #include "sdkconfig.h"
 #include "soc/gpio_num.h"
+#include <driver/ledc.h>
 #include <stdio.h>
 #include <sys/lock.h>
 #include <sys/param.h>
@@ -26,15 +28,68 @@
 
 static const char *TAG = "DISPLAY";
 
+constexpr auto ledc_channel =
+    static_cast<ledc_channel_t>(LCD_BACKLIGHT_LEDC_CH);
+esp_err_t lcd_display_brightness_init(void) {
+  const ledc_channel_config_t LCD_backlight_channel = {
+      .gpio_num =
+          static_cast<gpio_num_t>(CONFIG_TESLASYNTH_DISPLAY_BACKLIGHT_PIN),
+      .speed_mode = LEDC_LOW_SPEED_MODE,
+      .channel = ledc_channel,
+      .intr_type = LEDC_INTR_DISABLE,
+      .timer_sel = ledc_timer_t::LEDC_TIMER_1,
+      .duty = 0,
+      .hpoint = 0,
+      .flags = {
+          .output_invert = LCD_BK_LIGHT_OFF_LEVEL,
+      }};
+
+  const ledc_timer_config_t LCD_backlight_timer = {
+      .speed_mode = LEDC_LOW_SPEED_MODE,
+      .duty_resolution = LEDC_TIMER_10_BIT,
+      .timer_num = ledc_timer_t::LEDC_TIMER_1,
+      .freq_hz = 5000,
+      .clk_cfg = LEDC_AUTO_CLK,
+  };
+
+  ESP_ERROR_CHECK(ledc_timer_config(&LCD_backlight_timer));
+  ESP_ERROR_CHECK(ledc_channel_config(&LCD_backlight_channel));
+
+  return ESP_OK;
+}
+
+esp_err_t lcd_display_brightness_set(int brightness_percent) {
+  if (brightness_percent > 100) {
+    brightness_percent = 100;
+  }
+  if (brightness_percent < 0) {
+    brightness_percent = 0;
+  }
+
+  ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
+
+  uint32_t duty_cycle = (1023 * brightness_percent) / 100;
+
+  ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, ledc_channel, duty_cycle));
+  ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, ledc_channel));
+
+  return ESP_OK;
+}
+
+esp_err_t lcd_display_backlight_off(void) {
+  ESP_LOGI(TAG, "Turn off LCD backlight");
+  return lcd_display_brightness_set(0);
+}
+
+esp_err_t lcd_display_backlight_on(void) {
+  ESP_LOGI(TAG, "Turn on LCD backlight");
+  return lcd_display_brightness_set(100);
+}
+
 #define LCD_HOST SPI2_HOST
 
 esp_lcd_panel_io_handle_t install_io() {
-  ESP_LOGI(TAG, "Turn off LCD backlight");
-  gpio_config_t bk_gpio_config = {
-      .pin_bit_mask = 1ULL << CONFIG_TESLASYNTH_DISPLAY_BACKLIGHT_PIN,
-      .mode = GPIO_MODE_OUTPUT,
-  };
-  ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
+  lcd_display_brightness_init();
 
   ESP_LOGI(TAG, "Initialize SPI bus");
   spi_bus_config_t buscfg = {
@@ -100,11 +155,6 @@ esp_lcd_panel_handle_t install_panel(esp_lcd_panel_io_handle_t io_handle) {
 lv_display_t *install_display() {
   auto io_handle = install_io();
   auto panel_handle = install_panel(io_handle);
-
-  ESP_LOGI(TAG, "Turn on LCD backlight");
-  gpio_set_level(
-      static_cast<gpio_num_t>(CONFIG_TESLASYNTH_DISPLAY_BACKLIGHT_PIN),
-      LCD_BK_LIGHT_ON_LEVEL);
 
   ESP_LOGI(TAG, "Install the display");
   const lvgl_port_display_cfg_t disp_cfg = {
