@@ -15,7 +15,6 @@ using namespace synth;
 using namespace app::configuration;
 
 namespace keys {
-static constexpr const char *min_on_time = "min-on-time";
 static constexpr const char *max_on_time = "max-on-time";
 static constexpr const char *min_deadtime = "min-deadtime";
 static constexpr const char *tuning = "tuning";
@@ -127,12 +126,10 @@ static int print_config() {
          "\t%s = %s\n"
          "\t%s = %s\n"
          "\t%s = %s\n"
-         "\t%s = %s\n"
          "\t%s = <%s>\n",
-         keys::notes, config.notes, keys::min_on_time, cstr(config.min_on_time),
-         keys::max_on_time, cstr(config.max_on_time), keys::min_deadtime,
-         cstr(config.min_deadtime), keys::tuning, cstr(config.a440),
-         keys::instrument, instrument_value(config));
+         keys::notes, config.notes, keys::max_on_time, cstr(config.max_on_time),
+         keys::min_deadtime, cstr(config.min_deadtime), keys::tuning,
+         cstr(config.a440), keys::instrument, instrument_value(config));
   return 0;
 }
 
@@ -152,9 +149,7 @@ static int set_config(int argc, char **argv) {
     *eq = 0;
     char *key = argv[i], *value = eq + 1;
 
-    if (strcmp(key, keys::min_on_time) == 0) {
-      read_duration(&config.min_on_time);
-    } else if (strcmp(key, keys::max_on_time) == 0) {
+    if (strcmp(key, keys::max_on_time) == 0) {
       read_duration(&config.max_on_time);
     } else if (strcmp(key, keys::min_deadtime) == 0) {
       read_duration(&config.min_deadtime);

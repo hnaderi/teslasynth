@@ -20,8 +20,7 @@ using namespace teslasynth::core;
 struct Config {
   static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
 
-  Duration32 min_on_time = Duration(), max_on_time = 100_us,
-             min_deadtime = 100_us;
+  Duration32 max_on_time = 100_us, min_deadtime = 100_us;
   Hertz a440 = 440_hz;
   uint8_t notes = max_notes;
   std::optional<uint8_t> instrument = {};
@@ -29,7 +28,6 @@ struct Config {
   inline operator std::string() const {
     return std::string("Concurrent notes: ") + std::to_string(notes) +
            "\nTuning: " + std::string(a440) +
-           "\nMin on time: " + std::string(min_on_time) +
            "\nMax on time: " + std::string(max_on_time) +
            "\nMin deadtime: " + std::string(min_deadtime) +
            "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
