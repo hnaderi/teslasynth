@@ -5,16 +5,21 @@
 #include "core.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 
 namespace teslasynth::midisynth {
+using TrackStateCallback = std::function<void(bool)>;
+
 using namespace teslasynth::synth;
 using namespace teslasynth::midi;
 
 class TrackState {
   Duration _started, _received, _played;
   bool _playing = false;
+  TrackStateCallback _cb;
 
 public:
+  TrackState(TrackStateCallback cb = [](bool) {}) : _cb(cb) {}
   constexpr bool is_playing() const { return _playing; }
   constexpr Duration received_time() const { return _received; }
   constexpr Duration started_time() const { return _started; }
@@ -26,6 +31,7 @@ public:
   void stop() {
     _playing = false;
     _started = _received = _played = Duration::zero();
+    _cb(_playing);
   }
 
   /**
@@ -38,6 +44,7 @@ public:
     if (!_playing) {
       _playing = true;
       _started = time;
+      _cb(_playing);
     }
 
     if (auto d = time - _started) {

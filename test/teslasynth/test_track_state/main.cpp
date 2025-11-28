@@ -63,12 +63,23 @@ void test_playback(void) {
   assert_duration_equal(track.played_time(), 15_ms);
 }
 
+void test_callback(void) {
+  bool playing = false;
+  TrackState track([&](bool state) { playing = state; });
+  TEST_ASSERT_FALSE(playing);
+  assert_duration_equal(track.on_receive(10_ms), Duration::zero());
+  TEST_ASSERT_TRUE(playing);
+  track.stop();
+  TEST_ASSERT_FALSE(playing);
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
   RUN_TEST(test_tick);
   RUN_TEST(test_stop);
   RUN_TEST(test_playback);
+  RUN_TEST(test_callback);
   UNITY_END();
 }
 int main(int argc, char **argv) { app_main(); }
