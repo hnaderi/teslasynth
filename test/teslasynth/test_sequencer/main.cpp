@@ -3,10 +3,11 @@
 #include "instruments.hpp"
 #include "lfo.hpp"
 #include "midi_synth.hpp"
+#include "notes.hpp"
 #include "synthesizer/helpers/assertions.hpp"
+#include "unity_internals.h"
 #include <cstdint>
 #include <unity.h>
-#include <vector>
 
 using namespace teslasynth::midisynth;
 
@@ -18,62 +19,26 @@ constexpr Config config_(uint8_t notes) {
   };
 }
 constexpr Config config = config_(4);
+constexpr SynthConfig sconf = {.a440 = 100_hz};
 constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
 constexpr Instrument instrument{.envelope = ADSR::constant(EnvelopeLevel(1)),
                                 .vibrato = Vibrato::none()};
 
-class FakeNotes {
-  Note note;
-
-public:
-  struct Started {
-    MidiNote mnote;
-    Duration time;
-    Instrument instrument;
-    Config config;
-  };
-
-  struct Released {
-    uint8_t mnote;
-    Duration time;
-  };
-
-private:
-  std::vector<Started> started_;
-  std::vector<Released> released_;
-
-public:
-  Note &start(const MidiNote &mnote, Duration time,
-              const Instrument &instrument, const Config &config) {
-    started_.push_back({mnote, time, instrument, config});
-    return note;
-  }
-  void release(uint8_t number, Duration time) {
-    released_.push_back({number, time});
-  }
-
-  const std::vector<Started> started() const { return started_; }
-  const std::vector<Released> released() const { return released_; }
-};
-
 void test_empty(void) {
-  Notes notes;
-  TrackState track;
-  Sequencer<> seq(config, notes, track);
-  assert_duration_equal(track.played_time(), Duration::zero());
+  Teslasynth<> tsynth;
+  assert_duration_equal(tsynth.track().played_time(0), Duration::zero());
 }
 
 void test_should_sequence_empty(void) {
-  Notes notes(config);
-  TrackState track;
-  Sequencer<> seq(config, notes, track);
-  assert_duration_equal(track.played_time(), 0_ms);
+  Teslasynth<> tsynth;
+  auto &track = tsynth.track();
+  assert_duration_equal(track.played_time(0), 0_ms);
   Duration time = Duration::zero();
   for (auto i = 0; i < 100; i++) {
     Duration step = Duration::millis(i);
-    auto pulse = seq.sample(step);
+    auto pulse = tsynth.sample(0, step);
     TEST_ASSERT_TRUE(pulse.is_zero());
-    assert_duration_equal(track.played_time(), Duration::zero());
+    assert_duration_equal(track.played_time(0), Duration::zero());
     assert_duration_equal(pulse.on, 0_ms);
     assert_duration_equal(pulse.off, step);
     time += step;
@@ -81,16 +46,22 @@ void test_should_sequence_empty(void) {
 }
 
 void test_should_sequence_empty_when_no_notes_are_playing(void) {
-  Notes notes(config);
-  TrackState track;
-  track.on_receive(Duration::zero());
-  Sequencer<> seq(config, notes, track);
-  assert_duration_equal(track.played_time(), 0_ms);
-  Duration time = Duration::zero();
+  Teslasynth<> tsynth;
+  auto &track = tsynth.track();
+  auto &notes = tsynth.notes(0);
+
+  tsynth.note_on(0, 69, 0, Duration::zero());
+  tsynth.note_off(0, 69, Duration::zero());
+  while (track.played_time(0) < 1_s) {
+    auto pulse = tsynth.sample(0, 100_ms);
+  }
+
+  // Now there is no note playing
+  Duration time = track.played_time(0);
   for (auto i = 0; i < 100; i++) {
     Duration step = Duration::millis(i);
-    auto pulse = seq.sample(step);
-    assert_duration_equal(track.played_time(), time + step);
+    auto pulse = tsynth.sample(0, step);
+    assert_duration_equal(track.played_time(0), time + step);
     assert_duration_equal(pulse.on, 0_ms);
     assert_duration_equal(pulse.off, step);
     time += step;
@@ -98,159 +69,158 @@ void test_should_sequence_empty_when_no_notes_are_playing(void) {
 }
 
 void test_should_sequence_single(void) {
-  Notes notes(config);
-  TrackState track;
-  track.on_receive(Duration::zero());
-  Sequencer<> seq(config, notes, track);
-  assert_duration_equal(track.played_time(), 0_ms);
-  notes.start(mnotef(0), 10_ms, instrument, config);
+  Teslasynth<> tsynth(sconf);
+  auto &track = tsynth.track();
+  auto &notes = tsynth.notes(0);
+  assert_duration_equal(track.played_time(0), 0_ms);
+  tsynth.note_on(0, 69, 127, 10_ms);
+  tsynth.note_off(0, 69, 1_s + 10_ms);
 
-  Pulse pulse = seq.sample(20_ms);
-  assert_duration_equal(track.played_time(), 10_ms);
-  assert_duration_equal(pulse.on, 0_ms);
-  assert_duration_equal(pulse.off, 10_ms);
-
-  notes.release(mnotef(0), 1_s);
-
-  for (auto i = 1; track.played_time() < 1_s; i++) {
-    Pulse pulse2 = seq.sample(10_ms);
+  for (auto i = 0; track.played_time(0) < 1_s; i++) {
+    Pulse pulse2 = tsynth.sample(0, 10_ms);
     Duration time = 10_ms * i;
     assert_duration_equal(pulse2.on, config.max_on_time);
     assert_duration_equal(pulse2.off, config.min_deadtime);
-    assert_duration_equal(track.played_time(), time + pulse2.length());
+    assert_duration_equal(track.played_time(0), time + pulse2.length());
 
-    Pulse pulse3 = seq.sample(10_ms);
+    Pulse pulse3 = tsynth.sample(0, 10_ms);
     assert_duration_equal(pulse3.on, 0_us);
     assert_duration_equal(pulse3.off,
-                          track.played_time() < 1_s ? 9800_us : 10_ms);
-    assert_duration_equal(track.played_time(),
+                          track.played_time(0) < 1_s ? 9800_us : 10_ms);
+    assert_duration_equal(track.played_time(0),
                           time + 10_ms +
-                              (track.played_time() < 1_s ? 0_us : 200_us));
+                              (track.played_time(0) < 1_s ? 0_us : 200_us));
   }
-  assert_duration_equal(track.played_time(), 1_s + 200_us);
+  assert_duration_equal(track.played_time(0), 1_s + 200_us);
   TEST_ASSERT_EQUAL(0, notes.active());
 }
 
 void test_should_sequence_polyphonic(void) {
-  Notes notes(config);
-  TrackState track;
-  track.on_receive(Duration::zero());
-  Sequencer<> seq(config, notes, track);
-  assert_duration_equal(track.played_time(), 0_ms);
-  notes.start(mnotef(0), 10_ms, instrument, config);
-  notes.start(mnotef(12), 10_ms, instrument, config);
+  Teslasynth<> tsynth(sconf);
+  auto &track = tsynth.track();
+  auto &notes = tsynth.notes(0);
 
-  Pulse pulse = seq.sample(20_ms);
-  assert_duration_equal(track.played_time(), 10_ms);
-  assert_duration_equal(pulse.on, 0_ms);
-  assert_duration_equal(pulse.off, 10_ms);
+  assert_duration_equal(track.played_time(0), 0_ms);
+  tsynth.note_on(0, mnotef(0), 10_ms);
+  tsynth.note_on(0, mnotef(12), 10_ms);
 
-  Pulse pulse2 = seq.sample(10_ms);
-  assert_duration_equal(pulse2.on, config.max_on_time);
-  assert_duration_equal(pulse2.off, config.min_deadtime);
-  assert_duration_equal(track.played_time(), 10_ms + pulse2.length());
+  Pulse pulse1 = tsynth.sample(0, 10_ms);
+  assert_duration_equal(pulse1.on, config.max_on_time);
+  assert_duration_equal(pulse1.off, config.min_deadtime);
+  assert_duration_equal(track.played_time(0), pulse1.length());
 
-  Pulse pulse3 = seq.sample(10_ms);
-  assert_duration_equal(pulse3.on, 0_us);
-  assert_duration_equal(pulse3.off, *(5_ms - pulse2.length()));
-  assert_duration_equal(track.played_time(), 15_ms);
+  Pulse pulse2 = tsynth.sample(0, 10_ms);
+  assert_duration_equal(pulse2.on, 0_us);
+  assert_duration_equal(pulse2.off, *(5_ms - pulse1.length()));
+  assert_duration_equal(track.played_time(0), 5_ms);
 
-  Pulse pulse4 = seq.sample(10_ms);
-  assert_duration_equal(pulse4.on, config.max_on_time);
-  assert_duration_equal(pulse4.off, config.min_deadtime);
-  assert_duration_equal(track.played_time(), 15_ms + pulse4.length());
+  Pulse pulse3 = tsynth.sample(0, 10_ms);
+  assert_duration_equal(pulse3.on, config.max_on_time);
+  assert_duration_equal(pulse3.off, config.min_deadtime);
+  assert_duration_equal(track.played_time(0), 5_ms + pulse3.length());
 }
 
 void test_should_sequence_polyphonic_out_of_phase(void) {
-  Notes notes(config);
-  TrackState track;
-  track.on_receive(Duration::zero());
-  Sequencer<> seq(config, notes, track);
-  assert_duration_equal(track.played_time(), 0_ms);
-  notes.start(mnotef(0), 10_ms, instrument, config);
-  notes.start(mnotef(12), 11_ms, instrument, config);
+  Teslasynth<> tsynth(sconf);
+  auto &track = tsynth.track();
+  auto &notes = tsynth.notes(0);
 
-  Pulse pulse = seq.sample(20_ms);
-  assert_duration_equal(track.played_time(), 10_ms);
-  assert_duration_equal(pulse.on, 0_ms);
-  assert_duration_equal(pulse.off, 10_ms);
+  tsynth.note_on(0, mnotef(0), 10_ms);
+  tsynth.note_on(0, mnotef(12), 11_ms);
 
-  Pulse pulse2 = seq.sample(10_ms);
+  Pulse pulse2 = tsynth.sample(0, 10_ms);
   assert_duration_equal(pulse2.on, config.max_on_time);
   assert_duration_equal(pulse2.off, config.min_deadtime);
-  assert_duration_equal(track.played_time(), 10_ms + pulse2.length());
+  assert_duration_equal(track.played_time(0), pulse2.length());
 
-  Pulse pulse3 = seq.sample(10_ms);
+  Pulse pulse3 = tsynth.sample(0, 10_ms);
   assert_duration_equal(pulse3.on, 0_us);
   assert_duration_equal(pulse3.off, *(1_ms - pulse2.length()));
-  assert_duration_equal(track.played_time(), 11_ms);
+  assert_duration_equal(track.played_time(0), 1_ms);
 
-  Pulse pulse4 = seq.sample(10_ms);
+  Pulse pulse4 = tsynth.sample(0, 10_ms);
   assert_duration_equal(pulse4.on, config.max_on_time);
   assert_duration_equal(pulse4.off, config.min_deadtime);
-  assert_duration_equal(track.played_time(), 11_ms + pulse4.length());
+  assert_duration_equal(track.played_time(0), 1_ms + pulse4.length());
 }
 
-void assert_plays(Sequencer<> &seq, TrackState &track, Duration duty,
-                  Duration period, Duration start, Duration release) {
-  while (track.played_time() < start) {
-    seq.sample(1_ms);
-  }
-  assert_duration_equal(track.played_time(), start);
+void test_should_sequence_polyphonic_out_of_phase_multichannel(void) {
+  Teslasynth<2> tsynth(sconf);
+  auto &track = tsynth.track();
 
-  for (auto i = 0; track.played_time() < release; i++) {
-    Pulse pulse = seq.sample(10_ms);
-    Duration time = period * i;
-    assert_duration_equal(pulse.on, duty);
-    assert_duration_equal(pulse.off, config.min_deadtime);
-    assert_duration_equal(track.played_time(), start + time + pulse.length());
+  tsynth.note_on(0, mnotef(0), 10_ms);
+  tsynth.note_on(0, mnotef(12), 11_ms);
+  tsynth.note_on(1, mnotef(12), 12_ms);
 
-    while (track.played_time() < start + time + period) {
-      Pulse pulse2 = seq.sample(10_ms);
-      TEST_ASSERT_TRUE(pulse2.is_zero());
-    }
-    TEST_ASSERT_TRUE(track.played_time() >= start + time + period);
+  PulseBuffer<2> buffer;
+
+  tsynth.sample_all(10_ms, buffer);
+
+  TEST_ASSERT_EQUAL(6, buffer.written[0]);
+  TEST_ASSERT_EQUAL(5, buffer.written[1]);
+
+  std::vector<Pulse> ch0 = {
+      {100_us, 100_us}, {0_s, 800_us},    {100_us, 100_us},
+      {0_s, 4800_us},   {100_us, 100_us}, {0_s, 3800_us},
+  };
+  std::vector<Pulse> ch1 = {
+      {0_s, 2_ms},      {100_us, 100_us}, {0_s, 4800_us},
+      {100_us, 100_us}, {0_s, 2800_us},
+  };
+
+  for (auto i = 0; i < 6; i++) {
+    assert_duration_equal(ch0[i].on, buffer.at(0, i).on);
+    assert_duration_equal(ch0[i].off, buffer.at(0, i).off);
   }
-  TEST_ASSERT_TRUE(track.played_time() >= release);
+
+  for (auto i = 0; i < 5; i++) {
+    assert_duration_equal(ch1[i].on, buffer.at(1, i).on);
+    assert_duration_equal(ch1[i].off, buffer.at(1, i).off);
+  }
 }
 
-void test_should_sequence_monophonic_tracks(void) {
-  Notes notes(config_(2));
-  TrackState track;
-  track.on_receive(Duration::zero());
-  Sequencer<> seq(config, notes, track);
-  assert_duration_equal(track.played_time(), 0_ms);
+void test_should_sequence_polyphonic_out_of_phase_multichannel_note_off(void) {
+  Teslasynth<2> tsynth(sconf);
+  auto &track = tsynth.track();
 
-  Note *n1 = &notes.start(mnotef(0), 10_ms, instrument, config);
-  notes.release(mnotef(0), 1_s);
-  Note *n2 = &notes.start(mnotef(12), 1_s, instrument, config);
-  notes.release(mnotef(12), 2_s);
+  tsynth.note_on(0, mnotef(0), 10_ms);
+  tsynth.note_on(0, mnotef(12), 11_ms);
+  tsynth.note_on(1, mnotef(12), 12_ms);
+  tsynth.note_off(1, mnotef(12), 22_ms);
 
-  TEST_ASSERT_EQUAL(2, notes.active());
-  assert_plays(seq, track, 100_us, 10_ms, 10_ms, 1_s);
-  TEST_ASSERT_EQUAL(1, notes.active());
-  assert_plays(seq, track, 100_us, 5_ms, 1_s, 2_s);
-  TEST_ASSERT_EQUAL(0, notes.active());
+  PulseBuffer<2> buffer;
 
-  Note *n3 = &notes.start(mnotef(-12), 2250_ms, instrument, config);
-  assert_hertz_equal(n3->frequency(), mnotef(-12).frequency(100_hz));
-  notes.release(mnotef(-12), 3_s);
-  TEST_ASSERT_EQUAL(1, notes.active());
-  TEST_ASSERT_TRUE(n3->is_active());
-  TEST_ASSERT_TRUE(n3 == n1);
-  assert_plays(seq, track, 100_us, 20_ms, 2250_ms, 3_s);
+  tsynth.sample_all(10_ms, buffer);
+  tsynth.sample_all(10_ms, buffer);
+
+  TEST_ASSERT_EQUAL(6, buffer.written[0]);
+  TEST_ASSERT_EQUAL(1, buffer.written[1]);
+
+  std::vector<Pulse> ch0 = {
+      {100_us, 100_us}, {0_s, 800_us},    {100_us, 100_us},
+      {0_s, 4800_us},   {100_us, 100_us}, {0_s, 3800_us},
+  };
+  std::vector<Pulse> ch1 = {{0_s, 10_ms}};
+
+  for (auto i = 0; i < 6; i++) {
+    assert_duration_equal(ch0[i].on, buffer.at(0, i).on);
+    assert_duration_equal(ch0[i].off, buffer.at(0, i).off);
+  }
+
+  assert_duration_equal(ch1[0].on, buffer.at(1, 0).on);
+  assert_duration_equal(ch1[0].off, buffer.at(1, 0).off);
 }
 
 extern "C" void app_main(void) {
   UNITY_BEGIN();
-
   RUN_TEST(test_empty);
   RUN_TEST(test_should_sequence_empty);
   RUN_TEST(test_should_sequence_empty_when_no_notes_are_playing);
   RUN_TEST(test_should_sequence_single);
   RUN_TEST(test_should_sequence_polyphonic);
   RUN_TEST(test_should_sequence_polyphonic_out_of_phase);
-  RUN_TEST(test_should_sequence_monophonic_tracks);
+  RUN_TEST(test_should_sequence_polyphonic_out_of_phase_multichannel);
+  RUN_TEST(test_should_sequence_polyphonic_out_of_phase_multichannel_note_off);
   UNITY_END();
 }
 int main(int argc, char **argv) { app_main(); }

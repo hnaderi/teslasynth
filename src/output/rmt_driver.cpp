@@ -1,4 +1,5 @@
 #include "rmt_driver.hpp"
+#include "driver/rmt_common.h"
 #include "driver/rmt_encoder.h"
 #include "driver/rmt_tx.h"
 #include "driver/rmt_types.h"
@@ -8,8 +9,10 @@
 #include "freertos/task.h"
 #include "hal/rmt_types.h"
 #include "midi_synth.hpp"
+#include "sdkconfig.h"
 #include "soc/gpio_num.h"
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <stddef.h>
 #include <stdio.h>
@@ -19,7 +22,9 @@ using teslasynth::midisynth::Pulse;
 
 #define RMT_BUZZER_RESOLUTION_HZ 1'000'000
 
-static const char *TAG = "RMT-DRIVER";
+namespace {
+
+const char *TAG = "RMT-DRIVER";
 
 inline void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
   if (current->is_zero()) {
@@ -39,9 +44,9 @@ inline void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
   }
 }
 
-static size_t callback(const void *data, size_t data_size,
-                       size_t symbols_written, size_t symbols_free,
-                       rmt_symbol_word_t *symbols, bool *done, void *arg) {
+size_t callback(const void *data, size_t data_size, size_t symbols_written,
+                size_t symbols_free, rmt_symbol_word_t *symbols, bool *done,
+                void *arg) {
   const Pulse *input = static_cast<const Pulse *>(data);
   const size_t data_length = data_size / sizeof(Pulse);
 
@@ -55,14 +60,9 @@ static size_t callback(const void *data, size_t data_size,
     *done = true;
   return written;
 }
+rmt_channel_handle_t channels[CONFIG_TESLASYNTH_OUTPUT_COUNT];
+rmt_encoder_handle_t encoders[CONFIG_TESLASYNTH_OUTPUT_COUNT];
 
-rmt_channel_handle_t audio_chan = NULL;
-rmt_encoder_handle_t encoder = NULL;
-constexpr rmt_simple_encoder_config_t encoder_config = {
-    .callback = callback,
-    .arg = NULL,
-    .min_chunk_size = 1,
-};
 constexpr rmt_transmit_config_t tx_config = {
     .loop_count = 0,
     .flags =
@@ -71,37 +71,72 @@ constexpr rmt_transmit_config_t tx_config = {
             .queue_nonblocking = 1,
         },
 };
-constexpr rmt_tx_channel_config_t tx_chan_config = {
-    .gpio_num = static_cast<gpio_num_t>(CONFIG_TESLASYNTH_GPIO_PIN),
-    .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
-    .resolution_hz = RMT_BUZZER_RESOLUTION_HZ,
-    .mem_block_symbols = 64,
-    .trans_queue_depth = 10, // set the maximum number of transactions that
-                             // can pend in the background
-    .flags =
-        {
-            .invert_out = false,
-            .with_dma = false,
-            .io_loop_back = false,
-            .io_od_mode = false,
-            .allow_pd = false,
-        },
+
+const uint8_t output_pins[] = {
+#if CONFIG_TESLASYNTH_OUTPUT_COUNT >= 1
+    CONFIG_TESLASYNTH_OUTPUT_GPIO_PIN1,
+#endif
+#if CONFIG_TESLASYNTH_OUTPUT_COUNT >= 2
+    CONFIG_TESLASYNTH_OUTPUT_GPIO_PIN2,
+#endif
+#if CONFIG_TESLASYNTH_OUTPUT_COUNT >= 3
+    CONFIG_TESLASYNTH_OUTPUT_GPIO_PIN3,
+#endif
+#if CONFIG_TESLASYNTH_OUTPUT_COUNT >= 4
+    CONFIG_TESLASYNTH_OUTPUT_GPIO_PIN4,
+#endif
 };
+} // namespace
+
+void enable(void) {
+  ESP_LOGI(TAG, "Enable RMT TX channel(s)");
+  for (uint8_t i = 0; i < CONFIG_TESLASYNTH_OUTPUT_COUNT; ++i) {
+    ESP_ERROR_CHECK(rmt_enable(channels[i]));
+  }
+}
+
+void disable(void) {
+  ESP_LOGI(TAG, "Disable RMT TX channel(s)");
+  for (uint8_t i = 0; i < CONFIG_TESLASYNTH_OUTPUT_COUNT; ++i) {
+    ESP_ERROR_CHECK(rmt_disable(channels[i]));
+  }
+}
 
 void init(void) {
-  ESP_LOGI(TAG, "Create RMT TX channel");
-  ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_config, &audio_chan));
+  ESP_LOGI(TAG, "Create %u RMT TX channel(s)", CONFIG_TESLASYNTH_OUTPUT_COUNT);
 
-  ESP_LOGI(TAG, "Install RMT encoder");
+  constexpr rmt_simple_encoder_config_t encoder_config = {
+      .callback = callback,
+      .arg = NULL,
+      .min_chunk_size = 1,
+  };
+  rmt_tx_channel_config_t tx_chan_config = {
+      .gpio_num = gpio_num_t::GPIO_NUM_NC,
+      .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
+      .resolution_hz = RMT_BUZZER_RESOLUTION_HZ,
+      .mem_block_symbols = 64,
+      .trans_queue_depth = 10, // set the maximum number of transactions that
+                               // can pend in the background
+      .flags =
+          {
+              .invert_out = false,
+              .with_dma = false,
+              .io_loop_back = false,
+              .io_od_mode = false,
+              .allow_pd = false,
+          },
+  };
 
-  ESP_ERROR_CHECK(rmt_new_simple_encoder(&encoder_config, &encoder));
+  for (uint8_t i = 0; i < CONFIG_TESLASYNTH_OUTPUT_COUNT; ++i) {
+    tx_chan_config.gpio_num = static_cast<gpio_num_t>(output_pins[i]);
+    ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_config, &channels[i]));
+    ESP_ERROR_CHECK(rmt_new_simple_encoder(&encoder_config, &encoders[i]));
+  }
 
-  ESP_LOGI(TAG, "Enable RMT TX channel");
-  ESP_ERROR_CHECK(rmt_enable(audio_chan));
+  enable();
 }
-void pulse_write(const Pulse *pulse, size_t len) {
-  if (len == 0)
-    return;
+
+void pulse_write(const midisynth::Pulse *pulse, size_t len, uint8_t ch) {
 #if CONFIG_TESLASYNTH_DEBUG
   static size_t counter = 0, min_i = std::numeric_limits<size_t>::max(),
                 max_i = 0, total = 0;
@@ -109,12 +144,14 @@ void pulse_write(const Pulse *pulse, size_t len) {
   max_i = std::max(len, max_i);
   total += len;
   if (counter++ % 100 == 0) {
-    ESP_LOGD(TAG, "RMT items stats, min: %u, max: %u, total: %u, avg: %u",
+    ESP_LOGI(TAG, "RMT items stats, min: %u, max: %u, total: %u, avg: %u",
              min_i, max_i, total, total / counter);
   }
 #endif
-  ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_transmit(audio_chan, encoder, pulse,
+
+  if (len == 0)
+    return;
+  ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_transmit(channels[ch], encoders[ch], pulse,
                                              len * sizeof(Pulse), &tx_config));
 }
-
-} // namespace teslasynth::devices::rmt
+} // namespace teslasynth::app::devices::rmt

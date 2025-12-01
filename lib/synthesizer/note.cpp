@@ -29,7 +29,10 @@ void Note::start(const MidiNote &mnote, Duration time, Envelope env,
                  Vibrato vibrato, const Config &config) {
   start(mnote, time, env, vibrato, config.a440);
 }
-
+void Note::start(const MidiNote &mnote, Duration time,
+                 const Instrument &instrument, Hertz tuning) {
+  start(mnote, time, instrument.envelope, instrument.vibrato, tuning);
+}
 void Note::start(const MidiNote &mnote, Duration time, Envelope env,
                  const Config &config) {
   start(mnote, time, env, Vibrato::none(), config);
@@ -75,9 +78,14 @@ Notes::Notes(uint8_t size) : _size(std::min(size, Config::max_notes)) {}
 Notes::Notes(const Config &config)
     : _size(std::min(config.notes, config.max_notes)) {}
 
-size_t Notes::active() const {
-  size_t active = 0;
-  for (size_t i = 0; i < _size; i++) {
+void Notes::adjust_size(uint8_t size) {
+  if (size <= Config::max_notes && size > 0)
+    _size = size;
+}
+
+uint8_t Notes::active() const {
+  uint8_t active = 0;
+  for (uint8_t i = 0; i < _size; i++) {
     if (_notes[i].is_active())
       active++;
   }
@@ -87,7 +95,7 @@ size_t Notes::active() const {
 Note &Notes::next() {
   auto out = 0;
   auto min = Duration::max();
-  for (size_t i = 0; i < _size; i++) {
+  for (uint8_t i = 0; i < _size; i++) {
     if (!_notes[i].is_active())
       continue;
     auto time = _notes[i].current().start;
@@ -101,14 +109,19 @@ Note &Notes::next() {
 
 Note &Notes::start(const MidiNote &mnote, Duration time,
                    const Instrument &instrument, const Config &config) {
-  size_t idx = 0;
+  return start(mnote, time, instrument, config.a440);
+}
+
+Note &Notes::start(const MidiNote &mnote, Duration time,
+                   const Instrument &instrument, Hertz tuning) {
+  uint8_t idx = 0;
   for (uint8_t i = 0; i < _size; i++) {
     if (_notes[i].is_active() && _numbers[i] != mnote.number)
       continue;
     idx = i;
     break;
   }
-  _notes[idx].start(mnote, time, instrument, config);
+  _notes[idx].start(mnote, time, instrument, tuning);
   _numbers[idx] = mnote.number;
   return _notes[idx];
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "array"
 #include "envelope.hpp"
 #include "lfo.hpp"
 
@@ -24,7 +25,7 @@ struct Instrument {
   }
 };
 
-const static Instrument instruments[] = {
+const static std::array<Instrument, 20> instruments{{
     // lead
     {.envelope = ADSR::constant(EnvelopeLevel(1)), .vibrato = Vibrato::none()},
 
@@ -75,8 +76,8 @@ const static Instrument instruments[] = {
      .vibrato = {2_hz, 4_hz}},
     // end pad
 
-};
-constexpr size_t instruments_size = sizeof(instruments) / sizeof(Instrument);
+}};
+constexpr size_t instruments_size = instruments.size();
 
 const inline Instrument &default_instrument() { return instruments[0]; }
 

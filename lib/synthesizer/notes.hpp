@@ -34,6 +34,19 @@ struct Config {
   }
 };
 
+struct SynthConfig {
+  static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
+  Hertz a440 = 440_hz;
+  uint8_t notes = max_notes;
+  std::optional<uint8_t> instrument = {};
+
+  inline operator std::string() const {
+    return std::string("Concurrent notes: ") + std::to_string(notes) +
+           "\nTuning: " + std::string(a440) +
+           "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
+  }
+};
+
 struct NotePulse {
   Duration start;
   Duration32 period;
@@ -85,6 +98,8 @@ public:
   void start(const MidiNote &mnote, Duration time, Envelope env,
              Vibrato vibrato, Hertz tuning);
   void start(const MidiNote &mnote, Duration time, const Instrument &instrument,
+             Hertz tuning);
+  void start(const MidiNote &mnote, Duration time, const Instrument &instrument,
              const Config &config);
   void start(const MidiNote &mnote, Duration time, Envelope env,
              const Config &config);
@@ -105,7 +120,7 @@ public:
 };
 
 class Notes {
-  size_t _size;
+  uint8_t _size;
   std::array<Note, Config::max_notes> _notes;
   std::array<uint8_t, Config::max_notes> _numbers;
 
@@ -115,6 +130,8 @@ public:
   Notes(const Config &config);
   Note &start(const MidiNote &mnote, Duration time,
               const Instrument &instrument, const Config &config);
+  Note &start(const MidiNote &mnote, Duration time,
+              const Instrument &instrument, Hertz tuning);
   void release(uint8_t number, Duration time);
   inline void release(const MidiNote &mnote, Duration time) {
     release(mnote.number, time);
@@ -123,8 +140,9 @@ public:
 
   Note &next();
 
-  size_t active() const;
-  size_t size() const { return _size; }
+  void adjust_size(uint8_t size);
+  uint8_t active() const;
+  uint8_t size() const { return _size; }
 };
 
 } // namespace teslasynth::synth
