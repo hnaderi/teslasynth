@@ -17,7 +17,7 @@ using namespace synth;
 namespace keys {
 static constexpr const char *max_on_time = "max-on";
 static constexpr const char *min_deadtime = "min-dead";
-static constexpr const char *tuning = "tuning";
+// static constexpr const char *tuning = "tuning";
 static constexpr const char *notes = "notes";
 static constexpr const char *instrument = "instrument";
 }; // namespace keys
@@ -49,8 +49,8 @@ const Config &load_config() {
       config_.instrument =
           i8 > 0 ? std::optional<uint8_t>(i8) : std::optional<uint8_t>();
 
-    if (nvs_get_u32(handle, keys::tuning, &u32) == ESP_OK)
-      config_.a440 = Hertz(u32);
+    // if (nvs_get_u32(handle, keys::tuning, &u32) == ESP_OK)
+    //   config_.a440 = Hertz(u32);
 
     if (nvs_get_u32(handle, keys::min_deadtime, &u32) == ESP_OK)
       config_.min_deadtime = Duration32::micros(u32);
@@ -82,7 +82,7 @@ void save_config() {
     nvs_set_i8(handle, keys::instrument, -1);
   }
 
-  nvs_set_u32(handle, keys::tuning, config_.a440);
+  // nvs_set_u32(handle, keys::tuning, config_.a440);
   nvs_set_u32(handle, keys::max_on_time, config_.max_on_time.micros());
   nvs_set_u32(handle, keys::min_deadtime, config_.min_deadtime.micros());
 

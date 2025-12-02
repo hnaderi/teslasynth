@@ -17,7 +17,7 @@ using namespace app::configuration;
 namespace keys {
 static constexpr const char *max_on_time = "max-on-time";
 static constexpr const char *min_deadtime = "min-deadtime";
-static constexpr const char *tuning = "tuning";
+// static constexpr const char *tuning = "tuning";
 static constexpr const char *notes = "notes";
 static constexpr const char *instrument = "instrument";
 }; // namespace keys
@@ -125,11 +125,10 @@ static int print_config() {
          "\t%s = %u\n"
          "\t%s = %s\n"
          "\t%s = %s\n"
-         "\t%s = %s\n"
          "\t%s = <%s>\n",
          keys::notes, config.notes, keys::max_on_time, cstr(config.max_on_time),
-         keys::min_deadtime, cstr(config.min_deadtime), keys::tuning,
-         cstr(config.a440), keys::instrument, instrument_value(config));
+         keys::min_deadtime, cstr(config.min_deadtime), keys::instrument,
+         instrument_value(config));
   return 0;
 }
 
@@ -153,10 +152,6 @@ static int set_config(int argc, char **argv) {
       read_duration(&config.max_on_time);
     } else if (strcmp(key, keys::min_deadtime) == 0) {
       read_duration(&config.min_deadtime);
-    } else if (strcmp(key, keys::tuning) == 0) {
-      if (!parse_hertz(value, &config.a440)) {
-        return invalid_frequency(value);
-      }
     } else if (strcmp(key, keys::notes) == 0) {
       if (!parse_notes(value, &config.notes)) {
         printf("Invalid notes value %s, must be a number in [1, %i]", value,

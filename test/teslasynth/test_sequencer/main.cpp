@@ -14,7 +14,6 @@ using namespace teslasynth::midisynth;
 constexpr Config config_(uint8_t notes) {
   return {
       .min_deadtime = 100_us,
-      .a440 = 100_hz,
       .notes = notes,
   };
 }
@@ -48,7 +47,6 @@ void test_should_sequence_empty(void) {
 void test_should_sequence_empty_when_no_notes_are_playing(void) {
   Teslasynth<> tsynth;
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes(0);
 
   tsynth.note_on(0, 69, 0, Duration::zero());
   tsynth.note_off(0, 69, Duration::zero());
@@ -71,7 +69,7 @@ void test_should_sequence_empty_when_no_notes_are_playing(void) {
 void test_should_sequence_single(void) {
   Teslasynth<> tsynth(sconf);
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes(0);
+  auto &voice = tsynth.voice(0);
   assert_duration_equal(track.played_time(0), 0_ms);
   tsynth.note_on(0, 69, 127, 10_ms);
   tsynth.note_off(0, 69, 1_s + 10_ms);
@@ -92,13 +90,12 @@ void test_should_sequence_single(void) {
                               (track.played_time(0) < 1_s ? 0_us : 200_us));
   }
   assert_duration_equal(track.played_time(0), 1_s + 200_us);
-  TEST_ASSERT_EQUAL(0, notes.active());
+  TEST_ASSERT_EQUAL(0, voice.active());
 }
 
 void test_should_sequence_polyphonic(void) {
   Teslasynth<> tsynth(sconf);
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes(0);
 
   assert_duration_equal(track.played_time(0), 0_ms);
   tsynth.note_on(0, mnotef(0), 10_ms);
@@ -123,7 +120,6 @@ void test_should_sequence_polyphonic(void) {
 void test_should_sequence_polyphonic_out_of_phase(void) {
   Teslasynth<> tsynth(sconf);
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes(0);
 
   tsynth.note_on(0, mnotef(0), 10_ms);
   tsynth.note_on(0, mnotef(12), 11_ms);

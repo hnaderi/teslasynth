@@ -4,6 +4,7 @@
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -21,13 +22,11 @@ struct Config {
   static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
 
   Duration32 max_on_time = 100_us, min_deadtime = 100_us;
-  Hertz a440 = 440_hz;
   uint8_t notes = max_notes;
   std::optional<uint8_t> instrument = {};
 
   inline operator std::string() const {
     return std::string("Concurrent notes: ") + std::to_string(notes) +
-           "\nTuning: " + std::string(a440) +
            "\nMax on time: " + std::string(max_on_time) +
            "\nMin deadtime: " + std::string(min_deadtime) +
            "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
@@ -35,14 +34,11 @@ struct Config {
 };
 
 struct SynthConfig {
-  static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
   Hertz a440 = 440_hz;
-  uint8_t notes = max_notes;
   std::optional<uint8_t> instrument = {};
 
   inline operator std::string() const {
-    return std::string("Concurrent notes: ") + std::to_string(notes) +
-           "\nTuning: " + std::string(a440) +
+    return std::string("Tuning: ") + std::string(a440) +
            "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
   }
 };
@@ -66,10 +62,6 @@ struct MidiNote {
 
   constexpr Hertz frequency(Hertz tuning = 440_hz) const {
     return tuning * exp2f((number - 69) / 12.0f);
-  }
-
-  constexpr Hertz frequency(const Config &config) const {
-    return frequency(config.a440);
   }
 
   constexpr EnvelopeLevel volume() const {
@@ -99,12 +91,7 @@ public:
              Vibrato vibrato, Hertz tuning);
   void start(const MidiNote &mnote, Duration time, const Instrument &instrument,
              Hertz tuning);
-  void start(const MidiNote &mnote, Duration time, const Instrument &instrument,
-             const Config &config);
-  void start(const MidiNote &mnote, Duration time, Envelope env,
-             const Config &config);
-  void start(const MidiNote &mnote, Duration time, Envelope env,
-             Vibrato vibrato, const Config &config);
+  void start(const MidiNote &mnote, Duration time, Envelope env, Hertz tuning);
   void release(Duration time);
 
   void off();
@@ -119,30 +106,74 @@ public:
   const EnvelopeLevel &max_volume() const { return _volume; }
 };
 
-class Notes {
+template <std::uint8_t MAX_NOTES = Config::max_notes> class Voice {
   uint8_t _size;
-  std::array<Note, Config::max_notes> _notes;
-  std::array<uint8_t, Config::max_notes> _numbers;
+  std::array<Note, MAX_NOTES> _notes;
+  std::array<uint8_t, MAX_NOTES> _numbers;
 
 public:
-  Notes();
-  Notes(uint8_t size);
-  Notes(const Config &config);
+  Voice() : _size(Config::max_notes) {}
+  Voice(uint8_t size) : _size(std::min(size, Config::max_notes)) {}
+  Voice(const Config &config)
+      : _size(std::min(config.notes, config.max_notes)) {}
   Note &start(const MidiNote &mnote, Duration time,
-              const Instrument &instrument, const Config &config);
-  Note &start(const MidiNote &mnote, Duration time,
-              const Instrument &instrument, Hertz tuning);
-  void release(uint8_t number, Duration time);
+              const Instrument &instrument, Hertz tuning) {
+    uint8_t idx = 0;
+    for (uint8_t i = 0; i < _size; i++) {
+      if (_notes[i].is_active() && _numbers[i] != mnote.number)
+        continue;
+      idx = i;
+      break;
+    }
+    _notes[idx].start(mnote, time, instrument, tuning);
+    _numbers[idx] = mnote.number;
+    return _notes[idx];
+  }
+  void release(uint8_t number, Duration time) {
+    for (uint8_t i = 0; i < _size; i++) {
+      if (_notes[i].is_active() && _numbers[i] == number) {
+        _notes[i].release(time);
+        return;
+      }
+    }
+  }
   inline void release(const MidiNote &mnote, Duration time) {
     release(mnote.number, time);
   }
-  void off();
+  void off() {
+    for (uint8_t i = 0; i < _size; i++)
+      _notes[i].off();
+  }
 
-  Note &next();
+  Note &next() {
+    auto out = 0;
+    auto min = Duration::max();
+    for (uint8_t i = 0; i < _size; i++) {
+      if (!_notes[i].is_active())
+        continue;
+      auto time = _notes[i].current().start;
+      if (time < min) {
+        out = i;
+        min = time;
+      }
+    }
+    return _notes[out];
+  }
 
-  void adjust_size(uint8_t size);
-  uint8_t active() const;
+  void adjust_size(uint8_t size) {
+    if (size <= Config::max_notes && size > 0)
+      _size = size;
+  }
+  uint8_t active() const {
+    uint8_t active = 0;
+    for (uint8_t i = 0; i < _size; i++) {
+      if (_notes[i].is_active())
+        active++;
+    }
+    return active;
+  }
   uint8_t size() const { return _size; }
+  constexpr uint8_t max_size() const { return MAX_NOTES; }
 };
 
 } // namespace teslasynth::synth

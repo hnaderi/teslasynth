@@ -10,7 +10,8 @@ using namespace teslasynth::synth;
 
 Note note;
 // Assume that base note is 100Hz to simplify calculations
-constexpr Config config{.a440 = 100_hz};
+constexpr Hertz tuning = 100_hz;
+constexpr Config config{};
 constexpr MidiNote mnote(uint8_t i, uint8_t velocity = 127) {
   return {static_cast<uint8_t>(69 + i), velocity};
 }
@@ -19,7 +20,7 @@ constexpr MidiNote mnote1 = mnote(0), mnote2 = mnote(12),
                    mnote3 = mnote(2 * 12);
 const Envelope envelope(EnvelopeLevel(1));
 
-void setUp(void) { note.start(mnote1, 100_us, envelope, config); }
+void setUp(void) { note.start(mnote1, 100_us, envelope, tuning); }
 
 void tearDown(void) {}
 
@@ -41,13 +42,13 @@ void test_empty(void) {
 }
 
 void test_midi_note_frequency(void) {
-  assert_hertz_equal(mnote1.frequency(config), 100_hz);
-  assert_hertz_equal(mnote2.frequency(config), 200_hz);
-  assert_hertz_equal(mnote3.frequency(config), 400_hz);
+  assert_hertz_equal(mnote1.frequency(tuning), 100_hz);
+  assert_hertz_equal(mnote2.frequency(tuning), 200_hz);
+  assert_hertz_equal(mnote3.frequency(tuning), 400_hz);
 
-  assert_hertz_equal(mnote1.frequency({}), 440_hz);
-  assert_hertz_equal(mnote2.frequency({}), 880_hz);
-  assert_hertz_equal(mnote3.frequency({}), 1760_hz);
+  assert_hertz_equal(mnote1.frequency(), 440_hz);
+  assert_hertz_equal(mnote2.frequency(), 880_hz);
+  assert_hertz_equal(mnote3.frequency(), 1760_hz);
 }
 
 void test_started_note_initial_state(void) {
@@ -59,7 +60,7 @@ void test_started_note_initial_state(void) {
 }
 
 void test_started_note_initial_time(void) {
-  note.start(mnote1, 100_s, envelope, config);
+  note.start(mnote1, 100_s, envelope, tuning);
   assert_duration_equal(note.now(), 100_s + 10_ms);
 }
 
@@ -97,7 +98,7 @@ void test_note_release(void) {
 }
 
 void test_note_release_with_zero_velocity(void) {
-  note.start({mnote1.number, 0}, 30000_us, envelope, config);
+  note.start({mnote1.number, 0}, 30000_us, envelope, tuning);
 
   TEST_ASSERT_TRUE(note.is_active());
   TEST_ASSERT_TRUE(note.is_released());
@@ -128,7 +129,7 @@ void test_note_second_start(void) {
   assert_level_equal(note.current().volume, EnvelopeLevel::max());
   assert_duration_equal(note.current().period, 10_ms);
 
-  note.start({69 + 12, 127}, 100_ms, envelope, config);
+  note.start({69 + 12, 127}, 100_ms, envelope, tuning);
   assert_duration_equal(note.current().start, 100_ms);
   assert_level_equal(note.current().volume, EnvelopeLevel::max());
   assert_duration_equal(note.current().period, 5_ms);
@@ -145,7 +146,7 @@ void test_note_start_after_release(void) {
 void test_note_envelope(void) {
   Envelope envelope(
       ADSR{200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms, CurveType::Lin});
-  note.start(mnote1, 0_us, envelope, config);
+  note.start(mnote1, 0_us, envelope, tuning);
   assert_duration_equal(note.current().start, 0_ms);
   assert_level_equal(note.current().volume, EnvelopeLevel::zero());
   assert_duration_equal(note.current().period, 10_ms);
@@ -188,7 +189,7 @@ void test_note_envelope(void) {
 void test_note_envelope2(void) {
   Envelope envelope(
       ADSR{200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms, CurveType::Lin});
-  note.start(mnote1, 0_us, envelope, config);
+  note.start(mnote1, 0_us, envelope, tuning);
   assert_duration_equal(note.current().start, 0_ms);
   assert_level_equal(note.current().volume, EnvelopeLevel::zero());
   assert_duration_equal(note.current().period, 10_ms);
@@ -233,7 +234,7 @@ void test_note_volume(void) {
       ADSR{200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms, CurveType::Lin});
 
   auto volume = EnvelopeLevel(7.f / 8);
-  note.start(mnote(0, 63), 0_us, envelope, config);
+  note.start(mnote(0, 63), 0_us, envelope, tuning);
   assert_level_equal(note.max_volume(), volume);
 
   assert_duration_equal(note.current().start, 0_ms);
@@ -279,7 +280,7 @@ void test_note_envelope_constant(void) {
   for (auto n = 1; n <= 10; n++) {
     EnvelopeLevel volume(0.1 * n);
     Envelope envelope(volume);
-    note.start(mnote1, 100_ms, envelope, config);
+    note.start(mnote1, 100_ms, envelope, tuning);
     note.release(490_ms + Duration::millis(n));
 
     for (int i = 0; note.now() < 500_ms; i++) {
@@ -303,7 +304,7 @@ void test_note_envelope_constant(void) {
 
 void test_note_vibrato(void) {
   Vibrato vib{1_hz, 50_hz};
-  note.start(mnote1, 0_us, Envelope(EnvelopeLevel(1)), vib, config);
+  note.start(mnote1, 0_us, Envelope(EnvelopeLevel(1)), vib, tuning);
   assert_duration_equal(note.now(), 10_ms);
   for (int i = 0; i < 5000; i++) {
     auto start = note.current().start;

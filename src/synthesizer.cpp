@@ -34,10 +34,8 @@ void on_track_play(bool playing) {
   }
 }
 
-SynthConfig sconf;
-std::array<Config, CONFIG_TESLASYNTH_OUTPUT_COUNT> configs;
-Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> tsynth(sconf, configs,
-                                                  on_track_play);
+Configuration<CONFIG_TESLASYNTH_OUTPUT_COUNT> config;
+Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> tsynth(config, on_track_play);
 SemaphoreHandle_t xNotesMutex;
 
 static const char *TAG = "SYNTH";
@@ -71,7 +69,7 @@ static void render(void *) {
   TickType_t lastTime = xTaskGetTickCount();
 
   int64_t processed = esp_timer_get_time();
-  PulseBuffer<CONFIG_TESLASYNTH_OUTPUT_COUNT, 20> buffer;
+  PulseBuffer<CONFIG_TESLASYNTH_OUTPUT_COUNT, 10> buffer;
 
   while (true) {
     vTaskDelayUntil(&lastTime, loopTime);

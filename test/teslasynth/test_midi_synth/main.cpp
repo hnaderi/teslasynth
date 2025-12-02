@@ -68,10 +68,17 @@ void test_empty(void) {
   TEST_ASSERT_FALSE(tsynth.track().is_playing());
 }
 
+void test_boundaries(void) {
+  Teslasynth<> tsynth;
+  tsynth.note_on(10, 70, 127, Duration::zero());
+  tsynth.note_off(10, 70, Duration::zero());
+  tsynth.change_instrument(10, 100);
+}
+
 void test_should_handle_note_on(void) {
   Teslasynth<1, FakeNotes> tsynth;
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes();
+  auto &notes = tsynth.voice();
   for (auto i = 0; i < 10; i++) {
     const Duration now = 10_ms * i;
     tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), now);
@@ -88,29 +95,29 @@ void test_should_handle_note_on(void) {
 void test_should_handle_note_off(void) {
   Teslasynth<1, FakeNotes> tsynth;
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes();
+  auto &voice = tsynth.voice();
   for (auto i = 0; i < 10; i++) {
     const auto now = 10_ms * i;
     tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), now);
     tsynth.handle(MidiChannelMessage::note_off(0, 69 + i, 10 * i), now);
 
     TEST_ASSERT_TRUE(track.is_playing());
-    TEST_ASSERT_EQUAL(i + 1, notes.released().size());
-    assert_duration_equal(notes.released().back().time, now);
-    TEST_ASSERT_EQUAL(69 + i, notes.released().back().mnote);
+    TEST_ASSERT_EQUAL(i + 1, voice.released().size());
+    assert_duration_equal(voice.released().back().time, now);
+    TEST_ASSERT_EQUAL(69 + i, voice.released().back().mnote);
   }
 }
 
 void test_should_ignore_note_off_when_not_playing(void) {
   Teslasynth<1, FakeNotes> tsynth;
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes();
+  auto &voice = tsynth.voice();
   for (auto i = 0; i < 10; i++) {
     const auto now = 10_ms * i;
     tsynth.handle(MidiChannelMessage::note_off(0, 69 + i, 10 * i), now);
 
     TEST_ASSERT_FALSE(track.is_playing());
-    TEST_ASSERT_EQUAL(0, notes.released().size());
+    TEST_ASSERT_EQUAL(0, voice.released().size());
   }
 }
 
@@ -123,7 +130,7 @@ void test_should_handle_instrument_change(void) {
   Teslasynth<1, FakeNotes> tsynth;
   tsynth.use_instruments(instruments);
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes();
+  auto &voice = tsynth.voice();
 
   tsynth.handle(MidiChannelMessage::program_change(0, 0), 10_ms);
   TEST_ASSERT_EQUAL(0, tsynth.instrument_number(0));
@@ -135,8 +142,8 @@ void test_should_handle_instrument_change(void) {
     tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), 0_ms);
 
     TEST_ASSERT_TRUE(track.is_playing());
-    TEST_ASSERT_EQUAL(i + 1, notes.started().size());
-    assert_instrument_equal(notes.started().back().instrument, instrument(i));
+    TEST_ASSERT_EQUAL(i + 1, voice.started().size());
+    assert_instrument_equal(voice.started().back().instrument, instrument(i));
   }
 }
 
@@ -147,11 +154,11 @@ void test_should_ignore_instrument_change_when_config_has_instrument(void) {
     instruments[i] = instrument(i);
   }
 
-  SynthConfig config{.instrument = 2};
+  Configuration<> config(SynthConfig{.instrument = 2});
   Teslasynth<1, FakeNotes> tsynth(config);
   tsynth.use_instruments(instruments);
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes();
+  auto &voice = tsynth.voice();
 
   for (auto i = 0; i < N; i++) {
     tsynth.handle(MidiChannelMessage::program_change(0, i), 10_ms);
@@ -159,8 +166,8 @@ void test_should_ignore_instrument_change_when_config_has_instrument(void) {
     tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), 0_ms);
 
     TEST_ASSERT_TRUE(track.is_playing());
-    TEST_ASSERT_EQUAL(i + 1, notes.started().size());
-    assert_instrument_equal(notes.started().back().instrument, instrument(2));
+    TEST_ASSERT_EQUAL(i + 1, voice.started().size());
+    assert_instrument_equal(voice.started().back().instrument, instrument(2));
   }
 }
 
@@ -174,10 +181,10 @@ void test_should_turnoff_when_needed(void) {
     for (auto ch = 0; ch < 16; ch++) {
       Teslasynth<1, FakeNotes> tsynth;
       auto &track = tsynth.track();
-      auto &notes = tsynth.notes();
-      TEST_ASSERT_EQUAL(0, notes.turned_off().size());
+      auto &voice = tsynth.voice();
+      TEST_ASSERT_EQUAL(0, voice.turned_off().size());
       tsynth.handle(MidiChannelMessage::control_change(ch, cc, 0), 10_ms);
-      TEST_ASSERT_EQUAL(1, notes.turned_off().size());
+      TEST_ASSERT_EQUAL(1, voice.turned_off().size());
       TEST_ASSERT_FALSE(track.is_playing());
     }
   }
@@ -186,41 +193,42 @@ void test_should_turnoff_when_needed(void) {
 void test_should_start_playing_the_first_note_on_message(void) {
   Teslasynth<1, FakeNotes> tsynth;
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes();
+  auto &voice = tsynth.voice();
   TEST_ASSERT_FALSE(track.is_playing());
   tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), 100_s);
 
   TEST_ASSERT_TRUE(track.is_playing());
-  TEST_ASSERT_EQUAL(1, notes.started().size());
-  assert_duration_equal(notes.started().back().time, Duration::zero());
-  TEST_ASSERT_EQUAL(69, notes.started().back().mnote.number);
-  TEST_ASSERT_EQUAL(127, notes.started().back().mnote.velocity);
-  TEST_ASSERT_TRUE(notes.started().back().instrument == default_instrument());
+  TEST_ASSERT_EQUAL(1, voice.started().size());
+  assert_duration_equal(voice.started().back().time, Duration::zero());
+  TEST_ASSERT_EQUAL(69, voice.started().back().mnote.number);
+  TEST_ASSERT_EQUAL(127, voice.started().back().mnote.velocity);
+  TEST_ASSERT_TRUE(voice.started().back().instrument == default_instrument());
 }
 
 void test_should_ignore_off_messages_when_not_playing(void) {
   Teslasynth<1, FakeNotes> tsynth;
   auto &track = tsynth.track();
-  auto &notes = tsynth.notes();
+  auto &voice = tsynth.voice();
   TEST_ASSERT_FALSE(track.is_playing());
   tsynth.handle(MidiChannelMessage::note_off(0, 69, 127), 100_s);
   TEST_ASSERT_FALSE(track.is_playing());
-  TEST_ASSERT_EQUAL(0, notes.started().size());
+  TEST_ASSERT_EQUAL(0, voice.started().size());
 }
 
 void test_should_adjust_note_sizes(void) {
-  SynthConfig sconf;
   std::array<Config, 1> configs = {Config{.notes = 2}};
-  Teslasynth<1, FakeNotes> tsynth(sconf, configs);
-  auto &notes = tsynth.notes();
+  Configuration<> conf({}, configs);
+  Teslasynth<1, FakeNotes> tsynth(conf);
+  auto &voice = tsynth.voice();
 
-  TEST_ASSERT_EQUAL(1, notes.adjusted().size());
-  TEST_ASSERT_EQUAL(2, notes.adjusted().back());
+  TEST_ASSERT_EQUAL(1, voice.adjusted().size());
+  TEST_ASSERT_EQUAL(2, voice.adjusted().back());
 }
 
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
+  RUN_TEST(test_boundaries);
   RUN_TEST(test_should_handle_note_on);
   RUN_TEST(test_should_handle_note_off);
   RUN_TEST(test_should_ignore_note_off_when_not_playing);
