@@ -11,6 +11,10 @@
 #include <cstdint>
 #include <functional>
 
+#ifndef CONFIG_DEFAULT_MAX_DUTY
+#define CONFIG_DEFAULT_MAX_DUTY 100
+#endif
+
 namespace teslasynth::midisynth {
 using TrackStateCallback = std::function<void(bool)>;
 
@@ -90,7 +94,7 @@ struct Pulse {
   }
 };
 
-template <std::uint8_t OUTPUTS = 1, std::size_t SIZE = 10> struct PulseBuffer {
+template <std::uint8_t OUTPUTS = 1, std::size_t SIZE = 64> struct PulseBuffer {
   std::array<uint8_t, OUTPUTS> written{};
   std::array<Pulse, SIZE * OUTPUTS> pulses;
 
@@ -110,6 +114,61 @@ template <std::uint8_t OUTPUTS = 1, std::size_t SIZE = 10> struct PulseBuffer {
   inline uint8_t &data_size(uint8_t ch) {
     assert(ch < OUTPUTS);
     return written[ch];
+  }
+};
+
+/**
+ * A numeric value representing duty cycle.
+ * Max value: 100%
+ * Resolution: 0.5%
+ */
+class DutyCycle {
+  constexpr static auto max_duty = 100, max_value = 200;
+  uint8_t value_;
+
+  template <typename T> constexpr static uint8_t validate(T v) {
+    if (v >= max_duty)
+      return max_value;
+    if (v <= 0)
+      return 0;
+    return static_cast<float>(v) / max_duty * max_value;
+  }
+
+public:
+  constexpr DutyCycle() : value_(0) {}
+
+  template <typename T>
+  explicit constexpr DutyCycle(T value) : value_(validate(value)) {}
+
+  constexpr bool is_max() const { return value_ == max_value; }
+  constexpr bool is_zero() const { return value_ == 0; }
+  constexpr static DutyCycle max() { return DutyCycle(max_duty); }
+  constexpr static DutyCycle min() { return DutyCycle(0); }
+  constexpr uint8_t value() const { return value_; }
+  constexpr uint8_t inverse() const { return max_value - value_; }
+  constexpr operator float() const {
+    return value_ / static_cast<float>(max_value);
+  }
+  inline operator std::string() const {
+    return std::to_string(static_cast<float>(*this)) + "%";
+  }
+};
+
+struct Config {
+  static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
+  static constexpr float default_max_duty = CONFIG_DEFAULT_MAX_DUTY;
+
+  Duration16 max_on_time = 100_us, min_deadtime = 100_us;
+  uint8_t notes = max_notes;
+  DutyCycle max_duty = DutyCycle(CONFIG_DEFAULT_MAX_DUTY);
+  std::optional<uint8_t> instrument = {};
+
+  inline operator std::string() const {
+    return std::string("Concurrent notes: ") + std::to_string(notes) +
+           "\nMax on time: " + std::string(max_on_time) +
+           "\nMin deadtime: " + std::string(min_deadtime) +
+           "\nMax duty: " + std::string(max_duty) +
+           "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
   }
 };
 
@@ -136,8 +195,41 @@ template <std::uint8_t OUTPUTS = 1> struct Configuration {
   constexpr Configuration(const std::array<Config, OUTPUTS> &channel_configs)
       : channel_configs(channel_configs) {}
 
-  const SynthConfig &synth() const { return synth_config; }
-  const Config &channel(uint8_t ch) const { return channel_configs[ch]; }
+  SynthConfig &synth() { return synth_config; }
+  Config &channel(uint8_t ch) { return channel_configs[ch]; }
+};
+
+class DutyLimiter {
+  uint16_t max_budget_, budget_;
+  DutyCycle duty_;
+
+public:
+  DutyLimiter() : duty_(DutyCycle::max()) {}
+  DutyLimiter(const DutyCycle &duty, const Duration16 window = 10_ms)
+      : max_budget_(window.micros() * duty), budget_(max_budget_), duty_(duty) {
+  }
+  DutyLimiter(const Config &config) : DutyLimiter(config.max_duty) {}
+
+  bool can_use(const Duration16 &on) {
+    if (duty_.is_max())
+      return true;
+    if (on.micros() <= budget_) {
+      budget_ -= on.micros();
+      return true;
+    }
+    return false;
+  }
+
+  void replenish(const Duration16 &off) {
+    uint16_t v = off.micros() * duty_;
+    if (budget_ + v > max_budget_) {
+      budget_ = max_budget_;
+    } else {
+      budget_ += v;
+    }
+  }
+
+  constexpr Duration16 budget() const { return Duration16::micros(budget_); }
 };
 
 template <std::uint8_t OUTPUTS = 1, class N = Voice<>> class Teslasynth {
@@ -154,7 +246,7 @@ public:
       TrackStateCallback onPlaybackChanged = [](bool) {})
       : config_(config), _track(onPlaybackChanged) {
     for (auto i = 0; i < OUTPUTS; i++) {
-      _voices[i].adjust_size(config.channel(i).notes);
+      _voices[i].adjust_size(config_.channel(i).notes);
     }
   }
 
@@ -184,10 +276,7 @@ public:
       case ControlChange::ALL_SOUND_OFF:
       case ControlChange::RESET_ALL_CONTROLLERS:
       case ControlChange::ALL_NOTES_OFF:
-        _track.stop();
-        for (auto &note : _voices) {
-          note.off();
-        }
+        off();
         break;
       default:
         break;
@@ -200,6 +289,13 @@ public:
       break;
     case MidiMessageType::PitchBend:
       break;
+    }
+  }
+
+  inline void off() {
+    _track.stop();
+    for (auto &note : _voices) {
+      note.off();
     }
   }
 

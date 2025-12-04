@@ -46,6 +46,14 @@ config CONFIG_MAX_NOTES
     help
         This is the maximum size possible for notes.
         You can configure max concurrent notes up to this value.
+
+config CONFIG_DEFAULT_MAX_DUTY
+    int "Default max duty for all channels"
+    default 10
+    range 1 100
+    help
+        This is the maximum size possible for notes.
+        You can configure max concurrent notes up to this value.
 endmenu
 
 menu "GUI"

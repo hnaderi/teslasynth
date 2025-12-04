@@ -69,7 +69,7 @@ lv_obj_t *create_configuration_section(lv_obj_t *menu) {
                              };
   create_config_slider(section, max_on_time, 1, 200);
   create_config_slider(section, min_deadtime, 1, 200);
-  create_config_slider(section, max_notes, 1, synth::Config::max_notes);
+  create_config_slider(section, max_notes, 1, midisynth::Config::max_notes);
 
   lv_obj_t *buttons = lv_obj_create(section);
   lv_obj_set_flex_flow(buttons, LV_FLEX_FLOW_ROW);

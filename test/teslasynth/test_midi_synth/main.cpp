@@ -62,7 +62,7 @@ public:
   const std::vector<uint8_t> adjusted() const { return adjusts_; }
 };
 
-void test_empty(void) {
+void test_note_pulse_empty(void) {
   Teslasynth<> tsynth;
   TEST_ASSERT_EQUAL(0, tsynth.instrument_number(0));
   TEST_ASSERT_FALSE(tsynth.track().is_playing());
@@ -227,7 +227,7 @@ void test_should_adjust_note_sizes(void) {
 
 extern "C" void app_main(void) {
   UNITY_BEGIN();
-  RUN_TEST(test_empty);
+  RUN_TEST(test_note_pulse_empty);
   RUN_TEST(test_boundaries);
   RUN_TEST(test_should_handle_note_on);
   RUN_TEST(test_should_handle_note_off);

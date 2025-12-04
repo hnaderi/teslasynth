@@ -18,21 +18,6 @@
 namespace teslasynth::synth {
 using namespace teslasynth::core;
 
-struct Config {
-  static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
-
-  Duration16 max_on_time = 100_us, min_deadtime = 100_us;
-  uint8_t notes = max_notes;
-  std::optional<uint8_t> instrument = {};
-
-  inline operator std::string() const {
-    return std::string("Concurrent notes: ") + std::to_string(notes) +
-           "\nMax on time: " + std::string(max_on_time) +
-           "\nMin deadtime: " + std::string(min_deadtime) +
-           "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
-  }
-};
-
 struct NotePulse {
   Duration start;
   Duration32 period;
@@ -96,16 +81,14 @@ public:
   const EnvelopeLevel &max_volume() const { return _volume; }
 };
 
-template <std::uint8_t MAX_NOTES = Config::max_notes> class Voice {
-  uint8_t _size;
+template <std::uint8_t MAX_NOTES = CONFIG_MAX_NOTES> class Voice {
+  uint8_t _size = MAX_NOTES;
   std::array<Note, MAX_NOTES> _notes;
   std::array<uint8_t, MAX_NOTES> _numbers;
 
 public:
-  Voice() : _size(Config::max_notes) {}
-  Voice(uint8_t size) : _size(std::min(size, Config::max_notes)) {}
-  Voice(const Config &config)
-      : _size(std::min(config.notes, config.max_notes)) {}
+  Voice() {}
+  Voice(uint8_t size) : _size(std::min(size, MAX_NOTES)) {}
   Note &start(const MidiNote &mnote, Duration time,
               const Instrument &instrument, Hertz tuning) {
     uint8_t idx = 0;
@@ -151,7 +134,7 @@ public:
   }
 
   void adjust_size(uint8_t size) {
-    if (size <= Config::max_notes && size > 0)
+    if (size <= MAX_NOTES && size > 0)
       _size = size;
   }
   uint8_t active() const {

@@ -11,7 +11,6 @@ using namespace teslasynth::synth;
 Note note;
 // Assume that base note is 100Hz to simplify calculations
 constexpr Hertz tuning = 100_hz;
-const Config config;
 constexpr MidiNote mnote(uint8_t i, uint8_t velocity = 127) {
   return {static_cast<uint8_t>(69 + i), velocity};
 }

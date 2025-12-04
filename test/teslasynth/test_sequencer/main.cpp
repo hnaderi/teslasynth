@@ -23,7 +23,7 @@ constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
 constexpr Instrument instrument{.envelope = ADSR::constant(EnvelopeLevel(1)),
                                 .vibrato = Vibrato::none()};
 
-void test_empty(void) {
+void test_note_pulse_empty(void) {
   Teslasynth<> tsynth;
   assert_duration_equal(tsynth.track().played_time(0), Duration::zero());
 }
@@ -214,9 +214,55 @@ void test_should_sequence_polyphonic_out_of_phase_multichannel_note_off(void) {
   assert_duration_equal(ch1[0].off, buffer.at(1, 0).off);
 }
 
+void samples_all_bps(Teslasynth<> &tsynth, int bps = 100) {
+  const auto freq = Hertz(bps);
+  const Duration16 sample_time = Duration16::micros(freq.period().micros());
+  tsynth.configuration().synth().a440 = freq;
+  tsynth.configuration().channel(0).max_duty = 100;
+
+  PulseBuffer<1, 64> buffer;
+
+  tsynth.note_on(0, 69, 127, 0_ms);
+
+  // No limit even after 10 seconds
+  while (tsynth.track().played_time(0) < 10_s) {
+    tsynth.sample_all(sample_time, buffer);
+    TEST_ASSERT_EQUAL(2, buffer.data_size(0));
+    assert_duration_equal(buffer.at(0, 0).on, 100_us);
+    assert_duration_equal(buffer.at(0, 0).off, 100_us);
+    assert_duration_equal(buffer.at(0, 1).on, 0_us);
+  }
+
+  tsynth.off();
+}
+
+void test_must_not_be_limited_when_no_duty_limit(void) {
+  Teslasynth<> tsynth;
+  samples_all_bps(tsynth, 50);
+  samples_all_bps(tsynth, 100);
+  samples_all_bps(tsynth, 1000);
+  samples_all_bps(tsynth, 2000);
+  samples_all_bps(tsynth, 4000);
+  samples_all_bps(tsynth, 4975);
+}
+
+void test_must_not_exceed_duty_limit(void) {
+  Configuration conf(SynthConfig{.a440 = 1_khz}, {Config{.max_duty = 10}});
+  Teslasynth<> tsynth(conf);
+  PulseBuffer<1, 64> buffer;
+
+  tsynth.note_on(0, 69, 127, 0_ms);
+
+  // No limit even after 10 seconds
+  for (auto i = 0; i < 1000; i++) {
+    tsynth.sample_all(10_ms, buffer);
+    TEST_ASSERT_EQUAL(20, buffer.data_size(0));
+  }
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
-  RUN_TEST(test_empty);
+  RUN_TEST(test_note_pulse_empty);
   RUN_TEST(test_datastructure_sizes);
   RUN_TEST(test_should_sequence_empty);
   RUN_TEST(test_should_sequence_empty_when_no_notes_are_playing);
@@ -225,6 +271,8 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_sequence_polyphonic_out_of_phase);
   RUN_TEST(test_should_sequence_polyphonic_out_of_phase_multichannel);
   RUN_TEST(test_should_sequence_polyphonic_out_of_phase_multichannel_note_off);
+  RUN_TEST(test_must_not_be_limited_when_no_duty_limit);
+  RUN_TEST(test_must_not_exceed_duty_limit);
   UNITY_END();
 }
 int main(int argc, char **argv) { app_main(); }

@@ -12,7 +12,7 @@
 
 namespace teslasynth::app::configuration {
 static const char *TAG = "synth_config";
-using namespace synth;
+using namespace core;
 
 namespace keys {
 static constexpr const char *max_on_time = "max-on";
