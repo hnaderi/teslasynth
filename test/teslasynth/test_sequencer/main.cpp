@@ -28,6 +28,13 @@ void test_empty(void) {
   assert_duration_equal(tsynth.track().played_time(0), Duration::zero());
 }
 
+void test_datastructure_sizes(void) {
+  TEST_ASSERT_EQUAL(4, sizeof(Pulse));
+  TEST_ASSERT_EQUAL(41 + 1, sizeof(PulseBuffer<1, 10>));
+  TEST_ASSERT_EQUAL(82, sizeof(PulseBuffer<2, 10>));
+  TEST_ASSERT_EQUAL(123 + 1, sizeof(PulseBuffer<3, 10>));
+}
+
 void test_should_sequence_empty(void) {
   Teslasynth<> tsynth;
   auto &track = tsynth.track();
@@ -210,6 +217,7 @@ void test_should_sequence_polyphonic_out_of_phase_multichannel_note_off(void) {
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
+  RUN_TEST(test_datastructure_sizes);
   RUN_TEST(test_should_sequence_empty);
   RUN_TEST(test_should_sequence_empty_when_no_notes_are_playing);
   RUN_TEST(test_should_sequence_single);

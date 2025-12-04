@@ -113,16 +113,27 @@ template <std::uint8_t OUTPUTS = 1, std::size_t SIZE = 10> struct PulseBuffer {
   }
 };
 
+struct SynthConfig {
+  Hertz a440 = 440_hz;
+  std::optional<uint8_t> instrument = {};
+
+  inline operator std::string() const {
+    return std::string("Tuning: ") + std::string(a440) +
+           "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
+  }
+};
+
 template <std::uint8_t OUTPUTS = 1> struct Configuration {
   SynthConfig synth_config;
   std::array<Config, OUTPUTS> channel_configs{};
 
-  Configuration() {}
-  Configuration(const SynthConfig &synth_config,
-                const std::array<Config, OUTPUTS> &channel_configs)
+  constexpr Configuration() {}
+  constexpr Configuration(const SynthConfig &synth_config,
+                          const std::array<Config, OUTPUTS> &channel_configs)
       : synth_config(synth_config), channel_configs(channel_configs) {}
-  Configuration(const SynthConfig &synth_config) : synth_config(synth_config) {}
-  Configuration(const std::array<Config, OUTPUTS> &channel_configs)
+  constexpr Configuration(const SynthConfig &synth_config)
+      : synth_config(synth_config) {}
+  constexpr Configuration(const std::array<Config, OUTPUTS> &channel_configs)
       : channel_configs(channel_configs) {}
 
   const SynthConfig &synth() const { return synth_config; }
@@ -138,9 +149,6 @@ template <std::uint8_t OUTPUTS = 1, class N = Voice<>> class Teslasynth {
   std::array<N, OUTPUTS> _voices;
 
 public:
-  Teslasynth(TrackStateCallback onPlaybackChanged = [](bool) {})
-      : Teslasynth(Configuration<>(), onPlaybackChanged) {}
-
   Teslasynth(
       const Configuration<OUTPUTS> &config,
       TrackStateCallback onPlaybackChanged = [](bool) {})
@@ -149,6 +157,9 @@ public:
       _voices[i].adjust_size(config.channel(i).notes);
     }
   }
+
+  Teslasynth(TrackStateCallback onPlaybackChanged = [](bool) {})
+      : Teslasynth(Configuration<OUTPUTS>(), onPlaybackChanged) {}
 
   Configuration<> &configuration() { return config_; }
 

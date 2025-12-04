@@ -37,8 +37,7 @@ void on_track_play(bool playing) {
   }
 }
 
-Configuration<CONFIG_TESLASYNTH_OUTPUT_COUNT> config;
-Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> tsynth(config, on_track_play);
+Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> tsynth(on_track_play);
 SemaphoreHandle_t xNotesMutex;
 
 static const char *TAG = "SYNTH";
@@ -46,7 +45,7 @@ static const char *TAG = "SYNTH";
 static void synth(void *pvParams) {
   MidiChannelMessage msg;
   MidiParser parser([&](const MidiChannelMessage msg) {
-    auto now = Duration::micros(esp_timer_get_time());
+    auto now = Duration64::micros(esp_timer_get_time());
 #if CONFIG_TESLASYNTH_DEBUG
     ESP_LOGI(TAG, "Received: %s at %s", std::string(msg).c_str(),
              std::string(now).c_str());
@@ -80,9 +79,9 @@ static void render(void *) {
     xSemaphoreTake(xNotesMutex, portMAX_DELAY);
     auto now = esp_timer_get_time();
     auto left = now - processed;
-    uint16_t ll = static_cast<uint16_t>(
-        std::min<int64_t>(left, std::numeric_limits<uint16_t>::max()));
-    tsynth.sample_all(Duration16::micros(ll), buffer);
+    auto budget = Duration16::micros(static_cast<uint16_t>(
+        std::min<int64_t>(left, std::numeric_limits<uint16_t>::max())));
+    tsynth.sample_all(budget, buffer);
     xSemaphoreGive(xNotesMutex);
 
     for (uint8_t ch = 0; ch < CONFIG_TESLASYNTH_OUTPUT_COUNT; ch++) {
@@ -113,6 +112,7 @@ static void render(void *) {
 }
 
 void init(StreamBufferHandle_t sbuf) {
+  ESP_LOGD(TAG, "init");
   xNotesMutex = xSemaphoreCreateMutex();
   xTaskCreatePinnedToCore(synth, "Synth", 8 * 1024, sbuf, 10, NULL, 1);
   xTaskCreatePinnedToCore(render, "Render", 8 * 1024, NULL, 10, NULL, 1);

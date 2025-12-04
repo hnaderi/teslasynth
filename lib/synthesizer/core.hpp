@@ -124,17 +124,12 @@ typedef SimpleDuration<uint64_t> Duration64;
 typedef SimpleDuration<uint32_t> Duration32;
 typedef SimpleDuration<uint16_t> Duration16;
 
+namespace {
 template <unsigned long long V> struct smallest_uint {
   using type = std::conditional_t<
       (V <= UINT16_MAX), uint16_t,
       std::conditional_t<(V <= UINT32_MAX), uint32_t, uint64_t>>;
 };
-
-template <unsigned long long V>
-constexpr SimpleDuration<typename smallest_uint<V>::type> make_duration() {
-  using T = typename smallest_uint<V>::type;
-  return SimpleDuration<T>::micros(V);
-}
 
 constexpr unsigned long long pow10(unsigned n) {
   unsigned long long r = 1;
@@ -155,6 +150,7 @@ template <char C, char... Cs> struct digits_to_value<C, Cs...> {
   static constexpr unsigned long long value =
       (C - '0') * pow10(sizeof...(Cs)) + digits_to_value<Cs...>::value;
 };
+}; // namespace
 
 template <char... Cs> constexpr auto operator""_us() {
   constexpr unsigned long long v = digits_to_value<Cs...>::value;

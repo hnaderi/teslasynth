@@ -33,16 +33,6 @@ struct Config {
   }
 };
 
-struct SynthConfig {
-  Hertz a440 = 440_hz;
-  std::optional<uint8_t> instrument = {};
-
-  inline operator std::string() const {
-    return std::string("Tuning: ") + std::string(a440) +
-           "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
-  }
-};
-
 struct NotePulse {
   Duration start;
   Duration32 period;
