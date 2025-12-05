@@ -159,7 +159,7 @@ struct Config {
   static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
   static constexpr float default_max_duty = CONFIG_DEFAULT_MAX_DUTY;
 
-  Duration16 max_on_time = 100_us, min_deadtime = 100_us;
+  Duration16 max_on_time = 100_us, min_deadtime = 100_us, duty_window = 10_ms;
   uint8_t notes = max_notes;
   DutyCycle max_duty = DutyCycle(CONFIG_DEFAULT_MAX_DUTY);
   std::optional<uint8_t> instrument = {};
@@ -169,6 +169,7 @@ struct Config {
            "\nMax on time: " + std::string(max_on_time) +
            "\nMin deadtime: " + std::string(min_deadtime) +
            "\nMax duty: " + std::string(max_duty) +
+           "\nDuty window: " + std::string(duty_window) +
            "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
   }
 };
@@ -305,7 +306,8 @@ public:
       off();
     for (auto i = 0; i < OUTPUTS; i++) {
       _voices[i].adjust_size(config_.channel(i).notes);
-      _limiters[i] = DutyLimiter(config_.channel(i).max_duty);
+      _limiters[i] = DutyLimiter(config_.channel(i).max_duty,
+                                 config_.channel(i).duty_window);
     }
   }
 
