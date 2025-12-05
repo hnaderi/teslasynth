@@ -225,6 +225,16 @@ void test_should_adjust_note_sizes(void) {
   TEST_ASSERT_EQUAL(2, voice.adjusted().back());
 }
 
+void test_reload_config_should_adjust_note_sizes(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &voice = tsynth.voice();
+  tsynth.configuration().channel(0).notes = 2;
+  tsynth.reload_config();
+
+  TEST_ASSERT_EQUAL(2, voice.adjusted().size());
+  TEST_ASSERT_EQUAL(2, voice.adjusted().back());
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_note_pulse_empty);
@@ -238,6 +248,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_start_playing_the_first_note_on_message);
   RUN_TEST(test_should_ignore_off_messages_when_not_playing);
   RUN_TEST(test_should_adjust_note_sizes);
+  RUN_TEST(test_reload_config_should_adjust_note_sizes);
 
   UNITY_END();
 }

@@ -134,8 +134,10 @@ public:
   }
 
   void adjust_size(uint8_t size) {
-    if (size <= MAX_NOTES && size > 0)
+    if (size <= MAX_NOTES && size > 0 && size != _size) {
+      off();
       _size = size;
+    }
   }
   uint8_t active() const {
     uint8_t active = 0;

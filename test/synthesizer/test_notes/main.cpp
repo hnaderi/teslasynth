@@ -194,6 +194,24 @@ void test_should_return_the_note_with_least_time2(void) {
   TEST_ASSERT_EQUAL(0, voice.active());
 }
 
+void test_adjust_size(void) {
+  Voice<4> voice(3);
+  assert_note(voice, mnotef(0), 200_ms);
+  assert_note(voice, mnotef(1), 200_ms);
+  TEST_ASSERT_EQUAL(2, voice.active());
+  TEST_ASSERT_EQUAL(3, voice.size());
+  voice.adjust_size(2);
+  TEST_ASSERT_EQUAL(0, voice.active());
+  TEST_ASSERT_EQUAL(2, voice.size());
+  Note &note = voice.next();
+  TEST_ASSERT_FALSE(note.is_active());
+
+  assert_note(voice, mnotef(0), 200_ms);
+  TEST_ASSERT_EQUAL(1, voice.active());
+  voice.adjust_size(2);
+  TEST_ASSERT_EQUAL(1, voice.active());
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
@@ -208,6 +226,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_allow_the_minimum_size_of_one);
   RUN_TEST(test_off);
   RUN_TEST(test_should_return_the_note_with_least_time2);
+  RUN_TEST(test_adjust_size);
 
   UNITY_END();
 }

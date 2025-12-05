@@ -248,10 +248,7 @@ public:
       const Configuration<OUTPUTS> &config,
       TrackStateCallback onPlaybackChanged = [](bool) {})
       : config_(config), _track(onPlaybackChanged) {
-    for (auto i = 0; i < OUTPUTS; i++) {
-      _voices[i].adjust_size(config_.channel(i).notes);
-      _limiters[i] = DutyLimiter(config_.channel(i).max_duty);
-    }
+    reload_config();
   }
 
   Teslasynth(TrackStateCallback onPlaybackChanged = [](bool) {})
@@ -300,6 +297,15 @@ public:
     _track.stop();
     for (auto &note : _voices) {
       note.off();
+    }
+  }
+
+  inline void reload_config() {
+    if (_track.is_playing())
+      off();
+    for (auto i = 0; i < OUTPUTS; i++) {
+      _voices[i].adjust_size(config_.channel(i).notes);
+      _limiters[i] = DutyLimiter(config_.channel(i).max_duty);
     }
   }
 
