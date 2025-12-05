@@ -38,8 +38,11 @@ void test_replenish(void) {
   assert_duration_equal(limiter.budget(), 0_ms);
   TEST_ASSERT_FALSE(limiter.can_use(1_us));
 
-  limiter.replenish(1_ms);
-  assert_duration_equal(limiter.budget(), 100_us);
+  for (auto i = 0; i < 10; i++) {
+    assert_duration_equal(limiter.budget(), 0_us);
+    limiter.replenish(1_ms);
+  }
+  assert_duration_equal(limiter.budget(), 1_ms);
 }
 
 void test_replenish_cant_exceed_window_limit(void) {

@@ -23,6 +23,23 @@ constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
 constexpr Instrument instrument{.envelope = ADSR::constant(EnvelopeLevel(1)),
                                 .vibrato = Vibrato::none()};
 
+struct PulseBufferOverview {
+  Duration on, off;
+
+  constexpr Duration total() const { return on + off; }
+
+  template <std::uint8_t outputs, std::size_t size>
+  constexpr static PulseBufferOverview from(PulseBuffer<outputs, size> pb,
+                                            uint8_t ch) {
+    Duration32 on, off;
+    for (auto i = 0; i < pb.data_size(ch); i++) {
+      on += pb.at(ch, i).on;
+      off += pb.at(ch, i).off;
+    }
+    return {.on = on, .off = off};
+  }
+};
+
 void test_note_pulse_empty(void) {
   Teslasynth<> tsynth;
   assert_duration_equal(tsynth.track().played_time(0), Duration::zero());
@@ -218,7 +235,7 @@ void samples_all_bps(Teslasynth<> &tsynth, int bps = 100) {
   const auto freq = Hertz(bps);
   const Duration16 sample_time = Duration16::micros(freq.period().micros());
   tsynth.configuration().synth().a440 = freq;
-  tsynth.configuration().channel(0).max_duty = 100;
+  tsynth.configuration().channel(0).max_duty = DutyCycle::max();
 
   PulseBuffer<1, 64> buffer;
 
@@ -227,10 +244,12 @@ void samples_all_bps(Teslasynth<> &tsynth, int bps = 100) {
   // No limit even after 10 seconds
   while (tsynth.track().played_time(0) < 10_s) {
     tsynth.sample_all(sample_time, buffer);
+    auto overall = PulseBufferOverview::from(buffer, 0);
     TEST_ASSERT_EQUAL(2, buffer.data_size(0));
     assert_duration_equal(buffer.at(0, 0).on, 100_us);
     assert_duration_equal(buffer.at(0, 0).off, 100_us);
     assert_duration_equal(buffer.at(0, 1).on, 0_us);
+    assert_duration_equal(overall.on + overall.off, freq.period());
   }
 
   tsynth.off();
@@ -247,17 +266,25 @@ void test_must_not_be_limited_when_no_duty_limit(void) {
 }
 
 void test_must_not_exceed_duty_limit(void) {
-  Configuration conf(SynthConfig{.a440 = 1_khz}, {Config{.max_duty = 10}});
+  Configuration<> conf(SynthConfig{.a440 = 2_khz},
+                       {Config{.max_duty = DutyCycle(10)}});
   Teslasynth<> tsynth(conf);
+
   PulseBuffer<1, 64> buffer;
 
   tsynth.note_on(0, 69, 127, 0_ms);
 
-  // No limit even after 10 seconds
-  for (auto i = 0; i < 1000; i++) {
-    tsynth.sample_all(10_ms, buffer);
-    TEST_ASSERT_EQUAL(20, buffer.data_size(0));
-  }
+  tsynth.sample_all(10_ms, buffer);
+  auto overall = PulseBufferOverview::from(buffer, 0);
+  assert_duration_equal(overall.on, 100_us * 10);
+  assert_duration_equal(overall.total(), 10_ms);
+  TEST_ASSERT_EQUAL(40, buffer.data_size(0));
+
+  tsynth.sample_all(10_ms, buffer);
+  overall = PulseBufferOverview::from(buffer, 0);
+  assert_duration_equal(overall.on, 100_us * 10);
+  assert_duration_equal(overall.total(), 10_ms);
+  TEST_ASSERT_EQUAL(40, buffer.data_size(0));
 }
 
 extern "C" void app_main(void) {

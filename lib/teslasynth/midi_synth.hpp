@@ -150,7 +150,8 @@ public:
     return value_ / static_cast<float>(max_value);
   }
   inline operator std::string() const {
-    return std::to_string(static_cast<float>(*this)) + "%";
+    return std::to_string(static_cast<float>(value_) / max_value * max_duty) +
+           "%";
   }
 };
 
@@ -200,7 +201,7 @@ template <std::uint8_t OUTPUTS = 1> struct Configuration {
 };
 
 class DutyLimiter {
-  uint16_t max_budget_, budget_;
+  uint16_t max_budget_ = 0, budget_ = 0, replenishing_ = 0;
   DutyCycle duty_;
 
 public:
@@ -221,11 +222,12 @@ public:
   }
 
   void replenish(const Duration16 &off) {
-    uint16_t v = off.micros() * duty_;
-    if (budget_ + v > max_budget_) {
+    uint32_t total = replenishing_ + (off.micros() * duty_);
+    if (total >= max_budget_) {
       budget_ = max_budget_;
+      replenishing_ = 0;
     } else {
-      budget_ += v;
+      replenishing_ = total;
     }
   }
 
@@ -239,6 +241,7 @@ template <std::uint8_t OUTPUTS = 1, class N = Voice<>> class Teslasynth {
   size_t _instruments_size = instruments.size();
   std::array<uint8_t, OUTPUTS> current_instrument_{};
   std::array<N, OUTPUTS> _voices;
+  std::array<DutyLimiter, OUTPUTS> _limiters;
 
 public:
   Teslasynth(
@@ -247,6 +250,7 @@ public:
       : config_(config), _track(onPlaybackChanged) {
     for (auto i = 0; i < OUTPUTS; i++) {
       _voices[i].adjust_size(config_.channel(i).notes);
+      _limiters[i] = DutyLimiter(config_.channel(i).max_duty);
     }
   }
 
@@ -353,17 +357,23 @@ public:
     Duration target = _track.played_time(ch) + max;
     if (!note->is_active() || next_edge > target || !_track.is_playing()) {
       res.off = max;
-      _track.on_play(ch, max);
     } else if (next_edge == _track.played_time(ch)) {
       res.on = note->current().volume * config_.channel_configs[ch].max_on_time;
       res.off = config_.channel_configs[ch].min_deadtime;
       note->next();
-      _track.on_play(ch, res.on + res.off);
     } else if (next_edge <= target && next_edge >= _track.played_time(ch)) {
       res.off = Duration16::micros(next_edge.micros() -
                                    _track.played_time(ch).micros());
-      _track.on_play(ch, res.off);
     }
+
+    if (!_limiters[ch].can_use(res.on)) {
+      res.off += res.on;
+      res.on = 0_us;
+    }
+
+    _limiters[ch].replenish(res.off);
+    _track.on_play(ch, res.length());
+
     return res;
   }
 
