@@ -10,7 +10,7 @@ namespace teslasynth::app {
 using namespace midisynth;
 
 namespace {
-typedef Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> TSYNTH;
+typedef Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> AppSynth;
 typedef Configuration<CONFIG_TESLASYNTH_OUTPUT_COUNT> AppConfig;
 
 void on_track_play(bool playing) {
@@ -25,12 +25,12 @@ void on_track_play(bool playing) {
 }; // namespace
 
 class PlaybackHandle {
-  TSYNTH *impl;
+  AppSynth *impl;
   SemaphoreHandle_t lock;
 
 public:
   PlaybackHandle() {}
-  PlaybackHandle(TSYNTH *impl, SemaphoreHandle_t lock)
+  PlaybackHandle(AppSynth *impl, SemaphoreHandle_t lock)
       : impl(impl), lock(lock) {}
 
   inline void acquire() { xSemaphoreTake(lock, portMAX_DELAY); }
@@ -48,12 +48,12 @@ public:
 };
 
 class UIHandle {
-  TSYNTH *impl;
+  AppSynth *impl;
   SemaphoreHandle_t write_lock, read_lock;
 
 public:
   UIHandle() {}
-  UIHandle(TSYNTH *impl, SemaphoreHandle_t write, SemaphoreHandle_t read)
+  UIHandle(AppSynth *impl, SemaphoreHandle_t write, SemaphoreHandle_t read)
       : impl(impl), write_lock(write), read_lock(read) {}
 
   inline constexpr auto &config_read() const {
@@ -87,7 +87,7 @@ public:
 };
 
 class Application {
-  TSYNTH impl;
+  AppSynth impl;
   SemaphoreHandle_t write_lock, read_lock;
 
 public:

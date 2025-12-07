@@ -11,31 +11,28 @@
 #include <cstdio>
 #include <cstdlib>
 #include <stdio.h>
-#include <string.h>
 
 namespace teslasynth::app::cli {
 using namespace synth;
 using namespace app::configuration;
 using namespace midisynth::config;
 
-namespace keys {
-static constexpr const char *max_on_time = "max-on-time";
-static constexpr const char *min_deadtime = "min-deadtime";
-static constexpr const char *max_duty = "max-duty";
-static constexpr const char *duty_window = "duty-window";
-static constexpr const char *tuning = "tuning";
-static constexpr const char *notes = "notes";
-static constexpr const char *instrument = "instrument";
-}; // namespace keys
-
 namespace {
+namespace keys {
+constexpr const char *max_on_time = "max-on-time";
+constexpr const char *min_deadtime = "min-deadtime";
+constexpr const char *max_duty = "max-duty";
+constexpr const char *duty_window = "duty-window";
+constexpr const char *tuning = "tuning";
+constexpr const char *notes = "notes";
+constexpr const char *instrument = "instrument";
+}; // namespace keys
 
 typedef struct {
   struct arg_lit *reload, *save, *reset;
   struct arg_str *value;
   struct arg_end *end;
 } config_args_t;
-
 config_args_t config_args;
 
 bool set_duration(const std::string_view value, Duration16 &duration,
@@ -69,10 +66,8 @@ bool set_instrument(const std::string_view value,
   }
   return true;
 }
-} // namespace
 
-void register_configuration_commands(UIHandle *handle);
-static UIHandle handle_;
+UIHandle handle_;
 
 #define cstr(value) std::string(value).c_str()
 #define instrument_value(config)                                               \
@@ -85,7 +80,7 @@ static UIHandle handle_;
     return invalid_duration(value);                                            \
   }
 
-static void print_channel_config(uint8_t nr, const Config &config) {
+void print_channel_config(uint8_t nr, const Config &config) {
   printf("Channel[%u] configuration:\n"
          "\t%s = %u\n"
          "\t%s = %s\n"
@@ -100,7 +95,7 @@ static void print_channel_config(uint8_t nr, const Config &config) {
          instrument_value(config));
 }
 
-static int print_config(AppConfig &config) {
+int print_config(AppConfig &config) {
   printf("Synth configuration:\n"
          "\t%s = %s\n"
          "\t%s = <%s>\n",
@@ -114,7 +109,7 @@ static int print_config(AppConfig &config) {
   return 0;
 }
 
-static int update_config(AppConfig &config, const char *val) {
+int update_config(AppConfig &config, const char *val) {
   const auto result = parser::parse_config_value(val);
   if (!result) {
     printf("Invalid key value pair '%s'", val);
@@ -189,7 +184,7 @@ static int update_config(AppConfig &config, const char *val) {
   return 0;
 }
 
-static int config_cmd(int argc, char **argv) {
+int config_cmd(int argc, char **argv) {
   int nerrors = arg_parse(argc, argv, (void **)&config_args);
 
   if (nerrors != 0) {
@@ -230,6 +225,13 @@ static int config_cmd(int argc, char **argv) {
   return 0;
 }
 
+int playbackoff_cmd(int, char **) {
+  handle_.playback_off();
+  return 0;
+}
+
+} // namespace
+
 void register_configuration_commands(UIHandle handle) {
   handle_ = handle;
 
@@ -244,9 +246,14 @@ void register_configuration_commands(UIHandle handle) {
   const std::array commands = {
       esp_console_cmd_t{
           .command = "config",
-          .help = "Configuration",
+          .help = "Configuration management",
           .func = config_cmd,
           .argtable = &config_args,
+      },
+      esp_console_cmd_t{
+          .command = "off",
+          .help = "All notes off instantly",
+          .func = playbackoff_cmd,
       },
   };
   for (auto &cmd : commands)
