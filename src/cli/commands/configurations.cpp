@@ -1,20 +1,22 @@
 #include "application.hpp"
+#include "argtable3/argtable3.h"
+#include "config_parser.hpp"
 #include "configuration/synth.hpp"
 #include "core.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
 #include "instruments.hpp"
 #include "midi_synth.hpp"
-#include "notes.hpp"
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
-#include <optional>
 #include <stdio.h>
 #include <string.h>
 
 namespace teslasynth::app::cli {
 using namespace synth;
 using namespace app::configuration;
+using namespace midisynth::config;
 
 namespace keys {
 static constexpr const char *max_on_time = "max-on-time";
@@ -26,99 +28,62 @@ static constexpr const char *notes = "notes";
 static constexpr const char *instrument = "instrument";
 }; // namespace keys
 
-static bool parse_duration(const char *s, Duration16 *out) {
-  char *end;
-  auto val = strtoul(s, &end, 0);
-  if (end == s)
-    return false; // no digits
+namespace {
 
-  if (*end == '\0' || strcmp(end, "us") == 0) {
-    *out = Duration16::micros(val);
+typedef struct {
+  struct arg_lit *reload, *save, *reset;
+  struct arg_str *value;
+  struct arg_end *end;
+} config_args_t;
+
+config_args_t config_args;
+
+bool set_duration(const std::string_view value, Duration16 &duration,
+                  const char *key) {
+  if (auto d = parser::parse_duration16(value)) {
+    duration = *d;
     return true;
-  }
-  if (strcmp(end, "ms") == 0) {
-    *out = Duration16::millis(val);
-    return true;
-  }
-
-  return false; // unknown suffix
-}
-
-static bool parse_hertz(const char *s, Hertz *out) {
-  char *end;
-  float val = strtof(s, &end);
-  if (end == s)
-    return false;
-
-  if (*end == '\0' || strcmp(end, "Hz") == 0) {
-    *out = Hertz(val);
-    return true;
-  }
-  return false;
-}
-
-static bool parse_notes(const char *s, uint8_t *out) {
-  char *end;
-  unsigned long val = strtoul(s, &end, 0);
-  if (end == s)
-    return false;
-
-  if (*end == '\0' && val <= Config::max_notes && val >= 1) {
-    *out = val;
-    return true;
-  }
-  return false;
-}
-
-static bool parse_instrument(const char *s, std::optional<uint8_t> *out) {
-  char *end;
-  long val = strtol(s, &end, 0);
-  size_t len = strlen(s);
-  if (end == s && len > 0) {
+  } else {
+    printf("Invalid duration value: %s "
+           "for key: %s\n"
+           "Valid values unsigned integer values "
+           "followed by an optional time unit [us (default), ms]\n",
+           std::string(value).c_str(), key);
     return false;
   }
+}
 
-  if (val < 0 || len == 0) {
-    *out = {};
-    return true;
-  } else if (*end == '\0' && static_cast<size_t>(val) < instruments_size) {
-    *out = val;
-    return true;
+bool set_instrument(const std::string_view value,
+                    std::optional<uint8_t> &instrument) {
+  auto d = parser::parse_number<uint8_t>(value);
+  if (value == "-" || *d == 0) {
+    instrument = std::nullopt;
+  } else if (d && *d <= instruments_size) {
+    instrument = *d - 1;
+  } else {
+    printf("Invalid instrument value: %s\n"
+           "Valid values are optional integer numbers, negative values are "
+           "considered as no value. Max allowed value is %du\n",
+           std::string(value).c_str(), instruments_size);
+    return false;
   }
-  return false;
+  return true;
 }
-
-inline int invalid_duration(const char *value) {
-  printf("Invalid duration value: %s\n"
-         "Valid values unsigned integer values "
-         "followed by an optional time unit [us (default), ms]\n",
-         value);
-  return 1;
-}
-
-inline int invalid_frequency(const char *value) {
-  printf("Invalid frequency value: %s\n"
-         "Valid values are floating point numbers followed by an optional unit "
-         "[Hz]\n",
-         value);
-  return 1;
-}
-
-inline int invalid_instrument(const char *value) {
-  printf("Invalid instrument value: %s\n"
-         "Valid values are optional integer numbers, negative values are "
-         "considered as no value. Max allowed value is %du\n",
-         value, instruments_size);
-  return 1;
-}
+} // namespace
 
 void register_configuration_commands(UIHandle *handle);
 static UIHandle handle_;
 
 #define cstr(value) std::string(value).c_str()
 #define instrument_value(config)                                               \
-  (config.instrument.has_value() ? std::to_string(*config.instrument).c_str()  \
-                                 : "")
+  (config.instrument.has_value()                                               \
+       ? std::to_string(*config.instrument + 1).c_str()                        \
+       : "")
+
+#define read_duration(out)                                                     \
+  if (!parse_duration(value, out)) {                                           \
+    return invalid_duration(value);                                            \
+  }
 
 static void print_channel_config(uint8_t nr, const Config &config) {
   printf("Channel[%u] configuration:\n"
@@ -135,8 +100,7 @@ static void print_channel_config(uint8_t nr, const Config &config) {
          instrument_value(config));
 }
 
-static int print_config() {
-  auto config = handle_.config_read();
+static int print_config(AppConfig &config) {
   printf("Synth configuration:\n"
          "\t%s = %s\n"
          "\t%s = <%s>\n",
@@ -150,74 +114,143 @@ static int print_config() {
   return 0;
 }
 
-#define read_duration(out)                                                     \
-  if (!parse_duration(value, out)) {                                           \
-    return invalid_duration(value);                                            \
+static int update_config(AppConfig &config, const char *val) {
+  const auto result = parser::parse_config_value(val);
+  if (!result) {
+    printf("Invalid key value pair '%s'", val);
+    return 1;
   }
 
-static int set_config(int argc, char **argv) {
-  Config config;
-  for (int i = 0; i < argc; i++) {
-    char *eq = strchr(argv[i], '=');
-    if (!eq) {
-      printf("Missing '=' in argument: %s\n", argv[i]);
-      return 1;
-    }
-    *eq = 0;
-    char *key = argv[i], *value = eq + 1;
-
-    if (strcmp(key, keys::max_on_time) == 0) {
-      read_duration(&config.max_on_time);
-    } else if (strcmp(key, keys::min_deadtime) == 0) {
-      read_duration(&config.min_deadtime);
-    } else if (strcmp(key, keys::notes) == 0) {
-      if (!parse_notes(value, &config.notes)) {
-        printf("Invalid notes value %s, must be a number in [1, %i]", value,
-               Config::max_notes);
-        return 1;
+  const auto key = result.value().key, value = result.value().value;
+  const auto channel = result.value().channel;
+  if (channel > config.channels_size()) {
+    printf("Invalid channel number %d\n", channel);
+    return 2;
+  }
+  if (channel == 0) {
+    if (key == keys::instrument) {
+      if (!set_instrument(value, config.synth().instrument)) {
+        return 3;
       }
-    } else if (strcmp(key, keys::instrument) == 0) {
-      if (!parse_instrument(value, &config.instrument)) {
-        return invalid_instrument(value);
+    } else if (key == keys::tuning) {
+      if (auto t = parser::parse_hertz(value)) {
+        config.synth().a440 = *t;
+      } else {
+        printf("Invalid frequency value: %s\n"
+               "Valid values are floating point numbers followed by an "
+               "optional unit "
+               "[Hz]\n",
+               std::string(value).c_str());
+        return 3;
       }
     } else {
-      printf("Unknown config: %s", key);
-      return 1;
+      printf("Unknown key: %s\n", std::string(key).c_str());
+      return 3;
+    }
+  } else {
+    Config &chConfig = config.channel(channel - 1);
+    if (key == keys::max_on_time) {
+      if (!set_duration(value, chConfig.max_on_time, keys::max_on_time)) {
+        return 3;
+      }
+    } else if (key == keys::min_deadtime) {
+      if (!set_duration(value, chConfig.min_deadtime, keys::min_deadtime)) {
+        return 3;
+      }
+    } else if (key == keys::notes) {
+      auto n = parser::parse_number<uint8_t>(value);
+      if (n.has_value() && n < config.channels_size()) {
+        chConfig.notes = *n;
+      } else {
+        printf("Invalid frequency: %s", std::string(value).c_str());
+        return 3;
+      }
+    } else if (key == keys::max_duty) {
+      auto n = parser::parse_number<float>(value);
+      if (n.has_value()) {
+        chConfig.max_duty = DutyCycle(*n);
+      } else {
+        printf("Invalid dutycycle: %s", std::string(value).c_str());
+        return 3;
+      }
+    } else if (key == keys::duty_window) {
+      if (!set_duration(value, chConfig.duty_window, keys::duty_window)) {
+        return 3;
+      }
+    } else if (key == keys::instrument) {
+      if (!set_instrument(value, chConfig.instrument)) {
+        return 3;
+      }
+    } else {
+      printf("Unknown key: %s\n", std::string(key).c_str());
+      return 3;
     }
   }
-
-  // update_config(config);
-  // save_config();
   return 0;
 }
 
 static int config_cmd(int argc, char **argv) {
-  if (argc > 2 && strcmp(argv[1], "set") == 0) {
-    return set_config(argc - 2, argv + 2);
-  }
-  if (argc == 2 && strcmp(argv[1], "show") == 0) {
-    print_config();
+  int nerrors = arg_parse(argc, argv, (void **)&config_args);
+
+  if (nerrors != 0) {
+    arg_print_errors(stderr, config_args.end, argv[0]);
     return 0;
   }
-  if (argc == 2 && strcmp(argv[1], "reset") == 0) {
-    handle_.config_set(AppConfig{});
-    print_config();
-    return 0;
+
+  const bool save = config_args.save->count != 0,
+             reload = config_args.reload->count != 0,
+             reset = config_args.reset->count != 0;
+  const uint8_t value_count = config_args.value->count;
+
+  AppConfig config = handle_.config_read();
+
+  if (reset) {
+    config = AppConfig();
+    printf("Reset!\n");
   }
-  printf("Usage: config <set|show|reset>\n");
+
+  for (auto i = 0; i < value_count; i++) {
+    const auto res = update_config(config, config_args.value->sval[i]);
+    if (res != 0)
+      return res;
+  }
+
+  if (value_count > 0) {
+    handle_.config_set(config, reload);
+    printf("Updated %d config values!\n", value_count);
+  }
+
+  if (save) {
+    app::configuration::persist(handle_);
+    printf("Saved!\n");
+  }
+
+  print_config(config);
+
   return 0;
 }
 
 void register_configuration_commands(UIHandle handle) {
-  // TODO refactor
   handle_ = handle;
-  const esp_console_cmd_t cfg_cmd = {
-      .command = "config",
-      .help = "Configuration commands",
-      .hint = "set <key1>=<val1> [<key2>=<val2> …] | show | reset",
-      .func = config_cmd,
+
+  config_args.save = arg_lit0("s", "save", "Persist configuration");
+  config_args.reload = arg_lit0("r", "reload", "Reload configuration");
+  config_args.reset =
+      arg_lit0(nullptr, "reset", "Reset configuration values to defaults");
+  config_args.value = arg_strn(nullptr, nullptr, "<key[:ch]=value>", 0, 50,
+                               "Set configuration value");
+  config_args.end = arg_end(20);
+
+  const std::array commands = {
+      esp_console_cmd_t{
+          .command = "config",
+          .help = "Configuration",
+          .func = config_cmd,
+          .argtable = &config_args,
+      },
   };
-  ESP_ERROR_CHECK(esp_console_cmd_register(&cfg_cmd));
+  for (auto &cmd : commands)
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
 } // namespace teslasynth::app::cli
