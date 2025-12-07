@@ -11,7 +11,6 @@
 #include "midi_synth.hpp"
 #include "sdkconfig.h"
 #include "soc/gpio_num.h"
-#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <stddef.h>

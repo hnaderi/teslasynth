@@ -5,9 +5,10 @@
 #include "teslasynth.hpp"
 #include <dirent.h>
 
-static const char *TAG = "STORAGE";
+namespace {
+const char *TAG = "STORAGE";
 
-static void initialize_nvs() {
+void initialize_nvs() {
   esp_err_t err = nvs_flash_init();
   if (err == ESP_ERR_NVS_NO_FREE_PAGES ||
       err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -19,13 +20,13 @@ static void initialize_nvs() {
   ESP_ERROR_CHECK(err);
 }
 
-static void init_filesystem() {
+void init_filesystem() {
   ESP_LOGI(TAG, "Initializing LittleFS");
 
   esp_vfs_littlefs_conf_t conf = {
       .base_path = "/storage",
       .partition_label = "storage",
-      .format_if_mount_failed = false,
+      .format_if_mount_failed = true,
       .dont_mount = false,
   };
 
@@ -52,6 +53,7 @@ static void init_filesystem() {
     ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
   }
 }
+} // namespace
 
 namespace teslasynth::app::devices::storage {
 void init() {

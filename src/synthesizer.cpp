@@ -92,8 +92,14 @@ void init(StreamBufferHandle_t sbuf, PlaybackHandle handle) {
   ESP_LOGD(TAG, "init");
   playback = handle;
   stream = sbuf;
-  xTaskCreatePinnedToCore(input, "Input", 8 * 1024, nullptr, 10, nullptr, 1);
-  xTaskCreatePinnedToCore(output, "Output", 8 * 1024, nullptr, 10, nullptr, 1);
+
+  constexpr BaseType_t app_core =
+      CONFIG_FREERTOS_NUMBER_OF_CORES > 1 ? 1 : tskNO_AFFINITY;
+  constexpr size_t stack_size = 8 * 1024;
+  xTaskCreatePinnedToCore(input, "Input", stack_size, nullptr, 10, nullptr,
+                          app_core);
+  xTaskCreatePinnedToCore(output, "Output", stack_size, nullptr, 10, nullptr,
+                          app_core);
 }
 
 } // namespace teslasynth::app::synth
