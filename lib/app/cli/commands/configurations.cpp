@@ -1,7 +1,7 @@
 #include "application.hpp"
 #include "argtable3/argtable3.h"
 #include "config_parser.hpp"
-#include "configuration/synth.hpp"
+#include "configuration/storage.hpp"
 #include "core.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
@@ -216,7 +216,7 @@ int config_cmd(int argc, char **argv) {
   }
 
   if (save) {
-    app::configuration::persist(handle_);
+    app::configuration::synth::persist(handle_);
     printf("Saved!\n");
   }
 

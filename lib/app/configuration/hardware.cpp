@@ -20,7 +20,7 @@ esp_err_t init(nvs_handle_t &handle) {
   return err;
 }
 
-bool decode(AppHardwareConfig &config, const uint8_t *buf, size_t len) {
+bool decode(HardwareConfig &config, const uint8_t *buf, size_t len) {
   CborParser parser;
   CborValue it;
   CborError err = cbor_parser_init(buf, len, 0, &parser, &it);
@@ -29,7 +29,7 @@ bool decode(AppHardwareConfig &config, const uint8_t *buf, size_t len) {
 
   return true;
 }
-bool encode(const AppHardwareConfig &config, uint8_t *buf, size_t bufsize,
+bool encode(const HardwareConfig &config, uint8_t *buf, size_t bufsize,
             size_t &out_len) {
   CborEncoder encoder;
   cbor_encoder_init(&encoder, buf, bufsize, 0);
@@ -39,7 +39,7 @@ bool encode(const AppHardwareConfig &config, uint8_t *buf, size_t bufsize,
 }
 } // namespace
 
-bool read(AppHardwareConfig &config) {
+bool read(HardwareConfig &config) {
   bool success = false;
   nvs_handle_t handle;
   ESP_ERROR_CHECK(init(handle));
@@ -55,7 +55,7 @@ bool read(AppHardwareConfig &config) {
   nvs_close(handle);
   return success;
 }
-void persist(const AppHardwareConfig &config) {
+void persist(const HardwareConfig &config) {
   size_t len;
   // Measure required buffer size
   encode(config, nullptr, 0, len);

@@ -2,9 +2,9 @@
 
 #include "sdkconfig.h"
 #include "soc/gpio_num.h"
+#include <array>
 #include <cstdint>
 #include <optional>
-#include <array>
 
 namespace teslasynth::app::configuration::hardware {
 struct OutputChannelConfig {
@@ -78,18 +78,15 @@ union GUI {
   FullGUI full;
 };
 
-template <std::uint8_t SIZE> struct OutputConfig {
-  constexpr static auto size = SIZE;
-  std::array<OutputChannelConfig, size> channels{};
+struct OutputConfig {
+  constexpr static uint8_t size = CONFIG_TESLASYNTH_OUTPUT_COUNT;
+  std::array<OutputChannelConfig, size> channels;
 };
 
-template <std::uint8_t MAX_CHANNELS> struct HardwareConfig {
+struct HardwareConfig {
   uint32_t version = 0;
-  uint8_t channels = MAX_CHANNELS;
   GUIType gui_type = none;
   GUI gui = {.none = NoGUI{}};
-  OutputConfig<MAX_CHANNELS> outputs{};
+  OutputConfig outputs{};
 };
-
-typedef HardwareConfig<CONFIG_TESLASYNTH_OUTPUT_COUNT> AppHardwareConfig;
 } // namespace teslasynth::app::configuration::hardware

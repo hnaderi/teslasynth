@@ -18,7 +18,6 @@ void init(void);
 namespace ble_midi {
 StreamBufferHandle_t init();
 }
-
 } // namespace devices
 
 namespace synth {

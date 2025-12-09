@@ -1,4 +1,4 @@
-#include "configuration/synth.hpp"
+#include "configuration/storage.hpp"
 #include "core/lv_obj.h"
 #include "esp_err.h"
 #include "esp_event.h"

@@ -1,10 +1,10 @@
-#include "synth.hpp"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "nvs.h"
+#include "storage.hpp"
 #include <cstring>
 
-namespace teslasynth::app::configuration {
+namespace teslasynth::app::configuration::synth {
 static const char *TAG = "synth_config";
 static const char *KEY = "config";
 using namespace core;
@@ -50,4 +50,4 @@ void persist(UIHandle &ui) {
 
   nvs_close(handle);
 }
-} // namespace teslasynth::app::configuration
+} // namespace teslasynth::app::configuration::synth
