@@ -72,26 +72,26 @@ def write(path):
     return obj
 
 
-write("src/.clangd")(
-    {
-        "CompileFlags": {
-            "CompilationDatabase": "..",
-            "Add": xtensa_query
-            + espidf_defines
-            + std_flags
-            + espidf_includes
-            + xtensa_includes,
-            "Remove": flags_to_remove,
-        },
-        "Diagnostics": {
-            "Suppress": [
-                "pp_including_mainfile_in_preamble",
-                "pp_file_not_found",
-                "unknown_pragma",  # ESP-IDF pragmas
-            ]
-        },
-    }
-)
+espidf_params = {
+    "CompileFlags": {
+        "CompilationDatabase": db_path,
+        "Add": xtensa_query
+        + espidf_defines
+        + std_flags
+        + espidf_includes
+        + xtensa_includes,
+        "Remove": flags_to_remove,
+    },
+    "Diagnostics": {
+        "Suppress": [
+            "pp_including_mainfile_in_preamble",
+            "pp_file_not_found",
+            "unknown_pragma",  # ESP-IDF pragmas
+        ]
+    },
+}
+write("src/.clangd")(espidf_params)
+write("lib/app/.clangd")(espidf_params)
 
 write("lib/.clangd")(
     {

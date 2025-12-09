@@ -13,6 +13,16 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 1.0.6
+  espressif/cbor:
+    component_hash: dad9ca860963e930366510a10b422b3125a4fb27b979712ed65efcbcd742de50
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 0.6.1~4
   espressif/cmake_utilities:
     component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
     dependencies:
@@ -38,7 +48,7 @@ dependencies:
       type: service
     version: 2.0.1
   espressif/esp_lcd_touch:
-    component_hash: 779b4ba2464a3ae85681e4b860caa5fdc35801458c23f3039ee761bae7f442a4
+    component_hash: cf4741f4903bdfe83c0a6606cb33314957e78605398954154f247e03acfd306b
     dependencies:
     - name: idf
       require: private
@@ -46,7 +56,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 1.1.2
+    version: 1.2.0
   espressif/esp_lvgl_port:
     component_hash: 3264cc85d86a7c32b67d26a1353a57c67e7986bb293ebb1731801936b056e632
     dependencies:
@@ -104,12 +114,13 @@ dependencies:
     version: 9.4.0
 direct_dependencies:
 - atanisoft/esp_lcd_touch_xpt2046
+- espressif/cbor
 - espressif/esp_lcd_ili9341
 - espressif/esp_lvgl_port
 - h2zero/esp-nimble-cpp
 - idf
 - joltwallet/littlefs
 - lvgl/lvgl
-manifest_hash: 2a16752cf8a402b0bb04a125ac02d923f6619086240ec0866d88ae54627b8bad
+manifest_hash: d10b03270d0d63aa55046685daadababbce43881c9004861fe5ff08843ec0ef5
 target: esp32
 version: 2.0.0
