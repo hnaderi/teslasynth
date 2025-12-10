@@ -1,5 +1,6 @@
 #include "configuration/storage.hpp"
 #include "core/lv_obj.h"
+#include "devices/display.hpp"
 #include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -16,12 +17,9 @@
 #include <sys/param.h>
 #include <unistd.h>
 
-#if CONFIG_TESLASYNTH_GUI_STATUS_PANEL
-
 LV_IMG_DECLARE(teslasynth_tiny);
 
 namespace teslasynth::app::gui {
-extern lv_display_t *install_display();
 
 static const char *TAG = "GUI";
 static lv_display_t *display;
@@ -130,9 +128,9 @@ static void config_update_handler(void *, esp_event_base_t, int32_t, void *) {
   lv_async_call(render_config, nullptr);
 }
 
-void init() {
+void init(const configuration::hardware::MinimalDisplayPanelConfig &config) {
   init_ui();
-  display = install_display();
+  display = devices::display::init(config);
   ESP_LOGI(TAG, "starting the UI");
   if (lvgl_port_lock(0)) {
     /* Rotation of the screen */
@@ -166,5 +164,3 @@ void init() {
 }
 
 } // namespace teslasynth::app::gui
-
-#endif

@@ -22,7 +22,20 @@ struct SPIBus {
   gpio_num_t miso = gpio_num_t::GPIO_NUM_NC;
 };
 
-struct LargeDisplayPanelConfig {
+struct TouchPanelConfig {
+  enum {
+    XPT2046,
+    STMPE610,
+  } type;
+  bool enabled = false;
+  gpio_num_t cs = gpio_num_t::GPIO_NUM_NC;
+  gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
+  gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
+  gpio_num_t irq = gpio_num_t::GPIO_NUM_NC;
+  std::optional<SPIBus> spi;
+};
+
+struct FullDisplayPanelConfig {
   enum DisplayType {
     ILI9341,
     ST7789,
@@ -35,47 +48,39 @@ struct LargeDisplayPanelConfig {
   LogicType backlight_logic = LogicType::active_high;
   uint16_t width = 320, height = 240;
   SPIBus spi;
+  bool mirror_x = true, mirror_y = false;
 
-  struct TouchPanelConfig {
-    enum {
-      XPT2046,
-      STMPE610,
-    } type;
-    bool enabled = false, secondary_spi = false;
-    gpio_num_t cs = gpio_num_t::GPIO_NUM_NC;
-    gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
-    gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
-    gpio_num_t irq = gpio_num_t::GPIO_NUM_NC;
-    std::optional<SPIBus> spi;
-  } touch;
+  TouchPanelConfig touch;
 };
 
-struct SmallDisplayPanelConfig {
+struct MinimalDisplayPanelConfig {
   enum DisplayType {
     SSD1306,
-  } type;
+  } type = SSD1306;
   gpio_num_t sda = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t scl = gpio_num_t::GPIO_NUM_NC;
-  uint16_t width = 128, height = 64;
+  gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
+  uint8_t width = 128, height = 64;
 };
 
-enum GUIType {
+enum DisplayType {
   none,
   minimal,
   full,
 };
 
-struct NoGUI {};
-struct MinimalGUI {
-  SmallDisplayPanelConfig display;
-};
-struct FullGUI {
-  LargeDisplayPanelConfig display;
-};
-union GUI {
-  NoGUI none;
-  MinimalGUI minimal;
-  FullGUI full;
+struct NoDisplay {};
+struct DisplayConfig {
+  DisplayType type = none;
+  union {
+    NoDisplay none;
+    MinimalDisplayPanelConfig minimal;
+    FullDisplayPanelConfig full;
+  } config = {.none = NoDisplay{}};
+
+  constexpr bool enabled() const { return type != none; }
+  constexpr bool is_minimal() const { return type != minimal; }
+  constexpr bool is_full() const { return type != full; }
 };
 
 struct OutputConfig {
@@ -85,8 +90,7 @@ struct OutputConfig {
 
 struct HardwareConfig {
   uint32_t version = 0;
-  GUIType gui_type = none;
-  GUI gui = {.none = NoGUI{}};
+  DisplayConfig display;
   OutputConfig outputs{};
 };
 } // namespace teslasynth::app::configuration::hardware

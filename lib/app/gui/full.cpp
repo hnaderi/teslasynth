@@ -1,6 +1,7 @@
 #include "core/lv_obj.h"
 #include "core/lv_obj_pos.h"
 #include "core/lv_obj_style_gen.h"
+#include "devices/display.hpp"
 #include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -22,19 +23,9 @@
 #include <sys/param.h>
 #include <unistd.h>
 
-#if CONFIG_TESLASYNTH_GUI_FULL
-
 LV_IMG_DECLARE(teslasynth_240p_large);
 
 namespace teslasynth::app::gui {
-
-extern lv_display_t *install_display();
-extern esp_err_t lcd_display_brightness_set(int brightness_percent);
-extern esp_err_t lcd_display_backlight_off(void);
-extern esp_err_t lcd_display_backlight_on(void);
-#if CONFIG_TESLASYNTH_TOUCH_ENABLED
-extern lv_indev_t *install_touch(lv_display_t *display);
-#endif
 
 static const char *TAG = "GUI";
 
@@ -53,7 +44,7 @@ static void init_ui() {
 static void splash_load_cb(lv_event_t *e) {
   /* load main screen after 3000ms */
   lv_screen_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, false);
-  lcd_display_brightness_set(70);
+  devices::display::brightness_set(70);
 }
 static void blink_cb(lv_timer_t *t) {
   lv_obj_t *icon = static_cast<lv_obj_t *>(lv_timer_get_user_data(t));
@@ -202,7 +193,7 @@ static void start_gui() {
   /* Rotation of the screen */
   // lv_disp_set_rotation(display, LV_DISPLAY_ROTATION_0);
 
-  lcd_display_brightness_set(50);
+  devices::display::brightness_set(50);
   init_splash_screen();
   init_main_screen();
 
@@ -211,12 +202,9 @@ static void start_gui() {
   lv_scr_load(splash_screen);
 }
 
-void init() {
+void init(const configuration::hardware::FullDisplayPanelConfig &config) {
   init_ui();
-  display = install_display();
-#if CONFIG_TESLASYNTH_TOUCH_ENABLED
-  install_touch(display);
-#endif
+  display = devices::display::init(config);
 
   ESP_LOGI(TAG, "starting the UI");
   if (lvgl_port_lock(0)) {
@@ -242,4 +230,3 @@ void init() {
 }
 
 } // namespace teslasynth::app::gui
-#endif

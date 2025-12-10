@@ -57,6 +57,20 @@ dependencies:
       registry_url: https://components.espressif.com
       type: service
     version: 1.2.0
+  espressif/esp_lcd_touch_stmpe610:
+    component_hash: eccbf8e9deae0ab7749c22267d0f0efb30ccd0704de8e7c0bae0790ece8473d2
+    dependencies:
+    - name: espressif/esp_lcd_touch
+      registry_url: https://components.espressif.com
+      require: public
+      version: ^1.0.4
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.0.7
   espressif/esp_lvgl_port:
     component_hash: 3264cc85d86a7c32b67d26a1353a57c67e7986bb293ebb1731801936b056e632
     dependencies:
@@ -116,11 +130,12 @@ direct_dependencies:
 - atanisoft/esp_lcd_touch_xpt2046
 - espressif/cbor
 - espressif/esp_lcd_ili9341
+- espressif/esp_lcd_touch_stmpe610
 - espressif/esp_lvgl_port
 - h2zero/esp-nimble-cpp
 - idf
 - joltwallet/littlefs
 - lvgl/lvgl
-manifest_hash: d10b03270d0d63aa55046685daadababbce43881c9004861fe5ff08843ec0ef5
+manifest_hash: ec2ac44ccbab3a2429e47d6acd54a1f3ec43ddad9c519afe73fcabc389ac5c58
 target: esp32
 version: 2.0.0
