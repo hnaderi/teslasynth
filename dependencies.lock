@@ -23,6 +23,16 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 0.6.1~4
+  espressif/cjson:
+    component_hash: 9372811fb197926f522c467627cf4a8e72b681e0366e17879631da801103aef3
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.7.19
   espressif/cmake_utilities:
     component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
     dependencies:
@@ -48,7 +58,7 @@ dependencies:
       type: service
     version: 2.0.1
   espressif/esp_lcd_touch:
-    component_hash: cf4741f4903bdfe83c0a6606cb33314957e78605398954154f247e03acfd306b
+    component_hash: 3f85a7d95af876f1a6ecca8eb90a81614890d0f03a038390804e5a77e2caf862
     dependencies:
     - name: idf
       require: private
@@ -56,7 +66,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 1.2.0
+    version: 1.2.1
   espressif/esp_lcd_touch_stmpe610:
     component_hash: eccbf8e9deae0ab7749c22267d0f0efb30ccd0704de8e7c0bae0790ece8473d2
     dependencies:
@@ -85,6 +95,16 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 2.6.3
+  espressif/mdns:
+    component_hash: 29e47564b1a7ee778135e17fbbf2a2773f71c97ebabfe626c8eda7c958a7ad16
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.9.1
   h2zero/esp-nimble-cpp:
     component_hash: 8ed712a95bc72bf27c6f6cbf45fad7f3cf02531cd90cf10e7d555f9e7251be01
     dependencies:
@@ -129,13 +149,15 @@ dependencies:
 direct_dependencies:
 - atanisoft/esp_lcd_touch_xpt2046
 - espressif/cbor
+- espressif/cjson
 - espressif/esp_lcd_ili9341
 - espressif/esp_lcd_touch_stmpe610
 - espressif/esp_lvgl_port
+- espressif/mdns
 - h2zero/esp-nimble-cpp
 - idf
 - joltwallet/littlefs
 - lvgl/lvgl
-manifest_hash: ec2ac44ccbab3a2429e47d6acd54a1f3ec43ddad9c519afe73fcabc389ac5c58
+manifest_hash: 89d7e9ee0d118e0f4115861520b10933fd03003d67428a678bd3c5083a552c73
 target: esp32
 version: 2.0.0

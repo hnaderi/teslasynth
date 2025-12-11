@@ -10,4 +10,7 @@
 .clangd
 /build/
 /managed_components/
-/src/images/*.c
+node_modules
+dashboard/dist
+*.gz
+/src/assets/

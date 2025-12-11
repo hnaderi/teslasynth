@@ -8,5 +8,6 @@ in pkgs.mkShell {
     tio
     rosegarden
     alsa-utils
+    xxd
   ];
 }

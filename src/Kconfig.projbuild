@@ -33,9 +33,26 @@ config TESLASYNTH_OUTPUT_GPIO_PIN4
 
 endmenu
 
+menu "Device"
+
 config TESLASYNTH_DEVICE_NAME
     string "Advertised Device Name"
     default "Teslasynth"
+
+config TESLASYNTH_WIFI_PASSWORD
+        string "WiFi Password"
+        default "Wardenclyffe1891!"
+        help
+            WiFi password 
+
+config TESLASYNTH_WIFI_CHANNEL
+        int "WiFi Channel"
+        range 1 13
+        default 1
+        help
+            WiFi channel (network channel)
+
+endmenu
 
 menu "Synth"
 

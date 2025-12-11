@@ -91,9 +91,16 @@ class Application {
   SemaphoreHandle_t write_lock, read_lock;
 
 public:
+  Application()
+      : write_lock(xSemaphoreCreateMutex()),
+        read_lock(xSemaphoreCreateMutex()) {}
   Application(const AppConfig &config)
       : impl(config, on_track_play), write_lock(xSemaphoreCreateMutex()),
         read_lock(xSemaphoreCreateMutex()) {}
+  void load(const AppConfig &config) {
+    impl.configuration() = config;
+    impl.reload_config();
+  }
   PlaybackHandle playback() { return PlaybackHandle(&impl, write_lock); }
   UIHandle ui() { return UIHandle(&impl, write_lock, read_lock); }
 };
