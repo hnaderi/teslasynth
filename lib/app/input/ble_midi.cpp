@@ -53,15 +53,8 @@ protected:
   }
 };
 
-StreamBufferHandle_t init() {
+void init(StreamBufferHandle_t sbuf) {
   NimBLEDevice::init(CONFIG_TESLASYNTH_DEVICE_NAME);
-
-  auto sbuf = xStreamBufferCreate(256, 1);
-  if (sbuf == nullptr) {
-    ESP_LOGE(TAG, "Couldn't allocate BLE stream buffer!");
-    return nullptr;
-  }
-
   NimBLEDevice::setSecurityAuth(false, true, true);
 
   auto _server = NimBLEDevice::createServer();
@@ -83,8 +76,6 @@ StreamBufferHandle_t init() {
   _advertising->addServiceUUID(service->getUUID());
   _advertising->setName(CONFIG_TESLASYNTH_DEVICE_NAME);
   _advertising->start();
-
-  return sbuf;
 }
 
 } // namespace teslasynth::app::devices::ble_midi

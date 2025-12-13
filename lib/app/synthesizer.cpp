@@ -88,18 +88,24 @@ static void output(void *pvParams) {
   }
 }
 
-void init(StreamBufferHandle_t sbuf, PlaybackHandle handle) {
+StreamBufferHandle_t init(PlaybackHandle handle) {
   ESP_LOGD(TAG, "init");
+  stream = xStreamBufferCreate(256, 1);
+  if (stream == nullptr) {
+    ESP_LOGE(TAG, "Couldn't allocate BLE stream buffer!");
+    return nullptr;
+  }
   playback = handle;
-  stream = sbuf;
 
   constexpr BaseType_t app_core =
       CONFIG_FREERTOS_NUMBER_OF_CORES > 1 ? 1 : tskNO_AFFINITY;
-  constexpr size_t stack_size = 4 * 1024;
+  constexpr size_t stack_size = 2 * 1024;
   xTaskCreatePinnedToCore(input, "Input", stack_size, nullptr, 10, nullptr,
                           app_core);
   xTaskCreatePinnedToCore(output, "Output", stack_size, nullptr, 10, nullptr,
                           app_core);
+
+  return stream;
 }
 
 } // namespace teslasynth::app::synth

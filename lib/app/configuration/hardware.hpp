@@ -23,11 +23,11 @@ struct SPIBus {
 };
 
 struct TouchPanelConfig {
+  bool enabled = false;
   enum {
     XPT2046,
     STMPE610,
   } type;
-  bool enabled = false;
   gpio_num_t cs = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
@@ -40,15 +40,14 @@ struct FullDisplayPanelConfig {
     ILI9341,
     ST7789,
   } type;
-  bool secondary_spi = false;
   gpio_num_t cs = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t backlight = gpio_num_t::GPIO_NUM_NC;
   LogicType backlight_logic = LogicType::active_high;
   uint16_t width = 320, height = 240;
-  SPIBus spi;
   bool mirror_x = true, mirror_y = false;
+  SPIBus spi;
 
   TouchPanelConfig touch;
 };
@@ -92,5 +91,61 @@ struct HardwareConfig {
   uint32_t version = 0;
   DisplayConfig display;
   OutputConfig outputs{};
+};
+
+const HardwareConfig CYD = {
+    .display =
+        {
+            .type = DisplayType::full,
+            .config =
+                {
+                    .full =
+                        {
+                            .type = FullDisplayPanelConfig::ILI9341,
+                            .cs = gpio_num_t::GPIO_NUM_15,
+                            .dc = gpio_num_t::GPIO_NUM_2,
+                            .rs = gpio_num_t::GPIO_NUM_4,
+                            .backlight = gpio_num_t::GPIO_NUM_21,
+                            .backlight_logic = active_high,
+                            .width = 320,
+                            .height = 240,
+                            .mirror_x = true,
+                            .mirror_y = false,
+                            .spi =
+                                {
+                                    .clk = gpio_num_t::GPIO_NUM_14,
+                                    .mosi = gpio_num_t::GPIO_NUM_13,
+                                    .miso = gpio_num_t::GPIO_NUM_12,
+                                },
+                            .touch{
+                                .enabled = true,
+                                .type = TouchPanelConfig::XPT2046,
+                                .cs = gpio_num_t::GPIO_NUM_33,
+                                .irq = gpio_num_t::GPIO_NUM_36,
+                                .spi = {{
+                                    .clk = gpio_num_t::GPIO_NUM_25,
+                                    .mosi = gpio_num_t::GPIO_NUM_32,
+                                    .miso = gpio_num_t::GPIO_NUM_39,
+                                }},
+                            },
+
+                        } // namespace teslasynth::app::configuration::hardware
+                },
+        },
+};
+
+const HardwareConfig lilygo_display = {
+    .display =
+        {
+            .type = minimal,
+            .config =
+                {
+                    .minimal =
+                        {
+                            .sda = gpio_num_t::GPIO_NUM_21,
+                            .scl = gpio_num_t::GPIO_NUM_22,
+                        },
+                },
+        },
 };
 } // namespace teslasynth::app::configuration::hardware

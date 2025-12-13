@@ -3,6 +3,7 @@
 #include "esp_console.h"
 #include "esp_log.h"
 #include "freertos/task.h"
+#include "helpers/maintenance.hpp"
 #include "helpers/sysinfo.h"
 #include "sdkconfig.h"
 #include <cstdint>
@@ -25,26 +26,6 @@
 namespace teslasynth::app::cli {
 
 static const char *TAG = "cmd_system_common";
-
-static void register_free(void);
-static void register_heap(void);
-static void register_version(void);
-static void register_restart(void);
-#if WITH_TASKS_INFO
-static void register_tasks(void);
-#endif
-static void register_log_level(void);
-
-void register_system_common(void) {
-  register_free();
-  register_heap();
-  register_version();
-  register_restart();
-#if WITH_TASKS_INFO
-  register_tasks();
-#endif
-  register_log_level();
-}
 
 /* 'version' command */
 static int get_version(int argc, char **argv) {
@@ -92,6 +73,21 @@ static void register_restart(void) {
       .help = "Software reset of the chip",
       .hint = NULL,
       .func = &restart,
+  };
+  ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
+static int maintenance(int argc, char **argv) {
+  ESP_LOGI(TAG, "Rebooting to maintenance mode");
+  teslasynth::app::helpers::maintenance::reboot();
+}
+
+static void register_maintenance(void) {
+  const esp_console_cmd_t cmd = {
+      .command = "maintenance",
+      .help = "Reboot to maintenance mode",
+      .hint = NULL,
+      .func = &maintenance,
   };
   ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
@@ -226,6 +222,18 @@ static void register_log_level(void) {
       .argtable = &log_level_args,
   };
   ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
+void register_system_common(void) {
+  register_free();
+  register_heap();
+  register_version();
+  register_restart();
+#if WITH_TASKS_INFO
+  register_tasks();
+#endif
+  register_log_level();
+  register_maintenance();
 }
 
 } // namespace teslasynth::app::cli

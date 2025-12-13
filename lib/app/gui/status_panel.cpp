@@ -45,7 +45,7 @@ void render_config(void *) {
 
 void splash_load_cb(lv_event_t *e) {
   /* load main screen after 3000ms */
-  lv_screen_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, false);
+  lv_screen_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, true);
 }
 
 lv_obj_t *bluetooth_indicator, *play_indicator;

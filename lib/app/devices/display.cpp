@@ -73,7 +73,8 @@ install_full_io(const FullDisplayPanelConfig &config) {
       .sclk_io_num = config.spi.clk,
       .quadwp_io_num = -1,
       .quadhd_io_num = -1,
-      // .max_transfer_sz = config.height * 80 * sizeof(uint16_t),
+      .max_transfer_sz =
+          static_cast<int>(config.height * 80 * sizeof(uint16_t)),
   };
   ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
@@ -132,7 +133,7 @@ lv_display_t *full_display(const FullDisplayPanelConfig &config) {
       .io_handle = io_handle,
       .panel_handle = panel_handle,
       .buffer_size = static_cast<uint32_t>(config.height * 50),
-      .double_buffer = true,
+      .double_buffer = false,
       .hres = config.width,
       .vres = config.height,
       .monochrome = false,
@@ -208,7 +209,7 @@ lv_display_t *minimal_display(const MinimalDisplayPanelConfig &config) {
       .io_handle = io_handle,
       .panel_handle = panel_handle,
       .buffer_size = static_cast<uint32_t>(config.width * config.height),
-      .double_buffer = true,
+      .double_buffer = false,
       .hres = config.width,
       .vres = config.height,
       .monochrome = true,
@@ -235,6 +236,7 @@ install_touch_io(const FullDisplayPanelConfig &config) {
   bool uses_secondary_spi = config.touch.spi.has_value();
   spi_host_device_t TOUCH_SPI = uses_secondary_spi ? SPI3_HOST : SPI2_HOST;
   if (uses_secondary_spi) {
+    ESP_LOGI(TAG, "Initialize Touch SPI bus");
     const auto spi = *config.touch.spi;
     const spi_bus_config_t buscfg_touch = {
         .mosi_io_num = spi.mosi,
@@ -251,7 +253,8 @@ install_touch_io(const FullDisplayPanelConfig &config) {
                  SPICOMMON_BUSFLAG_MOSI | SPICOMMON_BUSFLAG_MASTER |
                  SPICOMMON_BUSFLAG_GPIO_PINS,
         .isr_cpu_id = ESP_INTR_CPU_AFFINITY_AUTO,
-        .intr_flags = ESP_INTR_FLAG_LOWMED | ESP_INTR_FLAG_IRAM};
+        .intr_flags = ESP_INTR_FLAG_LOWMED | ESP_INTR_FLAG_IRAM,
+    };
 
     ESP_ERROR_CHECK(
         spi_bus_initialize(TOUCH_SPI, &buscfg_touch, SPI_DMA_CH_AUTO));
@@ -259,8 +262,8 @@ install_touch_io(const FullDisplayPanelConfig &config) {
 
   esp_lcd_panel_io_handle_t tp_io_handle = NULL;
   const esp_lcd_panel_io_spi_config_t tp_io_config = {
-      .cs_gpio_num = config.cs,
-      .dc_gpio_num = config.dc,
+      .cs_gpio_num = config.touch.cs,
+      .dc_gpio_num = config.touch.dc,
       .spi_mode = 0,
       .pclk_hz = ESP_LCD_TOUCH_SPI_CLOCK_HZ,
       .trans_queue_depth = 3,
@@ -292,18 +295,20 @@ install_touch_panel(const FullDisplayPanelConfig &config,
                     esp_lcd_panel_io_handle_t tp_io_handle) {
   esp_lcd_touch_handle_t tp = NULL;
 
-  const esp_lcd_touch_config_t tp_cfg = {.x_max = config.height,
-                                         .y_max = config.width,
-                                         .rst_gpio_num = config.touch.rs,
-                                         .int_gpio_num = config.touch.irq,
-                                         .levels = {.reset = 0, .interrupt = 0},
-                                         .flags =
-                                             {
-                                                 .swap_xy = true,
-                                                 .mirror_x = true,
-                                                 .mirror_y = true,
-                                             },
-                                         .interrupt_callback = NULL};
+  const esp_lcd_touch_config_t tp_cfg = {
+      .x_max = config.height,
+      .y_max = config.width,
+      .rst_gpio_num = config.touch.rs,
+      .int_gpio_num = config.touch.irq,
+      .levels = {.reset = 0, .interrupt = 0},
+      .flags =
+          {
+              .swap_xy = true,
+              .mirror_x = true,
+              .mirror_y = true,
+          },
+      .interrupt_callback = NULL,
+  };
 
   switch (config.touch.type) {
   case TouchPanelConfig::XPT2046:
@@ -335,7 +340,7 @@ lv_display_t *init(const MinimalDisplayPanelConfig &config) {
 }
 
 lv_display_t *init(const FullDisplayPanelConfig &config) {
-  const auto display = full_display(config);
+  lv_display_t *display = full_display(config);
   if (config.touch.enabled) {
     install_touch(config, display);
   }

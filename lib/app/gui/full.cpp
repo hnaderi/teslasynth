@@ -43,7 +43,7 @@ static void init_ui() {
 
 static void splash_load_cb(lv_event_t *e) {
   /* load main screen after 3000ms */
-  lv_screen_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, false);
+  lv_screen_load_anim(main_screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 3000, true);
   devices::display::brightness_set(70);
 }
 static void blink_cb(lv_timer_t *t) {
@@ -189,7 +189,7 @@ static void track_event_handler(void *, esp_event_base_t, int32_t id, void *) {
   lv_async_call(ui_on_track_play_changed, (void *)(id == SYNTHESIZER_PLAYING));
 }
 
-static void start_gui() {
+static void start_gui(void *) {
   /* Rotation of the screen */
   // lv_disp_set_rotation(display, LV_DISPLAY_ROTATION_0);
 
@@ -207,10 +207,8 @@ void init(const configuration::hardware::FullDisplayPanelConfig &config) {
   display = devices::display::init(config);
 
   ESP_LOGI(TAG, "starting the UI");
-  if (lvgl_port_lock(0)) {
-    start_gui();
-    lvgl_port_unlock();
-  }
+  lv_async_call(start_gui, nullptr);
+
   ESP_ERROR_CHECK(
       esp_event_handler_instance_register(EVENT_BLE_BASE, BLE_DEVICE_CONNECTED,
                                           ble_event_handler, nullptr, nullptr));

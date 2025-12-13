@@ -1,6 +1,5 @@
 #include "wifi.hpp"
 #include "esp_event.h"
-#include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_netif.h"
@@ -21,7 +20,7 @@ void initialise_mdns(void) {
   mdns_txt_item_t serviceTxtData[] = {{"board", "esp32"}, {"path", "/"}};
 
   ESP_ERROR_CHECK(
-      mdns_service_add("ESP32-WebServer", "_http", "_tcp", 80, serviceTxtData,
+      mdns_service_add("Teslasynth", "_http", "_tcp", 80, serviceTxtData,
                        sizeof(serviceTxtData) / sizeof(serviceTxtData[0])));
 }
 
@@ -84,7 +83,7 @@ void wifi_init_softap(void) {
   ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
 
-  ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
+  ESP_LOGI(TAG, "WiFi started. SSID:%s password:%s channel:%d",
            CONFIG_TESLASYNTH_DEVICE_NAME, CONFIG_TESLASYNTH_WIFI_PASSWORD,
            CONFIG_TESLASYNTH_WIFI_CHANNEL);
 }

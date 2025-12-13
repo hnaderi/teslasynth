@@ -16,12 +16,12 @@ void init(void);
 }
 
 namespace ble_midi {
-StreamBufferHandle_t init();
+void init(StreamBufferHandle_t buf);
 }
 } // namespace devices
 
 namespace synth {
-void init(StreamBufferHandle_t sbuf, PlaybackHandle handle);
+StreamBufferHandle_t init(PlaybackHandle handle);
 }
 
 namespace gui {
