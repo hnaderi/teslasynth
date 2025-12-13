@@ -9,5 +9,6 @@ in pkgs.mkShell {
     rosegarden
     alsa-utils
     xxd
+    copywrite
   ];
 }

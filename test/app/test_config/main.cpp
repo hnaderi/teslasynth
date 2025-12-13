@@ -8,7 +8,7 @@ static const char *TAG = "TEST";
 
 using namespace teslasynth::app::configuration::hardware;
 
-void test_empty(void) {
+void test_empty_app_config(void) {
   ESP_LOGI(TAG, "Hardware config size: %u", sizeof(HardwareConfig));
 }
 
@@ -20,7 +20,7 @@ void test_encode_calculates_required_length(void) {
 
 extern "C" void app_main(void) {
   UNITY_BEGIN();
-  RUN_TEST(test_empty);
+  RUN_TEST(test_empty_app_config);
   UNITY_END();
 }
 int main(int argc, char **argv) { app_main(); }

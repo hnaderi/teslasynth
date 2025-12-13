@@ -9,10 +9,10 @@
 namespace teslasynth::app {
 using namespace midisynth;
 
-namespace {
 typedef Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> AppSynth;
 typedef Configuration<CONFIG_TESLASYNTH_OUTPUT_COUNT> AppConfig;
 
+namespace {
 void on_track_play(bool playing) {
   if (playing) {
     ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(

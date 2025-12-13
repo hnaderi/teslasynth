@@ -33,21 +33,22 @@ AppConfig read() {
   return config;
 }
 
-void persist(UIHandle &ui) {
+void persist(UIHandle &ui) { persist(ui.config_read()); }
+
+esp_err_t persist(const AppConfig &config) {
   static_assert(std::is_trivially_copyable<AppConfig>::value,
                 "AppConfig must be trivially copyable");
 
   nvs_handle_t handle;
   ESP_ERROR_CHECK(init(handle));
 
-  AppConfig config = ui.config_read();
   auto err = nvs_set_blob(handle, KEY, &config, sizeof(config));
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "Couldn't persist configuration!");
   } else {
     nvs_commit(handle);
   }
-
   nvs_close(handle);
+  return err;
 }
 } // namespace teslasynth::app::configuration::synth

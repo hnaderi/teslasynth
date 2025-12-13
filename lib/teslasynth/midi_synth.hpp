@@ -149,6 +149,7 @@ public:
   constexpr operator float() const {
     return value_ / static_cast<float>(max_value);
   }
+  constexpr float percent() const { return 100 * static_cast<float>(*this); }
   inline operator std::string() const {
     return std::to_string(static_cast<float>(value_) / max_value * max_duty) +
            "%";
@@ -200,6 +201,15 @@ template <std::uint8_t OUTPUTS = 1> struct Configuration {
   SynthConfig &synth() { return synth_config; }
   Config &channel(uint8_t ch) { return channel_configs[ch]; }
   constexpr uint8_t channels_size() const { return OUTPUTS; }
+
+  inline operator std::string() const {
+    std::string res =
+        std::string("Synth: ") + std::string(synth_config) + "\nChannels: ";
+    for (const auto &ch : channel_configs) {
+      res += "\n" + std::string(ch);
+    }
+    return res;
+  }
 };
 
 class DutyLimiter final {

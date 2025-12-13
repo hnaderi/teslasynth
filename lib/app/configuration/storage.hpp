@@ -2,6 +2,7 @@
 
 #include "application.hpp"
 #include "hardware.hpp"
+#include "esp_err.h"
 
 namespace teslasynth::app::configuration {
 using teslasynth::midisynth::Config;
@@ -11,7 +12,7 @@ AppConfig read();
 void persist(UIHandle &handle);
 
 bool read(AppConfig &config);
-bool persist(const AppConfig &config);
+esp_err_t persist(const AppConfig &config);
 } // namespace synth
 
 namespace hardware {

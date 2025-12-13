@@ -1,19 +1,33 @@
 #include "server.hpp"
 #include "../application.hpp"
+#include "../helpers/json.hpp"
 #include "../helpers/sysinfo.h"
 #include "cJSON.h"
+#include "configuration/codec.hpp"
+#include "configuration/storage.hpp"
 #include "esp_check.h"
 #include "esp_err.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
+#include <optional>
+#include <string_view>
+#include <vector>
 
 extern const uint8_t index_html_gz[];
 extern const size_t index_html_gz_len;
 
 namespace teslasynth::app::web::server {
+
+using namespace core;
+using namespace configuration::codec;
+using helpers::JSONParser;
+
 namespace {
+
 constexpr char const *TAG = "WEBSERVER";
+constexpr size_t max_body_length = 1024;
 static UIHandle ui;
+
 #define cstr(value) std::string(value).c_str()
 
 esp_err_t sysinfo_handler(httpd_req_t *req) {
@@ -46,7 +60,7 @@ esp_err_t synth_config_get_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "text/plain");
 
   cJSON *root = cJSON_CreateObject();
-  cJSON_AddStringToObject(root, "tuning", cstr(config.synth().a440));
+  cJSON_AddNumberToObject(root, "tuning", config.synth().a440);
   if (config.synth().instrument.has_value())
     cJSON_AddNumberToObject(root, "instrument", *config.synth().instrument + 1);
 
@@ -54,10 +68,10 @@ esp_err_t synth_config_get_handler(httpd_req_t *req) {
   for (auto &ch : config.channel_configs) {
     cJSON *obj = cJSON_CreateObject();
     cJSON_AddNumberToObject(obj, "notes", ch.notes);
-    cJSON_AddStringToObject(obj, "max-on-time", cstr(ch.max_on_time));
-    cJSON_AddStringToObject(obj, "min-dead-time", cstr(ch.min_deadtime));
-    cJSON_AddStringToObject(obj, "max-duty", cstr(ch.max_duty));
-    cJSON_AddStringToObject(obj, "duty-window", cstr(ch.duty_window));
+    cJSON_AddNumberToObject(obj, "max-on-time", ch.max_on_time.micros());
+    cJSON_AddNumberToObject(obj, "min-dead-time", ch.min_deadtime.micros());
+    cJSON_AddNumberToObject(obj, "max-duty", ch.max_duty);
+    cJSON_AddNumberToObject(obj, "duty-window", ch.duty_window.micros());
     if (ch.instrument.has_value())
       cJSON_AddNumberToObject(obj, "instrument", *ch.instrument + 1);
     cJSON_AddItemToArray(channels, obj);
@@ -69,6 +83,45 @@ esp_err_t synth_config_get_handler(httpd_req_t *req) {
   free((void *)json);
   cJSON_Delete(root);
   return ESP_OK;
+}
+
+esp_err_t parseBody(httpd_req_t *req, std::vector<char> &body,
+                    JSONParser &parser) {
+  size_t content_len = req->content_len;
+  if (content_len > max_body_length || content_len < 1) {
+    httpd_resp_send_err(req, HTTPD_413_CONTENT_TOO_LARGE, "Invalid content");
+    return ESP_FAIL;
+  }
+
+  body.resize(content_len + 1);
+  size_t received = httpd_req_recv(req, body.data(), content_len);
+  if (received != content_len) {
+    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                        "Incomplete body");
+    return ESP_FAIL;
+  }
+  body[content_len] = '\0';
+
+  parser = JSONParser(body);
+  if (parser.is_null()) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
+    return ESP_FAIL;
+  }
+
+  return ESP_OK;
+}
+
+esp_err_t synth_config_put_handler(httpd_req_t *req) {
+  std::vector<char> body;
+  JSONParser parser;
+  ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
+
+  AppConfig config = ui.config_read();
+  if (parse(parser, config)) {
+    ui.config_set(config, true);
+    return configuration::synth::persist(config);
+  }
+  return ESP_FAIL;
 }
 
 esp_err_t index_handler(httpd_req_t *req) {
@@ -123,5 +176,12 @@ void start(UIHandle handle) {
       .handler = synth_config_get_handler,
   };
   httpd_register_uri_handler(server, &config_synth_get_uri);
+
+  httpd_uri_t config_synth_put_uri = {
+      .uri = "/api/config/synth",
+      .method = HTTP_PUT,
+      .handler = synth_config_put_handler,
+  };
+  httpd_register_uri_handler(server, &config_synth_put_uri);
 }
 } // namespace teslasynth::app::web::server

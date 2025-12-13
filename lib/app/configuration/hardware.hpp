@@ -11,9 +11,9 @@ struct OutputChannelConfig {
   gpio_num_t pin = gpio_num_t::GPIO_NUM_NC;
 };
 
-enum LogicType {
-  active_high,
-  active_low,
+enum LogicType : bool {
+  active_high = true,
+  active_low = false,
 };
 
 struct SPIBus {
@@ -24,9 +24,9 @@ struct SPIBus {
 
 struct TouchPanelConfig {
   bool enabled = false;
-  enum {
-    XPT2046,
-    STMPE610,
+  enum TouchType : uint8_t {
+    XPT2046 = 0,
+    STMPE610 = 1,
   } type;
   gpio_num_t cs = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
@@ -36,9 +36,9 @@ struct TouchPanelConfig {
 };
 
 struct FullDisplayPanelConfig {
-  enum DisplayType {
-    ILI9341,
-    ST7789,
+  enum DisplayType : uint8_t {
+    ILI9341 = 0,
+    ST7789 = 1,
   } type;
   gpio_num_t cs = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
@@ -148,4 +148,5 @@ const HardwareConfig lilygo_display = {
                 },
         },
 };
+
 } // namespace teslasynth::app::configuration::hardware
