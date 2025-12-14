@@ -30,27 +30,28 @@ static UIHandle ui;
 
 #define cstr(value) std::string(value).c_str()
 
+helpers::JSONEncoder encode(const ChipInfo &info) {
+  helpers::JSONEncoder encoder;
+  auto root = encoder.object();
+  root.add("model", info.model);
+  root.add("cores", info.cores);
+  root.add("flash-size", info.flash_size);
+  root.add("revision", info.revision);
+
+  root.add_bool("wifi", info.wifi);
+  root.add_bool("ble", info.ble);
+  root.add_bool("bt", info.bt);
+  root.add_bool("emb-flash", info.emb_flash);
+  return encoder;
+}
+
 esp_err_t sysinfo_handler(httpd_req_t *req) {
   ChipInfo result;
   ESP_RETURN_ON_ERROR(get_chip_info(result), TAG, "Couldn't get chip info!");
 
   httpd_resp_set_type(req, "text/plain");
-
-  cJSON *root = cJSON_CreateObject();
-  cJSON_AddStringToObject(root, "model", result.model);
-  cJSON_AddNumberToObject(root, "cores", result.cores);
-  cJSON_AddNumberToObject(root, "flash-size", result.flash_size);
-  cJSON_AddNumberToObject(root, "revision", result.revision);
-
-  cJSON_AddBoolToObject(root, "wifi", result.wifi);
-  cJSON_AddBoolToObject(root, "ble", result.ble);
-  cJSON_AddBoolToObject(root, "bt", result.bt);
-  cJSON_AddBoolToObject(root, "emb-flash", result.emb_flash);
-
-  const char *json = cJSON_Print(root);
-  httpd_resp_sendstr(req, json);
-  free((void *)json);
-  cJSON_Delete(root);
+  auto json = encode(result).print();
+  httpd_resp_sendstr(req, json.value);
   return ESP_OK;
 }
 
@@ -58,30 +59,8 @@ esp_err_t synth_config_get_handler(httpd_req_t *req) {
   AppConfig config = ui.config_read();
 
   httpd_resp_set_type(req, "text/plain");
-
-  cJSON *root = cJSON_CreateObject();
-  cJSON_AddNumberToObject(root, "tuning", config.synth().a440);
-  if (config.synth().instrument.has_value())
-    cJSON_AddNumberToObject(root, "instrument", *config.synth().instrument + 1);
-
-  cJSON *channels = cJSON_CreateArray();
-  for (auto &ch : config.channel_configs) {
-    cJSON *obj = cJSON_CreateObject();
-    cJSON_AddNumberToObject(obj, "notes", ch.notes);
-    cJSON_AddNumberToObject(obj, "max-on-time", ch.max_on_time.micros());
-    cJSON_AddNumberToObject(obj, "min-dead-time", ch.min_deadtime.micros());
-    cJSON_AddNumberToObject(obj, "max-duty", ch.max_duty);
-    cJSON_AddNumberToObject(obj, "duty-window", ch.duty_window.micros());
-    if (ch.instrument.has_value())
-      cJSON_AddNumberToObject(obj, "instrument", *ch.instrument + 1);
-    cJSON_AddItemToArray(channels, obj);
-  }
-  cJSON_AddItemToObject(root, "channels", channels);
-
-  const char *json = cJSON_Print(root);
-  httpd_resp_sendstr(req, json);
-  free((void *)json);
-  cJSON_Delete(root);
+  auto json = configuration::codec::encode(config).print();
+  httpd_resp_sendstr(req, json.value);
   return ESP_OK;
 }
 
@@ -102,7 +81,7 @@ esp_err_t parseBody(httpd_req_t *req, std::vector<char> &body,
   }
   body[content_len] = '\0';
 
-  parser = JSONParser(body);
+  parser = JSONParser(body.data());
   if (parser.is_null()) {
     httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
     return ESP_FAIL;

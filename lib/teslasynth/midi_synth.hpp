@@ -2,6 +2,7 @@
 
 #include "../midi/midi_core.hpp"
 #include "../synthesizer/notes.hpp"
+#include "config_data.hpp"
 #include "core.hpp"
 #include "instruments.hpp"
 #include <algorithm>
@@ -10,7 +11,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include "config_data.hpp"
 
 namespace teslasynth::midisynth {
 using TrackStateCallback = std::function<void(bool)>;
@@ -233,8 +233,8 @@ public:
 
   inline constexpr uint8_t instrument_number(uint8_t ch) const {
     assert(ch < OUTPUTS);
-    return config_.channel_configs[ch].instrument.value_or(
-        config_.synth_config.instrument.value_or(current_instrument_[ch]));
+    return config_.channel(ch).instrument.value_or(
+        config_.synth().instrument.value_or(current_instrument_[ch]));
   }
 
   inline const Instrument &instrument(uint8_t ch) const {
@@ -281,8 +281,8 @@ public:
     if (!note->is_active() || next_edge > target || !_track.is_playing()) {
       res.off = max;
     } else if (next_edge == _track.played_time(ch)) {
-      res.on = note->current().volume * config_.channel_configs[ch].max_on_time;
-      res.off = config_.channel_configs[ch].min_deadtime;
+      res.on = note->current().volume * config_.channel(ch).max_on_time;
+      res.off = config_.channel(ch).min_deadtime;
       note->next();
     } else if (next_edge <= target && next_edge >= _track.played_time(ch)) {
       res.off = Duration16::micros(next_edge.micros() -

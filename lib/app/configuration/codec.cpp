@@ -2,15 +2,15 @@
 #include <cstdint>
 
 namespace teslasynth::app::configuration::codec {
-using helpers::JSONParser;
+using namespace helpers;
 using namespace core;
 
 namespace {
-inline bool parse_duration16(const JSONParser::JSON &j, const char *key,
+inline bool parse_duration16(const JSONParser::JSONObjectView &j, const char *key,
                              Duration16 &d) {
-  auto nn = j.get(key);
-  if (nn.is_number() && nn.number() <= UINT16_MAX) {
-    d = Duration16::micros(nn.number());
+  auto nn = j.get(key).number();
+  if (nn.has_value() && *nn <= UINT16_MAX) {
+    d = Duration16::micros(*nn);
     return true;
   } else
     return false;
@@ -18,23 +18,23 @@ inline bool parse_duration16(const JSONParser::JSON &j, const char *key,
 } // namespace
 
 bool parse(JSONParser &parser, AppConfig &config) {
-  auto root = parser.json();
+  auto root = parser.root();
 
-  auto tuning = root.get("tuning");
-  if (tuning.is_number() && tuning.number() >= 1 && tuning.number() <= 1000)
-    config.synth_config.a440 = Hertz(tuning.number());
+  auto tuning = root.get(keys::tuning).number();
+  if (tuning.has_value() && *tuning >= 1 && *tuning <= 1000)
+    config.synth().a440 = Hertz(*tuning);
   else
     return false;
 
-  auto instrument = root.get("instrument");
+  auto instrument = root.get(keys::instrument);
   if (instrument.is_null())
-    config.synth_config.instrument = {};
+    config.synth().instrument = {};
   else if (instrument.is_number())
-    config.synth_config.instrument = instrument.number();
+    config.synth().instrument = *instrument.number();
   else
     return false;
 
-  auto channels = root.get("channels");
+  auto channels = root.get(keys::channels);
   if (channels.is_arr()) {
     int idx = 0;
     for (const auto &chobj : channels.arr()) {
@@ -43,27 +43,53 @@ bool parse(JSONParser &parser, AppConfig &config) {
 
       auto &ch = config.channel(idx);
 
-      auto notes = chobj.get("notes");
-      if (notes.is_number())
-        ch.notes = notes.number();
+      auto notes = chobj.get(keys::notes).number();
+      if (notes.has_value())
+        ch.notes = *notes;
       else
         return false;
 
-      if (!parse_duration16(chobj, "max-on-time", ch.max_on_time))
+      if (!parse_duration16(chobj, keys::max_on_time, ch.max_on_time))
         return false;
-      if (!parse_duration16(chobj, "min-dead-time", ch.min_deadtime))
+      if (!parse_duration16(chobj, keys::min_deadtime, ch.min_deadtime))
         return false;
-      if (!parse_duration16(chobj, "duty-window", ch.duty_window))
+      if (!parse_duration16(chobj, keys::duty_window, ch.duty_window))
         return false;
 
-      auto max_duty = chobj.get("max-duty");
-      if (max_duty.is_number() && max_duty.number() < 100)
-        ch.max_duty = midisynth::DutyCycle(max_duty.number_d());
+      auto max_duty = chobj.get(keys::max_duty).number_d();
+      if (max_duty.has_value() && *max_duty < 100)
+        ch.max_duty = midisynth::DutyCycle(*max_duty);
       else
         return false;
     }
   }
 
   return true;
+}
+
+JSONEncoder encode(const AppConfig &config) {
+  JSONEncoder encoder;
+  auto root = encoder.object();
+  root.add(keys::tuning, config.synth().a440);
+  if (config.synth().instrument.has_value())
+    root.add(keys::instrument, *config.synth().instrument + 1);
+  else
+    root.add_null(keys::instrument);
+
+  auto channels = root.add_array(keys::channels);
+
+  for (const auto &ch : config.channels()) {
+    auto obj = channels.add_object();
+    obj.add(keys::notes, ch.notes);
+    obj.add(keys::max_on_time, ch.max_on_time.micros());
+    obj.add(keys::min_deadtime, ch.min_deadtime.micros());
+    obj.add(keys::max_duty, ch.max_duty.percent());
+    obj.add(keys::duty_window, ch.duty_window.micros());
+    if (ch.instrument.has_value())
+      obj.add(keys::instrument, *ch.instrument + 1);
+    else
+      obj.add_null(keys::instrument);
+  }
+  return encoder;
 }
 } // namespace teslasynth::app::configuration::codec

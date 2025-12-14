@@ -102,7 +102,7 @@ function updateChannel(cfg, setCfg, index, field, value) {
 
 function saveSynth(cfg) {
     fetch('/api/config/synth', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cfg)
     });
