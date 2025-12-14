@@ -36,7 +36,7 @@ void render_config(void *) {
   if (label1 == nullptr || label2 == nullptr)
     return;
   // TODO new
-  const Config config; //= app::configuration::get_config();
+  const ChannelConfig config; //= app::configuration::get_config();
 
   lv_label_set_text_fmt(label1, "Max on: %s",
                         std::string(config.max_on_time).c_str());

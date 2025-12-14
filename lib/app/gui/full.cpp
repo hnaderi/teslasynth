@@ -164,7 +164,7 @@ static void create_main_menu(lv_obj_t *screen) {
   section = lv_menu_section_create(root_page);
   cont = create_text(section, LV_SYMBOL_HOME, "Home");
   lv_menu_set_load_page_event(menu, cont, sub_home_page);
-  cont = create_text(section, LV_SYMBOL_SETTINGS, "Config");
+  cont = create_text(section, LV_SYMBOL_SETTINGS, "ChannelConfig");
   lv_menu_set_load_page_event(menu, cont, sub_display_page);
   cont = create_text(section, NULL, "About");
   lv_menu_set_load_page_event(menu, cont, sub_about_page);

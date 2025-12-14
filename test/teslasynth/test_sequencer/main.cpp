@@ -11,13 +11,13 @@
 
 using namespace teslasynth::midisynth;
 
-constexpr Config config_(uint8_t notes) {
+constexpr ChannelConfig config_(uint8_t notes) {
   return {
       .min_deadtime = 100_us,
       .notes = notes,
   };
 }
-constexpr Config config = config_(4);
+constexpr ChannelConfig config = config_(4);
 constexpr SynthConfig sconf = {.a440 = 100_hz};
 constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
 constexpr Instrument instrument{.envelope = ADSR::constant(EnvelopeLevel(1)),
@@ -267,7 +267,7 @@ void test_must_not_be_limited_when_no_duty_limit(void) {
 
 void test_must_not_exceed_duty_limit(void) {
   Configuration<> conf(SynthConfig{.a440 = 2_khz},
-                       {Config{.max_duty = DutyCycle(10)}});
+                       {ChannelConfig{.max_duty = DutyCycle(10)}});
   Teslasynth<> tsynth(conf);
 
   PulseBuffer<1, 64> buffer;

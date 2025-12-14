@@ -80,7 +80,7 @@ UIHandle handle_;
     return invalid_duration(value);                                            \
   }
 
-void print_channel_config(uint8_t nr, const Config &config) {
+void print_channel_config(uint8_t nr, const ChannelConfig &config) {
   printf("Channel[%u] configuration:\n"
          "\t%s = %u\n"
          "\t%s = %s\n"
@@ -143,7 +143,7 @@ int update_config(AppConfig &config, const char *val) {
       return 3;
     }
   } else {
-    Config &chConfig = config.channel(channel - 1);
+    ChannelConfig &chConfig = config.channel(channel - 1);
     if (key == keys::max_on_time) {
       if (!set_duration(value, chConfig.max_on_time, keys::max_on_time)) {
         return 3;

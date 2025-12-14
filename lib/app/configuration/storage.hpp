@@ -5,7 +5,7 @@
 #include "esp_err.h"
 
 namespace teslasynth::app::configuration {
-using teslasynth::midisynth::Config;
+using teslasynth::midisynth::ChannelConfig;
 
 namespace synth {
 AppConfig read();

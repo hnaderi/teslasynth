@@ -237,7 +237,7 @@ void test_should_ignore_off_messages_when_not_playing(void) {
 }
 
 void test_should_adjust_note_sizes(void) {
-  std::array<Config, 1> configs = {Config{.notes = 2}};
+  std::array<ChannelConfig, 1> configs = {ChannelConfig{.notes = 2}};
   Configuration<> conf({}, configs);
   Teslasynth<1, FakeNotes> tsynth(conf);
   auto &voice = tsynth.voice();
