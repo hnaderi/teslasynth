@@ -25,9 +25,9 @@ export function SynthConfigSection() {
                     Tuning Frequency (A4)
                     <input
                         name="tuning"
-                        type="text"
+                        type="number"
                         value={cfg.tuning}
-                        onInput={e => setCfg({ ...cfg, tuning: e.target.value })}
+                        onInput={e => setCfg({ ...cfg, tuning: parseFloat(e.target.value) })}
                     />
                 </label>
 
@@ -50,36 +50,36 @@ export function SynthConfigSection() {
                             <label>
                                 Max On-Time
                                 <input
-                                    type="text"
+                                    type="number"
                                     value={ch['max-on-time']}
-                                    onInput={e => updateChannel(cfg, setCfg, idx, 'max-on-time', e.target.value)}
+                                    onInput={e => updateChannel(cfg, setCfg, idx, 'max-on-time', parseInt(e.target.value))}
                                 />
                             </label>
 
                             <label>
                                 Min Dead-Time
                                 <input
-                                    type="text"
-                                    value={ch['min-dead-time']}
-                                    onInput={e => updateChannel(cfg, setCfg, idx, 'min-dead-time', e.target.value)}
+                                    type="number"
+                                    value={ch['min-deadtime']}
+                                    onInput={e => updateChannel(cfg, setCfg, idx, 'min-deadtime', parseInt(e.target.value))}
                                 />
                             </label>
 
                             <label>
                                 Max Duty
                                 <input
-                                    type="text"
+                                    type="number"
                                     value={ch['max-duty']}
-                                    onInput={e => updateChannel(cfg, setCfg, idx, 'max-duty', e.target.value)}
+                                    onInput={e => updateChannel(cfg, setCfg, idx, 'max-duty', parseFloat(e.target.value))}
                                 />
                             </label>
 
                             <label>
                                 Duty Window
                                 <input
-                                    type="text"
+                                    type="number"
                                     value={ch['duty-window']}
-                                    onInput={e => updateChannel(cfg, setCfg, idx, 'duty-window', e.target.value)}
+                                    onInput={e => updateChannel(cfg, setCfg, idx, 'duty-window', parseInt(e.target.value))}
                                 />
                             </label>
                         </article>

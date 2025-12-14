@@ -49,7 +49,7 @@ esp_err_t sysinfo_handler(httpd_req_t *req) {
   ChipInfo result;
   ESP_RETURN_ON_ERROR(get_chip_info(result), TAG, "Couldn't get chip info!");
 
-  httpd_resp_set_type(req, "text/plain");
+  httpd_resp_set_type(req, "application/json");
   auto json = encode(result).print();
   httpd_resp_sendstr(req, json.value);
   return ESP_OK;
@@ -58,7 +58,7 @@ esp_err_t sysinfo_handler(httpd_req_t *req) {
 esp_err_t synth_config_get_handler(httpd_req_t *req) {
   AppConfig config = ui.config_read();
 
-  httpd_resp_set_type(req, "text/plain");
+  httpd_resp_set_type(req, "application/json");
   auto json = configuration::codec::encode(config).print();
   httpd_resp_sendstr(req, json.value);
   return ESP_OK;
@@ -95,11 +95,21 @@ esp_err_t synth_config_put_handler(httpd_req_t *req) {
   JSONParser parser;
   ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
 
+  httpd_resp_set_type(req, "application/json");
   AppConfig config = ui.config_read();
   if (parse(parser, config)) {
     ui.config_set(config, true);
-    return configuration::synth::persist(config);
+    auto res = configuration::synth::persist(config);
+    if (res == ESP_OK) {
+      auto json = configuration::codec::encode(config).print();
+      httpd_resp_sendstr(req, json.value);
+    } else {
+      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                          "Error while setting configuration");
+    }
+    return res;
   }
+  httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid request.");
   return ESP_FAIL;
 }
 

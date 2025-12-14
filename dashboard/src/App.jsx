@@ -1,6 +1,6 @@
 import Logo from "./Logo.jsx";
-import { SynthConfigSection } from "../SynthConfigSection.jsx";
-import { SysInfoSection } from "../SysInfo.jsx";
+import { SynthConfigSection } from "./SynthConfigSection.jsx";
+import { SysInfoSection } from "./SysInfo.jsx";
 
 export default function App() {
     return (

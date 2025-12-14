@@ -6,8 +6,8 @@ using namespace helpers;
 using namespace core;
 
 namespace {
-inline bool parse_duration16(const JSONParser::JSONObjectView &j, const char *key,
-                             Duration16 &d) {
+inline bool parse_duration16(const JSONParser::JSONObjectView &j,
+                             const char *key, Duration16 &d) {
   auto nn = j.get(key).number();
   if (nn.has_value() && *nn <= UINT16_MAX) {
     d = Duration16::micros(*nn);
@@ -57,10 +57,12 @@ bool parse(JSONParser &parser, AppConfig &config) {
         return false;
 
       auto max_duty = chobj.get(keys::max_duty).number_d();
-      if (max_duty.has_value() && *max_duty < 100)
+      if (max_duty.has_value() && *max_duty <= 100)
         ch.max_duty = midisynth::DutyCycle(*max_duty);
       else
         return false;
+
+      idx++;
     }
   }
 
