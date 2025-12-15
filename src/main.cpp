@@ -43,7 +43,7 @@ extern "C" void app_main(void) {
 
     devices::rmt::init();
     auto sbuf = synth::init(app.playback());
-    devices::ble_midi::init(sbuf);
+    devices::midi::init(sbuf);
   }
 
   while (1) {

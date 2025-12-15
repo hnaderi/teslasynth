@@ -2,6 +2,7 @@
 #include "core/lv_obj_pos.h"
 #include "core/lv_obj_style_gen.h"
 #include "devices/display.hpp"
+#include "devices/midi.hpp"
 #include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -9,7 +10,6 @@
 #include "font/lv_symbol_def.h"
 #include "freertos/task.h"
 #include "gui/components.hpp"
-#include "input/ble_midi.hpp"
 #include "layouts/flex/lv_flex.h"
 #include "lv_api_map_v8.h"
 #include "misc/lv_area.h"
@@ -32,7 +32,7 @@ static const char *TAG = "GUI";
 static lv_display_t *display;
 
 static lv_obj_t *main_screen, *splash_screen;
-static lv_obj_t *bluetooth_indicator, *play_indicator;
+static lv_obj_t *device_indicator, *play_indicator;
 static lv_timer_t *blink_timer;
 static lv_obj_t *root_page;
 
@@ -58,7 +58,7 @@ static void blink_cb(lv_timer_t *t) {
 static void ui_on_connection_changed(void *event) {
   if (static_cast<bool>(event)) {
     lv_timer_pause(blink_timer);
-    lv_obj_clear_flag(bluetooth_indicator, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(device_indicator, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_timer_resume(blink_timer);
   }
@@ -109,9 +109,10 @@ static void create_statusbar(lv_obj_t *screen) {
   lv_obj_set_flex_align(icon_container, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER,
                         LV_FLEX_ALIGN_CENTER);
 
-  bluetooth_indicator = lv_image_create(icon_container);
-  lv_image_set_src(bluetooth_indicator, LV_SYMBOL_BLUETOOTH);
-  blink_timer = lv_timer_create(blink_cb, 750, bluetooth_indicator);
+  device_indicator = lv_image_create(icon_container);
+  // TODO icon based on midi driver
+  lv_image_set_src(device_indicator, LV_SYMBOL_BLUETOOTH);
+  blink_timer = lv_timer_create(blink_cb, 750, device_indicator);
 
   play_indicator = lv_image_create(icon_container);
   lv_image_set_src(play_indicator, LV_SYMBOL_PAUSE);
@@ -183,7 +184,8 @@ static void init_main_screen() {
 }
 
 static void ble_event_handler(void *, esp_event_base_t, int32_t id, void *) {
-  lv_async_call(ui_on_connection_changed, (void *)(id == BLE_DEVICE_CONNECTED));
+  lv_async_call(ui_on_connection_changed,
+                (void *)(id == MIDI_DEVICE_CONNECTED));
 }
 static void track_event_handler(void *, esp_event_base_t, int32_t id, void *) {
   lv_async_call(ui_on_track_play_changed, (void *)(id == SYNTHESIZER_PLAYING));
@@ -209,12 +211,12 @@ void init(const configuration::hardware::FullDisplayPanelConfig &config) {
   ESP_LOGI(TAG, "starting the UI");
   lv_async_call(start_gui, nullptr);
 
-  ESP_ERROR_CHECK(
-      esp_event_handler_instance_register(EVENT_BLE_BASE, BLE_DEVICE_CONNECTED,
-                                          ble_event_handler, nullptr, nullptr));
   ESP_ERROR_CHECK(esp_event_handler_instance_register(
-      EVENT_BLE_BASE, BLE_DEVICE_DISCONNECTED, ble_event_handler, nullptr,
+      EVENT_MIDI_DEVICE_BASE, MIDI_DEVICE_CONNECTED, ble_event_handler, nullptr,
       nullptr));
+  ESP_ERROR_CHECK(esp_event_handler_instance_register(
+      EVENT_MIDI_DEVICE_BASE, MIDI_DEVICE_DISCONNECTED, ble_event_handler,
+      nullptr, nullptr));
 
   ESP_ERROR_CHECK(esp_event_handler_instance_register(
       EVENT_SYNTHESIZER_BASE, SYNTHESIZER_PLAYING, track_event_handler, nullptr,

@@ -1,13 +1,13 @@
 #include "configuration/storage.hpp"
 #include "core/lv_obj.h"
 #include "devices/display.hpp"
+#include "devices/midi.hpp"
 #include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_lvgl_port.h"
 #include "font/lv_symbol_def.h"
 #include "freertos/task.h"
-#include "input/ble_midi.hpp"
 #include "misc/lv_area.h"
 #include "notes.hpp"
 #include "synthesizer_events.hpp"
@@ -119,7 +119,7 @@ void init_main_screen() {
 }
 
 static void ble_event_handler(void *, esp_event_base_t, int32_t id, void *) {
-  lv_async_call(ui_on_connection_changed, (void *)(id == BLE_DEVICE_CONNECTED));
+  lv_async_call(ui_on_connection_changed, (void *)(id == MIDI_DEVICE_CONNECTED));
 }
 static void track_event_handler(void *, esp_event_base_t, int32_t id, void *) {
   lv_async_call(ui_on_track_play_changed, (void *)(id == SYNTHESIZER_PLAYING));
@@ -145,12 +145,12 @@ void init(const configuration::hardware::MinimalDisplayPanelConfig &config) {
     // Release the mutex
     lvgl_port_unlock();
   }
-  ESP_ERROR_CHECK(
-      esp_event_handler_instance_register(EVENT_BLE_BASE, BLE_DEVICE_CONNECTED,
-                                          ble_event_handler, nullptr, nullptr));
   ESP_ERROR_CHECK(esp_event_handler_instance_register(
-      EVENT_BLE_BASE, BLE_DEVICE_DISCONNECTED, ble_event_handler, nullptr,
+      EVENT_MIDI_DEVICE_BASE, MIDI_DEVICE_CONNECTED, ble_event_handler, nullptr,
       nullptr));
+  ESP_ERROR_CHECK(esp_event_handler_instance_register(
+      EVENT_MIDI_DEVICE_BASE, MIDI_DEVICE_DISCONNECTED, ble_event_handler,
+      nullptr, nullptr));
 
   ESP_ERROR_CHECK(esp_event_handler_instance_register(
       EVENT_SYNTHESIZER_BASE, SYNTHESIZER_PLAYING, track_event_handler, nullptr,

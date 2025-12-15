@@ -1,4 +1,8 @@
-#include "ble_midi.hpp"
+#include "sdkconfig.h"
+
+#if CONFIG_SOC_BT_SUPPORTED
+
+#include "../midi.hpp"
 #include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -8,7 +12,6 @@
 #include "host/ble_hs_id.h"
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
-#include "sdkconfig.h"
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
 #include <cassert>
@@ -17,9 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
-ESP_EVENT_DEFINE_BASE(EVENT_BLE_BASE);
-
-namespace teslasynth::app::devices::ble_midi {
+namespace teslasynth::app::devices::midi::ble {
 namespace {
 const char *TAG = "BLE_MIDI";
 
@@ -98,8 +99,9 @@ int gap_event_handler(struct ble_gap_event *event, void *) {
     if (event->connect.status == 0) {
       ESP_LOGI(TAG, "Connected, handle=%d", event->connect.conn_handle);
       conn_handle = event->connect.conn_handle;
-      ESP_ERROR_CHECK(esp_event_post(EVENT_BLE_BASE, BLE_DEVICE_DISCONNECTED,
-                                     NULL, 0, portMAX_DELAY));
+      ESP_ERROR_CHECK(esp_event_post(EVENT_MIDI_DEVICE_BASE,
+                                     MIDI_DEVICE_DISCONNECTED, NULL, 0,
+                                     portMAX_DELAY));
     } else {
       ESP_LOGI(TAG, "Connect failed; status=%d", event->connect.status);
       ble_app_advertise();
@@ -110,8 +112,9 @@ int gap_event_handler(struct ble_gap_event *event, void *) {
     ESP_LOGI(TAG, "Disconnected; reason=%d", event->disconnect.reason);
     conn_handle = BLE_HS_CONN_HANDLE_NONE;
     ble_app_advertise();
-    ESP_ERROR_CHECK(esp_event_post(EVENT_BLE_BASE, BLE_DEVICE_DISCONNECTED,
-                                   NULL, 0, portMAX_DELAY));
+    ESP_ERROR_CHECK(esp_event_post(EVENT_MIDI_DEVICE_BASE,
+                                   MIDI_DEVICE_DISCONNECTED, NULL, 0,
+                                   portMAX_DELAY));
     return 0;
 
   case BLE_GAP_EVENT_ADV_COMPLETE:
@@ -214,4 +217,6 @@ void init(StreamBufferHandle_t sbuf) {
   gatt_svr_init();
   nimble_port_freertos_init(host_task);
 }
-} // namespace teslasynth::app::devices::ble_midi
+} // namespace teslasynth::app::devices::midi::ble
+
+#endif

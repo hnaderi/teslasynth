@@ -15,7 +15,7 @@ namespace rmt {
 void init(void);
 }
 
-namespace ble_midi {
+namespace midi {
 void init(StreamBufferHandle_t buf);
 }
 } // namespace devices
