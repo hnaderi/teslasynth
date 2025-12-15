@@ -105,26 +105,6 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 1.9.1
-  h2zero/esp-nimble-cpp:
-    component_hash: 8ed712a95bc72bf27c6f6cbf45fad7f3cf02531cd90cf10e7d555f9e7251be01
-    dependencies:
-    - name: espressif/esp_hosted
-      rules:
-      - if: target in [esp32p4]
-      version: '*'
-    - name: espressif/esp_wifi_remote
-      rules:
-      - if: target in [esp32p4]
-      version: '>=0.5.3'
-    - name: idf
-      rules:
-      - if: target in [esp32p4]
-      version: '>=5.3.0'
-    source:
-      git: https://github.com/h2zero/esp-nimble-cpp.git
-      path: .
-      type: git
-    version: 815c5556e0f1150e37d8b3ffc20c6340505a13ca
   idf:
     source:
       type: idf
@@ -154,10 +134,9 @@ direct_dependencies:
 - espressif/esp_lcd_touch_stmpe610
 - espressif/esp_lvgl_port
 - espressif/mdns
-- h2zero/esp-nimble-cpp
 - idf
 - joltwallet/littlefs
 - lvgl/lvgl
-manifest_hash: 89d7e9ee0d118e0f4115861520b10933fd03003d67428a678bd3c5083a552c73
+manifest_hash: ccc8ea600f53c06e13b0e437e931c8c56ccd738a172dda82d9a457372bb40619
 target: esp32
 version: 2.0.0
