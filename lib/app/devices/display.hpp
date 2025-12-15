@@ -11,6 +11,7 @@ lv_display_t *
 init(const configuration::hardware::MinimalDisplayPanelConfig &config);
 lv_display_t *
 init(const configuration::hardware::FullDisplayPanelConfig &config);
+void init(const configuration::hardware::DisplayConfig &config);
 esp_err_t brightness_set(uint8_t brightness_percent);
 esp_err_t backlight_off(void);
 esp_err_t backlight_on(void);

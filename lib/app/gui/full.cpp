@@ -1,3 +1,4 @@
+#include "./setup.hpp"
 #include "core/lv_obj.h"
 #include "core/lv_obj_pos.h"
 #include "core/lv_obj_style_gen.h"
@@ -227,6 +228,27 @@ void init(const configuration::hardware::FullDisplayPanelConfig &config) {
   // ESP_ERROR_CHECK(esp_event_handler_instance_register(
   //     EVENT_SYNTHESIZER_BASE, SYNTHESIZER_CONFIG_UPDATED,
   //     config_update_handler, nullptr, nullptr));
+}
+
+void init(const configuration::hardware::DisplayConfig &display) {
+#ifdef CONFIG_TESLASYNTH_GUI_NONE
+  return;
+#else
+  switch (display.type) {
+#ifdef CONFIG_TESLASYNTH_GUI_FULL
+  case configuration::hardware::DisplayType::full:
+    init(display.config.full);
+    break;
+#endif
+  case configuration::hardware::DisplayType::minimal:
+    init(display.config.minimal);
+    break;
+  case configuration::hardware::DisplayType::none:
+    ESP_LOGI(TAG, "No display configured.");
+  default:
+    ESP_LOGE(TAG, "Unknown display type.");
+  }
+#endif
 }
 
 } // namespace teslasynth::app::gui

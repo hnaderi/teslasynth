@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "configuration/storage.hpp"
+#include "devices/display.hpp"
 #include "devices/wifi.hpp"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -30,17 +31,7 @@ extern "C" void app_main(void) {
     devices::wifi::init();
     web::server::start(app.ui());
   } else {
-    switch (hconfig.display.type) {
-    case configuration::hardware::DisplayType::minimal:
-      gui::init(hconfig.display.config.minimal);
-      break;
-    case configuration::hardware::DisplayType::full:
-      gui::init(hconfig.display.config.full);
-      break;
-    case configuration::hardware::DisplayType::none:
-      ESP_LOGI(TAG, "No display configured.");
-    }
-
+    gui::init(hconfig.display);
     devices::rmt::init();
     auto sbuf = synth::init(app.playback());
     devices::midi::init(sbuf);

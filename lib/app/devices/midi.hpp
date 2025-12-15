@@ -22,7 +22,7 @@ void init(StreamBufferHandle_t sbuf);
 }
 
 constexpr bool usb_support =
-#if CONFIG_SOC_OTG_SUPPORTED
+#if CONFIG_SOC_USB_OTG_SUPPORTED
     true;
 #else
     false;

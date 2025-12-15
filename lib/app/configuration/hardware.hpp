@@ -93,6 +93,8 @@ struct HardwareConfig {
   OutputConfig outputs{};
 };
 
+#if CONFIG_IDF_TARGET_ESP32
+
 const HardwareConfig CYD = {
     .display =
         {
@@ -148,5 +150,7 @@ const HardwareConfig lilygo_display = {
                 },
         },
 };
+
+#endif
 
 } // namespace teslasynth::app::configuration::hardware

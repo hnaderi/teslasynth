@@ -100,7 +100,7 @@ int gap_event_handler(struct ble_gap_event *event, void *) {
       ESP_LOGI(TAG, "Connected, handle=%d", event->connect.conn_handle);
       conn_handle = event->connect.conn_handle;
       ESP_ERROR_CHECK(esp_event_post(EVENT_MIDI_DEVICE_BASE,
-                                     MIDI_DEVICE_DISCONNECTED, NULL, 0,
+                                     MIDI_DEVICE_CONNECTED, NULL, 0,
                                      portMAX_DELAY));
     } else {
       ESP_LOGI(TAG, "Connect failed; status=%d", event->connect.status);
