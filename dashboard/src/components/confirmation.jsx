@@ -1,30 +1,15 @@
-import { useEffect, useRef } from 'preact/hooks';
-
 export function ConfirmDialog({
     open,
-    title = 'Confirm',
+    title,
     message,
-    confirmText = 'Confirm',
-    cancelText = 'Cancel',
     onConfirm,
-    onCancel
+    onCancel,
+    busy = false
 }) {
-    const dialogRef = useRef(null);
-
-    useEffect(() => {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-
-        if (open && !dialog.open) dialog.showModal();
-        if (!open && dialog.open) dialog.close();
-    }, [open]);
-
-    function close() {
-        dialogRef.current?.close();
-    }
+    if (!open) return null;
 
     return (
-        <dialog ref={dialogRef} onClose={onCancel}>
+        <dialog open>
             <article>
                 <header>
                     <h3>{title}</h3>
@@ -35,21 +20,18 @@ export function ConfirmDialog({
                 <footer>
                     <button
                         class="secondary"
-                        onClick={() => {
-                            close();
-                            onCancel?.();
-                        }}
+                        onClick={onCancel}
+                        disabled={busy}
                     >
-                        {cancelText}
+                        Cancel
                     </button>
 
                     <button
-                        onClick={() => {
-                            close();
-                            onConfirm?.();
-                        }}
+                        class="contrast"
+                        onClick={onConfirm}
+                        disabled={busy}
                     >
-                        {confirmText}
+                        Confirm
                     </button>
                 </footer>
             </article>

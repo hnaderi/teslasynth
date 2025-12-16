@@ -1,45 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
+import { NumberInput } from './components/NumberInput';
+import { ConfirmDialog } from './components/confirmation';
 const synthConfig = (init) => fetch('/api/config/synth', init)
 
-function NumberInput({ id, title, value, min, max, step, slider, onChange, help }) {
-    const inputId = `${id}-input`, helperId = `${id}-helper`;
-    function onInput(e) {
-        if (!e.currentTarget.checkValidity()) {
-            e.currentTarget.reportValidity();
-            return;
-        } else {
-            onChange(parseFloat(e.target.value))
-        }
-    }
-    return (
-        <label>
-            {title}
-            {
-                slider && <input
-                    type="range"
-                    value={value}
-                    min={min}
-                    max={max}
-                    step={step}
-                    onInput={onInput}
-                />
-            }
-            <input
-                id={inputId}
-                type="number"
-                value={value}
-                min={min}
-                max={max}
-                step={step}
-                required
-                onInput={onInput}
-                aria-describedby={helperId}
-            />
-            <small id={helperId}>
-                {help}
-            </small>
-        </label>)
-}
 function SynthChannelConfigSection({ channel, channelIdx, onChange }) {
     return (
         <article class="channel" key={channelIdx} style="padding: 1rem;">
@@ -104,8 +67,122 @@ function SynthChannelConfigSection({ channel, channelIdx, onChange }) {
     )
 }
 
-export function SynthConfigSection({ requestConfirm }) {
-    const [cfg, setCfg] = useState(null);
+function SynthConfigForm({
+    config,
+    busy,
+    onUpdate,
+    onReset,
+    setBusy
+}) {
+    const [draft, setDraft] = useState(config);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+
+    useEffect(() => {
+        setDraft(config);
+    }, [config]);
+
+    async function save(e) {
+        e.preventDefault();
+
+        const form = e.currentTarget.form;
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        setBusy(true);
+        try {
+            const res = await synthConfig({
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(draft)
+            });
+            const updated = await res.json();
+            onUpdate(updated);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function reset() {
+        setBusy(true)
+        try {
+            const res = await synthConfig({ method: 'DELETE' })
+            const updated = await res.json()
+            onReset(updated)
+        } finally {
+            setBusy(false)
+            setConfirmOpen(false)
+        }
+    }
+
+    return (
+        <form>
+            <NumberInput
+                id="tuning"
+                title="Tuning Frequency (A4)"
+                help="A4 note frequency in hertz"
+                value={draft.tuning}
+                min="1"
+                max="1000"
+                step="0.001"
+                onChange={n => setDraft({ ...cfg, tuning: n })}
+            />
+
+            <h3>Channels</h3>
+
+            <div class="channel-grid">
+                {draft.channels.map((ch, idx) => (
+                    SynthChannelConfigSection({
+                        channel: ch, channelIdx: idx,
+                        onChange: (idx, field, value) =>
+                            updateChannel(draft, setDraft, idx, field, value),
+                    })
+                ))}
+            </div>
+
+            <footer>
+                <div class="grid">
+                    <button type="submit" onClick={save} disabled={busy}>Save</button>
+                    <button type="button" onClick={() => setConfirmOpen(true)} disabled={busy}>Reset</button>
+                    <ConfirmDialog
+                        open={confirmOpen}
+                        title="Reset configuration?"
+                        message="This will erase all settings permanently."
+                        busy={busy}
+                        onCancel={() => setConfirmOpen(false)}
+                        onConfirm={reset}
+                    />
+                </div>
+            </footer>
+        </form>
+    );
+}
+
+
+export function SynthConfigSection() {
+    const [cfg, setCfg] = useState(
+        {
+            "tuning": 440,
+            "instrument": null,
+            "channels": [
+                {
+                    "notes": 4,
+                    "max-on-time": 100,
+                    "min-deadtime": 100,
+                    "max-duty": 100,
+                    "duty-window": 10000,
+                },
+                {
+                    "notes": 4,
+                    "max-on-time": 100,
+                    "min-deadtime": 100,
+                    "max-duty": 100,
+                    "duty-window": 10000,
+                }
+            ]
+        }
+    );
+    const [busy, setBusy] = useState(false);
 
     useEffect(() => {
         synthConfig()
@@ -115,27 +192,6 @@ export function SynthConfigSection({ requestConfirm }) {
 
     if (!cfg) return <article><header aria-busy="true">Loading Synth Configuration…</header></article>;
 
-    function onSubmit(e) {
-        e.preventDefault();
-
-        const form = e.currentTarget.form;
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-        saveSynth(cfg)
-    }
-
-    function onReset(e) {
-        e.preventDefault();
-
-        requestConfirm({
-            title: "Reset to factory settings",
-            message: "This will delete all your settings permanently, are you sure?",
-            onConfirm: resetSynthConfig
-        })
-    }
-
     return (
         <article>
             <header>
@@ -144,38 +200,13 @@ export function SynthConfigSection({ requestConfirm }) {
                     <p>Base tuning and per-channel timing parameters</p>
                 </hgroup>
             </header>
-
-            <form>
-                <NumberInput
-                    id="tuning"
-                    title="Tuning Frequency (A4)"
-                    help="A4 note frequency in hertz"
-                    value={cfg.tuning}
-                    min="1"
-                    max="1000"
-                    step="0.001"
-                    onChange={n => setCfg({ ...cfg, tuning: n })}
-                />
-
-                <h3>Channels</h3>
-
-                <div class="channel-grid">
-                    {cfg.channels.map((ch, idx) => (
-                        SynthChannelConfigSection({
-                            channel: ch, channelIdx: idx,
-                            onChange: (idx, field, value) =>
-                                updateChannel(cfg, setCfg, idx, field, value),
-                        })
-                    ))}
-                </div>
-
-                <footer>
-                    <div class="grid">
-                        <button type="submit" onClick={onSubmit}>Save</button>
-                        <button type="button" onClick={onReset}>Reset</button>
-                    </div>
-                </footer>
-            </form>
+            <SynthConfigForm
+                config={cfg}
+                onReset={setCfg}
+                onUpdate={setCfg}
+                busy={busy}
+                setBusy={setBusy}
+            />
         </article>
     );
 }
@@ -184,19 +215,4 @@ function updateChannel(cfg, setCfg, index, field, value) {
     const updated = [...cfg.channels];
     updated[index] = { ...updated[index], [field]: value };
     setCfg({ ...cfg, channels: updated });
-}
-
-function saveSynth(cfg) {
-    synthConfig({
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cfg)
-    });
-}
-
-function resetSynthConfig() {
-    synthConfig({
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-    });
 }
