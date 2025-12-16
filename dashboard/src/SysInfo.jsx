@@ -4,12 +4,12 @@ export function SysInfoSection() {
     const [info, setInfo] = useState(null);
 
     useEffect(() => {
-        fetch('/api/sysinfo')
+        fetch('/api/sys/info')
             .then(r => r.json())
             .then(setInfo);
     }, []);
 
-    if (!info) return <article><header>Loading System Info…</header></article>;
+    if (!info) return <article ><header aria-busy="true">Loading System Info…</header></article>;
 
     return (
         <article>

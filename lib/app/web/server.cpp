@@ -9,6 +9,7 @@
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_system.h"
+#include "http_parser.h"
 #include <optional>
 #include <string_view>
 #include <vector>
@@ -117,24 +118,10 @@ esp_err_t synth_config_put_handler(httpd_req_t *req) {
 
 esp_err_t synth_config_del_handler(httpd_req_t *req) {
   std::vector<char> body;
-  JSONParser parser;
-  ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
-
   httpd_resp_set_type(req, "application/json");
-  AppConfig config = ui.config_read();
-  if (parse(parser, config)) {
-    ui.config_set(config, true);
-    auto res = configuration::synth::persist(config);
-    if (res == ESP_OK) {
-      auto json = configuration::codec::encode(config).print();
-      httpd_resp_sendstr(req, json.value);
-    } else {
-      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                          "Error while setting configuration");
-    }
-    return res;
-  }
-  httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid request.");
+  auto config = ui.config_reset();
+  auto json = configuration::codec::encode(config).print();
+  httpd_resp_sendstr(req, json.value);
   return ESP_FAIL;
 }
 
@@ -161,6 +148,64 @@ esp_err_t index_handler(httpd_req_t *req) {
 }
 } // namespace
 
+typedef esp_err_t (*EndpointHandler)(httpd_req_t *);
+
+struct Resource {
+  const char *uri;
+  EndpointHandler get = nullptr;
+  EndpointHandler post = nullptr;
+  EndpointHandler put = nullptr;
+  EndpointHandler del = nullptr;
+
+  inline void register_on(httpd_handle_t server) const {
+    httpd_uri_t uri_handler = {};
+    uri_handler.uri = uri;
+    uri_handler.user_ctx = nullptr;
+
+    if (get) {
+      uri_handler.method = HTTP_GET;
+      uri_handler.handler = get;
+      ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_handler));
+    }
+    if (post) {
+      uri_handler.method = HTTP_POST;
+      uri_handler.handler = post;
+      ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_handler));
+    }
+    if (put) {
+      uri_handler.method = HTTP_PUT;
+      uri_handler.handler = put;
+      ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_handler));
+    }
+    if (del) {
+      uri_handler.method = HTTP_DELETE;
+      uri_handler.handler = del;
+      ESP_ERROR_CHECK(httpd_register_uri_handler(server, &uri_handler));
+    }
+  }
+};
+
+constexpr Resource resources[] = {
+    {
+        .uri = "/",
+        .get = index_handler,
+    },
+    {
+        .uri = "/api/sys/info",
+        .get = sysinfo_handler,
+    },
+    {
+        .uri = "/api/sys/reboot",
+        .post = sys_reboot_handler,
+    },
+    {
+        .uri = "/api/config/synth",
+        .get = synth_config_get_handler,
+        .put = synth_config_put_handler,
+        .del = synth_config_del_handler,
+    },
+};
+
 void start(UIHandle handle) {
   ui = handle;
   httpd_handle_t server = NULL;
@@ -170,32 +215,8 @@ void start(UIHandle handle) {
   ESP_LOGI(TAG, "Starting HTTP Server");
   ESP_ERROR_CHECK(httpd_start(&server, &config));
 
-  httpd_uri_t index_get_uri = {
-      .uri = "/",
-      .method = HTTP_GET,
-      .handler = index_handler,
-  };
-  httpd_register_uri_handler(server, &index_get_uri);
-
-  httpd_uri_t sysinfo_get_uri = {
-      .uri = "/api/sysinfo",
-      .method = HTTP_GET,
-      .handler = sysinfo_handler,
-  };
-  httpd_register_uri_handler(server, &sysinfo_get_uri);
-
-  httpd_uri_t config_synth_get_uri = {
-      .uri = "/api/config/synth",
-      .method = HTTP_GET,
-      .handler = synth_config_get_handler,
-  };
-  httpd_register_uri_handler(server, &config_synth_get_uri);
-
-  httpd_uri_t config_synth_put_uri = {
-      .uri = "/api/config/synth",
-      .method = HTTP_PUT,
-      .handler = synth_config_put_handler,
-  };
-  httpd_register_uri_handler(server, &config_synth_put_uri);
+  for (const auto &res : resources) {
+    res.register_on(server);
+  }
 }
 } // namespace teslasynth::app::web::server

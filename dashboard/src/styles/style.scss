@@ -1,23 +1,14 @@
-// Customize Pico.css variables
 @use "@picocss/pico/scss/pico" with (
   $theme-color: "indigo"
 );
 
-// // Custom theme overrides
-// :root {
-//   --primary: #1a73e8;
-//   --radius: 8px;
-//   --spacing: 16px;
-// }
-
-// // Example custom card style
-// .card {
-//   padding: var(--spacing);
-//   border-radius: var(--radius);
-//   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-// }
-
 .svg-logo {
     height: 100px;
     width: auto;
+}
+.channel-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  max-width: 100%;
 }

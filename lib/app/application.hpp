@@ -6,6 +6,7 @@
 #include "midi_synth.hpp"
 #include "sdkconfig.h"
 #include "synthesizer_events.hpp"
+#include <configuration/synth.hpp>
 
 namespace teslasynth::app {
 using namespace midisynth;
@@ -56,15 +57,15 @@ public:
   UIHandle(AppSynth *impl, SemaphoreHandle_t write, SemaphoreHandle_t read)
       : impl(impl), write_lock(write), read_lock(read) {}
 
-  inline constexpr auto &config_read() const {
+  inline auto &config_read() const {
     xSemaphoreTake(read_lock, portMAX_DELAY);
     auto &res = impl->configuration();
     xSemaphoreGive(read_lock);
     return res;
   }
 
-  inline constexpr void config_set(const AppConfig &config, bool reload = false,
-                                   bool persist = false) {
+  inline void config_set(const AppConfig &config, bool reload = false,
+                         bool persist = false) {
     xSemaphoreTake(read_lock, portMAX_DELAY);
 
     xSemaphoreTake(write_lock, portMAX_DELAY);
@@ -81,7 +82,13 @@ public:
       configuration::synth::persist(config);
   }
 
-  inline constexpr void playback_off() {
+  inline AppConfig config_reset(bool reload = false, bool persist = false) {
+    AppConfig config;
+    config_set(config, reload, persist);
+    return config;
+  }
+
+  inline void playback_off() {
     xSemaphoreTake(write_lock, portMAX_DELAY);
     impl->off();
     xSemaphoreGive(write_lock);
