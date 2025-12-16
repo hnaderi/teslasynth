@@ -1,7 +1,7 @@
+#include "synth.hpp"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "nvs.h"
-#include "storage.hpp"
 #include <cstring>
 
 namespace teslasynth::app::configuration::synth {
@@ -32,8 +32,6 @@ AppConfig read() {
   nvs_close(handle);
   return config;
 }
-
-void persist(UIHandle &ui) { persist(ui.config_read()); }
 
 esp_err_t persist(const AppConfig &config) {
   static_assert(std::is_trivially_copyable<AppConfig>::value,

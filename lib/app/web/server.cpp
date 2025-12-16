@@ -2,13 +2,13 @@
 #include "../application.hpp"
 #include "../helpers/json.hpp"
 #include "../helpers/sysinfo.h"
-#include "cJSON.h"
 #include "configuration/codec.hpp"
 #include "configuration/storage.hpp"
 #include "esp_check.h"
 #include "esp_err.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
+#include "esp_system.h"
 #include <optional>
 #include <string_view>
 #include <vector>
@@ -55,6 +55,8 @@ esp_err_t sysinfo_handler(httpd_req_t *req) {
   return ESP_OK;
 }
 
+esp_err_t sys_reboot_handler(httpd_req_t *) { esp_restart(); }
+
 esp_err_t synth_config_get_handler(httpd_req_t *req) {
   AppConfig config = ui.config_read();
 
@@ -91,6 +93,29 @@ esp_err_t parseBody(httpd_req_t *req, std::vector<char> &body,
 }
 
 esp_err_t synth_config_put_handler(httpd_req_t *req) {
+  std::vector<char> body;
+  JSONParser parser;
+  ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
+
+  httpd_resp_set_type(req, "application/json");
+  AppConfig config = ui.config_read();
+  if (parse(parser, config)) {
+    ui.config_set(config, true);
+    auto res = configuration::synth::persist(config);
+    if (res == ESP_OK) {
+      auto json = configuration::codec::encode(config).print();
+      httpd_resp_sendstr(req, json.value);
+    } else {
+      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                          "Error while setting configuration");
+    }
+    return res;
+  }
+  httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid request.");
+  return ESP_FAIL;
+}
+
+esp_err_t synth_config_del_handler(httpd_req_t *req) {
   std::vector<char> body;
   JSONParser parser;
   ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");

@@ -10,7 +10,7 @@ static void render_home_section(void *) {
   if (label == nullptr || label2 == nullptr)
     return;
   // TODO new menus
-  const ChannelConfig config; //= teslasynth::app::configuration::get_config();
+  const midisynth::ChannelConfig config; //= teslasynth::app::configuration::get_config();
 
   lv_label_set_text_fmt(label, "Max on: %s",
                         std::string(config.max_on_time).c_str());

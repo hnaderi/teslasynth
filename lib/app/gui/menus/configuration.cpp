@@ -53,7 +53,7 @@ lv_obj_t *create_configuration_section(lv_obj_t *menu) {
   auto section = lv_menu_section_create(sub_configuration_page);
 
   // TODO new menu
-  const ChannelConfig config; //= app::configuration::get_config();
+  const midisynth::ChannelConfig config; //= app::configuration::get_config();
   static ConfigSliderContext max_on_time =
                                  {
                                      .value = config.max_on_time.micros(),
@@ -70,7 +70,8 @@ lv_obj_t *create_configuration_section(lv_obj_t *menu) {
                              };
   create_config_slider(section, max_on_time, 1, 200);
   create_config_slider(section, min_deadtime, 1, 200);
-  create_config_slider(section, max_notes, 1, midisynth::ChannelConfig::max_notes);
+  create_config_slider(section, max_notes, 1,
+                       midisynth::ChannelConfig::max_notes);
 
   lv_obj_t *buttons = lv_obj_create(section);
   lv_obj_set_flex_flow(buttons, LV_FLEX_FLOW_ROW);

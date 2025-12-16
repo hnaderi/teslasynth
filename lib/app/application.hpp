@@ -1,5 +1,6 @@
 #pragma once
 
+#include "configuration/storage.hpp"
 #include "esp_event.h"
 #include "freertos/idf_additions.h"
 #include "midi_synth.hpp"
@@ -10,7 +11,6 @@ namespace teslasynth::app {
 using namespace midisynth;
 
 typedef Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> AppSynth;
-typedef Configuration<CONFIG_TESLASYNTH_OUTPUT_COUNT> AppConfig;
 
 namespace {
 void on_track_play(bool playing) {
@@ -63,8 +63,8 @@ public:
     return res;
   }
 
-  inline constexpr void config_set(const AppConfig &config,
-                                   bool reload = false) {
+  inline constexpr void config_set(const AppConfig &config, bool reload = false,
+                                   bool persist = false) {
     xSemaphoreTake(read_lock, portMAX_DELAY);
 
     xSemaphoreTake(write_lock, portMAX_DELAY);
@@ -77,6 +77,8 @@ public:
     ESP_ERROR_CHECK(esp_event_post(EVENT_SYNTHESIZER_BASE,
                                    SYNTHESIZER_CONFIG_UPDATED, NULL, 0,
                                    portMAX_DELAY));
+    if (persist)
+      configuration::synth::persist(config);
   }
 
   inline constexpr void playback_off() {

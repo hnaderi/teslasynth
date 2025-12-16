@@ -1,16 +1,14 @@
 #pragma once
 
-#include "application.hpp"
-#include "hardware.hpp"
 #include "esp_err.h"
+#include "hardware.hpp"
+#include "synth.hpp"
 
 namespace teslasynth::app::configuration {
 using teslasynth::midisynth::ChannelConfig;
 
 namespace synth {
 AppConfig read();
-void persist(UIHandle &handle);
-
 bool read(AppConfig &config);
 esp_err_t persist(const AppConfig &config);
 } // namespace synth

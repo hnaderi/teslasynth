@@ -1,7 +1,6 @@
 #include "application.hpp"
 #include "argtable3/argtable3.h"
 #include "config_parser.hpp"
-#include "configuration/storage.hpp"
 #include "core.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
@@ -211,13 +210,10 @@ int config_cmd(int argc, char **argv) {
   }
 
   if (value_count > 0) {
-    handle_.config_set(config, reload);
+    handle_.config_set(config, reload, save);
     printf("Updated %d config values!\n", value_count);
-  }
-
-  if (save) {
-    app::configuration::synth::persist(handle_);
-    printf("Saved!\n");
+    if (save)
+      printf("Saved!\n");
   }
 
   print_config(config);

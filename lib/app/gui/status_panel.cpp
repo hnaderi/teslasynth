@@ -36,7 +36,7 @@ void render_config(void *) {
   if (label1 == nullptr || label2 == nullptr)
     return;
   // TODO new
-  const ChannelConfig config; //= app::configuration::get_config();
+  const midisynth::ChannelConfig config; //= app::configuration::get_config();
 
   lv_label_set_text_fmt(label1, "Max on: %s",
                         std::string(config.max_on_time).c_str());
@@ -119,7 +119,8 @@ void init_main_screen() {
 }
 
 static void ble_event_handler(void *, esp_event_base_t, int32_t id, void *) {
-  lv_async_call(ui_on_connection_changed, (void *)(id == MIDI_DEVICE_CONNECTED));
+  lv_async_call(ui_on_connection_changed,
+                (void *)(id == MIDI_DEVICE_CONNECTED));
 }
 static void track_event_handler(void *, esp_event_base_t, int32_t id, void *) {
   lv_async_call(ui_on_track_play_changed, (void *)(id == SYNTHESIZER_PLAYING));
