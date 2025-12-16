@@ -1,3 +1,7 @@
+#include "sdkconfig.h"
+
+#ifndef CONFIG_TESLASYNTH_GUI_NONE
+
 #include "display.hpp"
 #include "driver/i2c_master.h"
 #include "driver/spi_common.h"
@@ -371,3 +375,5 @@ esp_err_t backlight_on(void) {
   return brightness_set(100);
 }
 } // namespace teslasynth::app::devices::display
+
+#endif
