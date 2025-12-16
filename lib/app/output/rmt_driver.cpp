@@ -1,15 +1,16 @@
-#include "rmt_driver.hpp"
+#include "sdkconfig.h"
+
+#ifdef CONFIG_SOC_RMT_SUPPORTED
+
 #include "driver/rmt_common.h"
 #include "driver/rmt_encoder.h"
 #include "driver/rmt_tx.h"
 #include "driver/rmt_types.h"
 #include "esp_err.h"
 #include "esp_log.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "hal/rmt_types.h"
 #include "midi_synth.hpp"
-#include "sdkconfig.h"
+#include "rmt_driver.hpp"
 #include "soc/gpio_num.h"
 #include <cstddef>
 #include <cstdint>
@@ -154,3 +155,5 @@ void pulse_write(const midisynth::Pulse *pulse, size_t len, uint8_t ch) {
                                              len * sizeof(Pulse), &tx_config));
 }
 } // namespace teslasynth::app::devices::rmt
+
+#endif

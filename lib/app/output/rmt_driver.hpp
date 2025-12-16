@@ -2,7 +2,6 @@
 
 #include "midi_synth.hpp"
 #include <cstddef>
-#include <cstdint>
 
 namespace teslasynth::app::devices::rmt {
 void pulse_write(const midisynth::Pulse *pulse, size_t len, uint8_t ch = 0);
