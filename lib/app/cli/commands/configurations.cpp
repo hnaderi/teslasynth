@@ -98,7 +98,7 @@ int print_config(AppConfig &config) {
   printf("Synth configuration:\n"
          "\t%s = %s\n"
          "\t%s = <%s>\n",
-         keys::tuning, cstr(config.synth().a440), keys::instrument,
+         keys::tuning, cstr(config.synth().tuning), keys::instrument,
          instrument_value(config.synth()));
 
   for (auto i = 0; i < config.channels_size(); i++) {
@@ -128,7 +128,7 @@ int update_config(AppConfig &config, const char *val) {
       }
     } else if (key == keys::tuning) {
       if (auto t = parser::parse_hertz(value)) {
-        config.synth().a440 = *t;
+        config.synth().tuning = *t;
       } else {
         printf("Invalid frequency value: %s\n"
                "Valid values are floating point numbers followed by an "

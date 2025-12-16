@@ -85,15 +85,15 @@ struct ChannelConfig {
 };
 
 struct SynthConfig {
-  Hertz a440 = 440_hz;
+  Hertz tuning = 440_hz;
   std::optional<uint8_t> instrument = {};
 
   constexpr bool operator==(const SynthConfig &other) const {
-    return a440 == other.a440 && instrument == other.instrument;
+    return tuning == other.tuning && instrument == other.instrument;
   }
 
   inline operator std::string() const {
-    return std::string("Tuning: ") + std::string(a440) +
+    return std::string("Tuning: ") + std::string(tuning) +
            "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
   }
 };

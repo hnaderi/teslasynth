@@ -18,7 +18,7 @@ constexpr ChannelConfig config_(uint8_t notes) {
   };
 }
 constexpr ChannelConfig config = config_(4);
-constexpr SynthConfig sconf = {.a440 = 100_hz};
+constexpr SynthConfig sconf = {.tuning = 100_hz};
 constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
 constexpr Instrument instrument{.envelope = ADSR::constant(EnvelopeLevel(1)),
                                 .vibrato = Vibrato::none()};
@@ -234,7 +234,7 @@ void test_should_sequence_polyphonic_out_of_phase_multichannel_note_off(void) {
 void samples_all_bps(Teslasynth<> &tsynth, int bps = 100) {
   const auto freq = Hertz(bps);
   const Duration16 sample_time = Duration16::micros(freq.period().micros());
-  tsynth.configuration().synth().a440 = freq;
+  tsynth.configuration().synth().tuning = freq;
   tsynth.configuration().channel(0).max_duty = DutyCycle::max();
 
   PulseBuffer<1, 64> buffer;
@@ -266,7 +266,7 @@ void test_must_not_be_limited_when_no_duty_limit(void) {
 }
 
 void test_must_not_exceed_duty_limit(void) {
-  Configuration<> conf(SynthConfig{.a440 = 2_khz},
+  Configuration<> conf(SynthConfig{.tuning = 2_khz},
                        {ChannelConfig{.max_duty = DutyCycle(10)}});
   Teslasynth<> tsynth(conf);
 

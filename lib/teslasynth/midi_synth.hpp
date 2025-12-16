@@ -259,7 +259,7 @@ public:
     if (ch < OUTPUTS) {
       Duration delta = _track.on_receive(ch, time);
       _voices[ch].start({number, velocity}, delta, instrument(ch),
-                        config_.synth().a440);
+                        config_.synth().tuning);
     }
   }
   inline void note_on(uint8_t ch, MidiNote mnote, Duration time) {

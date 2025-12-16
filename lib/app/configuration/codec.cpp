@@ -22,7 +22,7 @@ bool parse(JSONParser &parser, AppConfig &config) {
 
   auto tuning = root.get(keys::tuning).number();
   if (tuning.has_value() && *tuning >= 1 && *tuning <= 1000)
-    config.synth().a440 = Hertz(*tuning);
+    config.synth().tuning = Hertz(*tuning);
   else
     return false;
 
@@ -72,7 +72,7 @@ bool parse(JSONParser &parser, AppConfig &config) {
 JSONEncoder encode(const AppConfig &config) {
   JSONEncoder encoder;
   auto root = encoder.object();
-  root.add(keys::tuning, config.synth().a440);
+  root.add(keys::tuning, config.synth().tuning);
   if (config.synth().instrument.has_value())
     root.add(keys::instrument, *config.synth().instrument + 1);
   else
