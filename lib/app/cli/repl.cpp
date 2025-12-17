@@ -6,6 +6,7 @@
 namespace teslasynth::app::cli {
 extern void register_configuration_commands(UIHandle handle);
 extern void register_system_common(void);
+extern void register_instruments(void);
 
 void init(UIHandle handle) {
   esp_console_repl_t *repl = NULL;
@@ -18,6 +19,7 @@ void init(UIHandle handle) {
   esp_console_register_help_command();
   register_system_common();
   register_configuration_commands(handle);
+  register_instruments();
 
 #if defined(CONFIG_ESP_CONSOLE_UART_DEFAULT) ||                                \
     defined(CONFIG_ESP_CONSOLE_UART_CUSTOM)

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
 import { NumberInput } from './components/NumberInput';
 import { ConfirmDialog } from './components/confirmation';
+import { InstrumentSelect } from './components/InstrumentSelect';
 const synthConfig = (init) => fetch('/api/config/synth', init)
 
-function SynthChannelConfigSection({ channel, channelIdx, onChange }) {
+function SynthChannelConfigSection({ channel, channelIdx, onChange, instruments }) {
     return (
         <article class="channel" key={channelIdx} style="padding: 1rem;">
             <header><strong>Channel {channelIdx + 1}</strong></header>
@@ -17,6 +18,14 @@ function SynthChannelConfigSection({ channel, channelIdx, onChange }) {
                 min="1"
                 max="4"
                 step="1"
+            />
+
+            <InstrumentSelect
+                id={`instrument-${channelIdx}`}
+                instruments={instruments}
+                label="Instrument"
+                onChange={id => onChange(channelIdx, 'instrument', id)}
+                value={channel['instrument']}
             />
 
             <NumberInput
@@ -72,7 +81,8 @@ function SynthConfigForm({
     busy,
     onUpdate,
     onReset,
-    setBusy
+    setBusy,
+    instruments,
 }) {
     const [draft, setDraft] = useState(config);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -125,7 +135,14 @@ function SynthConfigForm({
                 min="1"
                 max="1000"
                 step="0.001"
-                onChange={n => setDraft({ ...cfg, tuning: n })}
+                onChange={n => setDraft({ ...draft, tuning: n })}
+            />
+            <InstrumentSelect
+                id="instrument"
+                instruments={instruments}
+                label="Global instrument"
+                onChange={id => setDraft({ ...draft, instrument: id })}
+                value={draft['instrument']}
             />
 
             <h3>Channels</h3>
@@ -136,6 +153,7 @@ function SynthConfigForm({
                         channel: ch, channelIdx: idx,
                         onChange: (idx, field, value) =>
                             updateChannel(draft, setDraft, idx, field, value),
+                        instruments: instruments
                     })
                 ))}
             </div>
@@ -160,55 +178,41 @@ function SynthConfigForm({
 
 
 export function SynthConfigSection() {
-    const [cfg, setCfg] = useState(
-        {
-            "tuning": 440,
-            "instrument": null,
-            "channels": [
-                {
-                    "notes": 4,
-                    "max-on-time": 100,
-                    "min-deadtime": 100,
-                    "max-duty": 100,
-                    "duty-window": 10000,
-                },
-                {
-                    "notes": 4,
-                    "max-on-time": 100,
-                    "min-deadtime": 100,
-                    "max-duty": 100,
-                    "duty-window": 10000,
-                }
-            ]
-        }
-    );
+    const [cfg, setCfg] = useState(null);
+    const [instruments, setInstruments] = useState(null);
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
         synthConfig()
             .then(r => r.json())
             .then(setCfg);
+
+        fetch('/api/synth/instruments')
+            .then(r => r.json())
+            .then(setInstruments);
     }, []);
 
-    if (!cfg) return <article><header aria-busy="true">Loading Synth Configuration…</header></article>;
-
-    return (
-        <article>
-            <header>
-                <hgroup>
-                    <h2>Synth Configuration</h2>
-                    <p>Base tuning and per-channel timing parameters</p>
-                </hgroup>
-            </header>
-            <SynthConfigForm
-                config={cfg}
-                onReset={setCfg}
-                onUpdate={setCfg}
-                busy={busy}
-                setBusy={setBusy}
-            />
-        </article>
-    );
+    if (!cfg || !instruments)
+        return <article><header aria-busy="true">Loading Synth Configuration…</header></article>;
+    else
+        return (
+            <article>
+                <header>
+                    <hgroup>
+                        <h2>Synth Configuration</h2>
+                        <p>Base tuning and per-channel timing parameters</p>
+                    </hgroup>
+                </header>
+                <SynthConfigForm
+                    config={cfg}
+                    onReset={setCfg}
+                    onUpdate={setCfg}
+                    busy={busy}
+                    setBusy={setBusy}
+                    instruments={instruments}
+                />
+            </article>
+        );
 }
 
 function updateChannel(cfg, setCfg, index, field, value) {

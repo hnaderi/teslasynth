@@ -49,6 +49,14 @@ bool parse(JSONParser &parser, AppConfig &config) {
       else
         return false;
 
+      auto instrument = chobj.get(keys::instrument);
+      if (instrument.is_null())
+        ch.instrument = {};
+      else if (instrument.is_number())
+        ch.instrument = *instrument.number();
+      else
+        return false;
+
       if (!parse_duration16(chobj, keys::max_on_time, ch.max_on_time))
         return false;
       if (!parse_duration16(chobj, keys::min_deadtime, ch.min_deadtime))
@@ -74,7 +82,7 @@ JSONEncoder encode(const AppConfig &config) {
   auto root = encoder.object();
   root.add(keys::tuning, config.synth().tuning);
   if (config.synth().instrument.has_value())
-    root.add(keys::instrument, *config.synth().instrument + 1);
+    root.add(keys::instrument, *config.synth().instrument);
   else
     root.add_null(keys::instrument);
 
@@ -88,7 +96,7 @@ JSONEncoder encode(const AppConfig &config) {
     obj.add(keys::max_duty, ch.max_duty.percent());
     obj.add(keys::duty_window, ch.duty_window.micros());
     if (ch.instrument.has_value())
-      obj.add(keys::instrument, *ch.instrument + 1);
+      obj.add(keys::instrument, *ch.instrument);
     else
       obj.add_null(keys::instrument);
   }

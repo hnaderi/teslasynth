@@ -125,6 +125,22 @@ esp_err_t synth_config_del_handler(httpd_req_t *req) {
   return ESP_FAIL;
 }
 
+helpers::JSONEncoder instruments_list_json() {
+  helpers::JSONEncoder encoder;
+  auto root = encoder.array();
+  for (const auto &name : synth::instrument_names) {
+    root.add(name);
+  }
+  return encoder;
+}
+
+esp_err_t synth_instruments_get_handler(httpd_req_t *req) {
+  std::vector<char> body;
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_sendstr(req, instruments_list_json().print().value);
+  return ESP_FAIL;
+}
+
 esp_err_t index_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "text/html");
   httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
@@ -203,6 +219,10 @@ constexpr Resource resources[] = {
         .get = synth_config_get_handler,
         .put = synth_config_put_handler,
         .del = synth_config_del_handler,
+    },
+    {
+        .uri = "/api/synth/instruments",
+        .get = synth_instruments_get_handler,
     },
 };
 
