@@ -82,15 +82,31 @@ struct DisplayConfig {
   constexpr bool is_full() const { return type != full; }
 };
 
+struct LEDConfig {
+  gpio_num_t pin = static_cast<gpio_num_t>(CONFIG_TESLASYNTH_OUTPUT_GPIO_LED);
+  LogicType logic
+#ifdef CONFIG_TESLASYNTH_OUTPUT_GPIO_LED_ACTIVE_LOW
+      = active_low;
+#else
+      = active_high;
+#endif
+};
+
 struct OutputConfig {
   constexpr static uint8_t size = CONFIG_TESLASYNTH_OUTPUT_COUNT;
   std::array<OutputChannelConfig, size> channels;
+  LEDConfig led;
+};
+
+struct InputConfig {
+  gpio_num_t maintenance = gpio_num_t::GPIO_NUM_0;
 };
 
 struct HardwareConfig {
   uint32_t version = 0;
   DisplayConfig display;
   OutputConfig outputs{};
+  InputConfig input;
 };
 
 #if CONFIG_IDF_TARGET_ESP32

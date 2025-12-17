@@ -2,6 +2,20 @@ menu "Teslasynth"
 
 menu "Outputs"
 
+menu "LED"
+
+config TESLASYNTH_OUTPUT_GPIO_LED
+    int "GPIO Pin for Signal LED"
+    default -1
+    range -1 39
+
+config TESLASYNTH_OUTPUT_GPIO_LED_ACTIVE_LOW
+    bool "Is active low?"
+    default "n"
+
+endmenu
+
+
 config TESLASYNTH_OUTPUT_COUNT
     int "Number of outputs"
     range 1 4

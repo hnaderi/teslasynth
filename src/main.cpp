@@ -1,6 +1,7 @@
 #include "application.hpp"
 #include "configuration/storage.hpp"
 #include "devices/display.hpp"
+#include "devices/signal_led.hpp"
 #include "devices/wifi.hpp"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -31,6 +32,8 @@ extern "C" void app_main(void) {
     devices::wifi::init();
     web::server::start(app.ui());
   } else {
+    helpers::maintenance::init(hconfig.input);
+    devices::signal_led::init(hconfig.outputs.led);
     gui::init(hconfig.display);
     devices::rmt::init();
     auto sbuf = synth::init(app.playback());
