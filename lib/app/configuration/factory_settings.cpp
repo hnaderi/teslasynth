@@ -126,7 +126,7 @@ constexpr DisplayType gui_type =
 
 constexpr static DisplayConfig::PanelConfig default_panel_config{
 #if defined(CONFIG_TESLASYNTH_GUI_STATUS_PANEL)
-    .minimal = default_minimal_display_config},
+    .minimal = default_minimal_display_config,
 #elif defined(CONFIG_TESLASYNTH_GUI_FULL)
     .full = default_full_display_config,
 #endif
