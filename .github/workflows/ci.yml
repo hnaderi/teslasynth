@@ -10,14 +10,17 @@ jobs:
       fail-fast: true
       matrix:
         board:
+          - cyd
           - lolin32
           - esp32dev
           - lilygo-display
+          - s2-mini
+          - s3
           - c3-super-mini
     steps:
       - run: gcc --version
         name: Show gcc version
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/cache@v4
         with:
           path: |
@@ -27,9 +30,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 25
+          cache: "npm"
+          cache-dependency-path: dashboard/package-lock.json
+
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
+      - run: npm --prefix dashboard ci
 
+      - name: build dashboard
+        run: npm --prefix dashboard run build:all
       - name: Build PlatformIO Project
         run: pio run -e ${{ matrix.board }}
 
@@ -38,7 +50,7 @@ jobs:
     steps:
       - run: gcc --version
         name: Show gcc version
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/cache@v4
         with:
           path: |
