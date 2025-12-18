@@ -130,6 +130,11 @@ config TESLASYNTH_DISPLAY_INTERFACE_I2C_SCL
     default 22
     range 0 39
 
+config TESLASYNTH_DISPLAY_INTERFACE_I2C_RS
+    int "RS Pin"
+    default -1
+    range -1 39
+
 endmenu
 
 menu "Full GUI"
@@ -209,6 +214,15 @@ config TESLASYNTH_DISPLAY_BACKLIGHT_ACTIVE_LOW
 
 endchoice
 
+config TESLASYNTH_DISPLAY_MIRROR_X
+    bool "Mirror X axis"
+    
+config TESLASYNTH_DISPLAY_MIRROR_Y
+    bool "Mirror Y axis"
+
+config TESLASYNTH_DISPLAY_SWAP_XY
+    bool "Swap X and Y axes"
+
 endmenu
 
 menu "Touch"
@@ -231,6 +245,11 @@ choice TESLASYNTH_TOUCH_PANEL
         bool "STMPE610"
 endchoice
 
+config TESLASYNTH_TOUCH_SECONDARY_SPI
+    bool "Is connected to a different SPI bus?"
+
+menu "Secondary SPI"
+depends on TESLASYNTH_TOUCH_SECONDARY_SPI
 config TESLASYNTH_TOUCH_INTERFACE_SPI_CLK
     depends on TESLASYNTH_TOUCH_ENABLED
     int "CLK Pin"
@@ -248,6 +267,7 @@ config TESLASYNTH_TOUCH_INTERFACE_SPI_MISO
     int "MISO Pin"
     default 22
     range 0 39
+endmenu
 
 config TESLASYNTH_TOUCH_INTERFACE_SPI_CS
     depends on TESLASYNTH_TOUCH_ENABLED
@@ -276,6 +296,15 @@ config TESLASYNTH_TOUCH_INTERFACE_SPI_IRQ
     help
       Reset pin, set to -1 if not used
     range -1 39
+
+config TESLASYNTH_TOUCH_MIRROR_X
+    bool "Mirror X axis"
+    
+config TESLASYNTH_TOUCH_MIRROR_Y
+    bool "Mirror Y axis"
+
+config TESLASYNTH_TOUCH_SWAP_XY
+    bool "Swap X and Y axes"
 endmenu
 
 endmenu

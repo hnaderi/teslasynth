@@ -3,6 +3,8 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "nvs.h"
+#include "sdkconfig.h"
+#include "soc/gpio_num.h"
 #include <cstdint>
 #include <vector>
 
@@ -74,4 +76,5 @@ void persist(const HardwareConfig &config) {
   }
   nvs_close(handle);
 }
+
 } // namespace teslasynth::app::configuration::hardware

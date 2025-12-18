@@ -119,8 +119,8 @@ esp_lcd_panel_handle_t install_full_panel(const FullDisplayPanelConfig &config,
   };
   ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
   ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
-  ESP_ERROR_CHECK(
-      esp_lcd_panel_mirror(panel_handle, config.mirror_x, config.mirror_y));
+  ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, config.flags.mirror_x,
+                                       config.flags.mirror_y));
 
   // user can flush pre-defined pattern to the screen before we turn on the
   // screen or backlight
@@ -143,9 +143,9 @@ lv_display_t *full_display(const FullDisplayPanelConfig &config) {
       .monochrome = false,
       .rotation =
           {
-              .swap_xy = false,
-              .mirror_x = config.mirror_x,
-              .mirror_y = config.mirror_y,
+              .swap_xy = config.flags.swap_xy,
+              .mirror_x = config.flags.mirror_x,
+              .mirror_y = config.flags.mirror_y,
           },
       .color_format = LV_COLOR_FORMAT_RGB565,
       .flags =
@@ -307,9 +307,9 @@ install_touch_panel(const FullDisplayPanelConfig &config,
       .levels = {.reset = 0, .interrupt = 0},
       .flags =
           {
-              .swap_xy = true,
-              .mirror_x = true,
-              .mirror_y = true,
+              .swap_xy = config.touch.flags.swap_xy,
+              .mirror_x = config.touch.flags.mirror_x,
+              .mirror_y = config.touch.flags.mirror_y,
           },
       .interrupt_callback = NULL,
   };

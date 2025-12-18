@@ -22,6 +22,10 @@ struct SPIBus {
   gpio_num_t miso = gpio_num_t::GPIO_NUM_NC;
 };
 
+struct PanelFlags {
+  bool mirror_x = false, mirror_y = false, swap_xy = false;
+};
+
 struct TouchPanelConfig {
   bool enabled = false;
   enum TouchType : uint8_t {
@@ -32,11 +36,12 @@ struct TouchPanelConfig {
   gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t irq = gpio_num_t::GPIO_NUM_NC;
+  PanelFlags flags;
   std::optional<SPIBus> spi;
 };
 
 struct FullDisplayPanelConfig {
-  enum DisplayType : uint8_t {
+  enum FullDisplayType : uint8_t {
     ILI9341 = 0,
     ST7789 = 1,
   } type;
@@ -46,7 +51,7 @@ struct FullDisplayPanelConfig {
   gpio_num_t backlight = gpio_num_t::GPIO_NUM_NC;
   LogicType backlight_logic = LogicType::active_high;
   uint16_t width = 320, height = 240;
-  bool mirror_x = true, mirror_y = false;
+  PanelFlags flags;
   SPIBus spi;
 
   TouchPanelConfig touch;
@@ -71,24 +76,24 @@ enum DisplayType {
 struct NoDisplay {};
 struct DisplayConfig {
   DisplayType type = none;
-  union {
+  struct PanelConfig {
     NoDisplay none;
     MinimalDisplayPanelConfig minimal;
     FullDisplayPanelConfig full;
   } config = {.none = NoDisplay{}};
 
   constexpr bool enabled() const { return type != none; }
-  constexpr bool is_minimal() const { return type != minimal; }
-  constexpr bool is_full() const { return type != full; }
+  constexpr bool is_minimal() const { return type == minimal; }
+  constexpr bool is_full() const { return type == full; }
 };
 
 struct LEDConfig {
   gpio_num_t pin = static_cast<gpio_num_t>(CONFIG_TESLASYNTH_OUTPUT_GPIO_LED);
-  LogicType logic
+  LogicType logic =
 #ifdef CONFIG_TESLASYNTH_OUTPUT_GPIO_LED_ACTIVE_LOW
-      = active_low;
+      active_low;
 #else
-      = active_high;
+      active_high;
 #endif
 };
 
@@ -107,66 +112,8 @@ struct HardwareConfig {
   DisplayConfig display;
   OutputConfig outputs{};
   InputConfig input;
+
+  HardwareConfig();
 };
-
-#if CONFIG_IDF_TARGET_ESP32
-
-const HardwareConfig CYD = {
-    .display =
-        {
-            .type = DisplayType::full,
-            .config =
-                {
-                    .full =
-                        {
-                            .type = FullDisplayPanelConfig::ILI9341,
-                            .cs = gpio_num_t::GPIO_NUM_15,
-                            .dc = gpio_num_t::GPIO_NUM_2,
-                            .rs = gpio_num_t::GPIO_NUM_4,
-                            .backlight = gpio_num_t::GPIO_NUM_21,
-                            .backlight_logic = active_high,
-                            .width = 320,
-                            .height = 240,
-                            .mirror_x = true,
-                            .mirror_y = false,
-                            .spi =
-                                {
-                                    .clk = gpio_num_t::GPIO_NUM_14,
-                                    .mosi = gpio_num_t::GPIO_NUM_13,
-                                    .miso = gpio_num_t::GPIO_NUM_12,
-                                },
-                            .touch{
-                                .enabled = true,
-                                .type = TouchPanelConfig::XPT2046,
-                                .cs = gpio_num_t::GPIO_NUM_33,
-                                .irq = gpio_num_t::GPIO_NUM_36,
-                                .spi = {{
-                                    .clk = gpio_num_t::GPIO_NUM_25,
-                                    .mosi = gpio_num_t::GPIO_NUM_32,
-                                    .miso = gpio_num_t::GPIO_NUM_39,
-                                }},
-                            },
-
-                        } // namespace teslasynth::app::configuration::hardware
-                },
-        },
-};
-
-const HardwareConfig lilygo_display = {
-    .display =
-        {
-            .type = minimal,
-            .config =
-                {
-                    .minimal =
-                        {
-                            .sda = gpio_num_t::GPIO_NUM_21,
-                            .scl = gpio_num_t::GPIO_NUM_22,
-                        },
-                },
-        },
-};
-
-#endif
 
 } // namespace teslasynth::app::configuration::hardware

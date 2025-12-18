@@ -14,9 +14,6 @@ static const char *TAG = "TESLASYNTH";
 using namespace teslasynth::app;
 
 static configuration::hardware::HardwareConfig hconfig;
-// = configuration::hardware::CYD;
-// = configuration::hardware::lilygo_display;
-
 static Application app;
 
 extern "C" void app_main(void) {
