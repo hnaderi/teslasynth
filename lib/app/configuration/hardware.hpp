@@ -11,7 +11,7 @@ struct OutputChannelConfig {
   gpio_num_t pin = gpio_num_t::GPIO_NUM_NC;
 };
 
-enum LogicType : bool {
+enum class LogicType : bool {
   active_high = true,
   active_low = false,
 };
@@ -28,7 +28,7 @@ struct PanelFlags {
 
 struct TouchPanelConfig {
   bool enabled = false;
-  enum TouchType : uint8_t {
+  enum class TouchType : uint8_t {
     XPT2046 = 0,
     STMPE610 = 1,
   } type;
@@ -41,7 +41,7 @@ struct TouchPanelConfig {
 };
 
 struct FullDisplayPanelConfig {
-  enum FullDisplayType : uint8_t {
+  enum class FullDisplayType : uint8_t {
     ILI9341 = 0,
     ST7789 = 1,
   } type;
@@ -58,16 +58,16 @@ struct FullDisplayPanelConfig {
 };
 
 struct MinimalDisplayPanelConfig {
-  enum DisplayType {
+  enum class DisplayType {
     SSD1306,
-  } type = SSD1306;
+  } type = DisplayType::SSD1306;
   gpio_num_t sda = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t scl = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
   uint8_t width = 128, height = 64;
 };
 
-enum DisplayType {
+enum class DisplayType {
   none,
   minimal,
   full,
@@ -75,25 +75,25 @@ enum DisplayType {
 
 struct NoDisplay {};
 struct DisplayConfig {
-  DisplayType type = none;
+  DisplayType type = DisplayType::none;
   struct PanelConfig {
     NoDisplay none;
     MinimalDisplayPanelConfig minimal;
     FullDisplayPanelConfig full;
   } config = {.none = NoDisplay{}};
 
-  constexpr bool enabled() const { return type != none; }
-  constexpr bool is_minimal() const { return type == minimal; }
-  constexpr bool is_full() const { return type == full; }
+  constexpr bool enabled() const { return type != DisplayType::none; }
+  constexpr bool is_minimal() const { return type == DisplayType::minimal; }
+  constexpr bool is_full() const { return type == DisplayType::full; }
 };
 
 struct LEDConfig {
   gpio_num_t pin = static_cast<gpio_num_t>(CONFIG_TESLASYNTH_OUTPUT_GPIO_LED);
   LogicType logic =
 #ifdef CONFIG_TESLASYNTH_OUTPUT_GPIO_LED_ACTIVE_LOW
-      active_low;
+      LogicType::active_low;
 #else
-      active_high;
+      LogicType::active_high;
 #endif
 };
 

@@ -11,9 +11,9 @@ namespace teslasynth::app::configuration::hardware {
 constexpr static TouchPanelConfig default_touch_config{
     .enabled = true,
 #if defined(CONFIG_TESLASYNTH_TOUCH_PANEL_XPT2046)
-    .type = TouchPanelConfig::XPT2046,
+    .type = TouchPanelConfig::TouchType::XPT2046,
 #elif defined(CONFIG_TESLASYNTH_TOUCH_PANEL_STMPE610)
-    .type = TouchPanelConfig::STMPE610,
+    .type = TouchPanelConfig::TouchType::STMPE610,
 #else
 #error "No touch panel type selected"
 #endif
@@ -49,18 +49,18 @@ constexpr static TouchPanelConfig default_touch_config{
 
 constexpr static FullDisplayPanelConfig::FullDisplayType full_display_type =
 #if defined(CONFIG_TESLASYNTH_DISPLAY_PANEL_ILI9341)
-    FullDisplayPanelConfig::ILI9341;
+    FullDisplayPanelConfig::FullDisplayType::ILI9341;
 #elif defined(CONFIG_TESLASYNTH_DISPLAY_PANEL_ST7789)
-    FullDisplayPanelConfig::ST7789;
+    FullDisplayPanelConfig::FullDisplayType::ST7789;
 #else
 #error "No display panel type selected"
 #endif
 
 constexpr static LogicType full_display_backlight_logic =
 #ifdef CONFIG_TESLASYNTH_DISPLAY_BACKLIGHT_ACTIVE_HIGH
-    active_high;
+    LogicType::active_high;
 #else
-    active_low;
+    LogicType::active_low;
 #endif
 
 constexpr static PanelFlags full_display_flags{
@@ -106,7 +106,7 @@ constexpr static FullDisplayPanelConfig default_full_display_config{
 
 #if defined(CONFIG_TESLASYNTH_GUI_STATUS_PANEL)
 constexpr static MinimalDisplayPanelConfig default_minimal_display_config{
-    .type = MinimalDisplayPanelConfig::SSD1306,
+    .type = MinimalDisplayPanelConfig::DisplayType::SSD1306,
     .sda = GPIO_CONFIG(DISPLAY_INTERFACE_I2C_SDA),
     .scl = GPIO_CONFIG(DISPLAY_INTERFACE_I2C_SCL),
     .rs = GPIO_CONFIG(DISPLAY_INTERFACE_I2C_RS),
@@ -117,11 +117,11 @@ constexpr static MinimalDisplayPanelConfig default_minimal_display_config{
 
 constexpr DisplayType gui_type =
 #if defined(CONFIG_TESLASYNTH_GUI_STATUS_PANEL)
-    minimal;
+    DisplayType::minimal;
 #elif defined(CONFIG_TESLASYNTH_GUI_FULL)
-    full;
+    DisplayType::full;
 #else
-    none;
+    DisplayType::none;
 #endif
 
 constexpr static DisplayConfig::PanelConfig default_panel_config{

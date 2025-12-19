@@ -106,12 +106,12 @@ esp_lcd_panel_handle_t install_full_panel(const FullDisplayPanelConfig &config,
       .bits_per_pixel = 16,
   };
   switch (config.type) {
-  case configuration::hardware::FullDisplayPanelConfig::ILI9341:
+  case FullDisplayPanelConfig::FullDisplayType::ILI9341:
     ESP_LOGI(TAG, "Install ILI9341 panel driver");
     ESP_ERROR_CHECK(
         esp_lcd_new_panel_ili9341(io_handle, &panel_config, &panel_handle));
     break;
-  case configuration::hardware::FullDisplayPanelConfig::ST7789:
+  case FullDisplayPanelConfig::FullDisplayType::ST7789:
     ESP_LOGI(TAG, "Install ST7789 panel driver");
     ESP_ERROR_CHECK(
         esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
@@ -315,11 +315,11 @@ install_touch_panel(const FullDisplayPanelConfig &config,
   };
 
   switch (config.touch.type) {
-  case TouchPanelConfig::XPT2046:
+  case TouchPanelConfig::TouchType::XPT2046:
     ESP_LOGI(TAG, "Initialize touch controller XPT2046");
     ESP_ERROR_CHECK(esp_lcd_touch_new_spi_xpt2046(tp_io_handle, &tp_cfg, &tp));
     break;
-  case TouchPanelConfig::STMPE610:
+  case TouchPanelConfig::TouchType::STMPE610:
     ESP_LOGI(TAG, "Initialize touch controller STMPE610");
     ESP_ERROR_CHECK(esp_lcd_touch_new_spi_stmpe610(tp_io_handle, &tp_cfg, &tp));
     break;
