@@ -1,3 +1,4 @@
+#include "core/probability.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cmath>
 #include <core.hpp>
@@ -202,6 +203,57 @@ void test_level_logscale(void) {
   assert_level_equal(EnvelopeLevel::logscale(255), EnvelopeLevel(1));
 }
 
+void test_probability_sanity(void) {
+  Probability probability;
+  TEST_ASSERT_TRUE(probability.is_zero());
+  probability = Probability(0.5);
+  TEST_ASSERT_FALSE(probability.is_zero());
+
+  TEST_ASSERT_TRUE(Probability::max() == Probability(1));
+}
+void test_probability_comparison(void) {
+  TEST_ASSERT_TRUE(Probability(0.01) > Probability(0));
+  TEST_ASSERT_TRUE(Probability(0.01) < Probability(0.02));
+  TEST_ASSERT_TRUE(Probability(0.02) >= Probability(0.01));
+  TEST_ASSERT_TRUE(Probability(0.01) <= Probability(0.02));
+  TEST_ASSERT_TRUE(Probability(0.1) == Probability(0.1));
+  TEST_ASSERT_TRUE(Probability(0.2) != Probability(0.1));
+
+  TEST_ASSERT_TRUE(Probability(-1) == Probability(0));
+  TEST_ASSERT_TRUE(Probability(-1000) == Probability(0));
+  TEST_ASSERT_TRUE(Probability(101) == Probability(1));
+  TEST_ASSERT_TRUE(Probability(1e4f) == Probability(100));
+  TEST_ASSERT_TRUE(Probability(1e4f) == Probability(1.f));
+  TEST_ASSERT_TRUE(Probability(100) == Probability(1.f));
+
+  TEST_ASSERT_TRUE(Probability(0.800) != Probability(0.810));
+  TEST_ASSERT_TRUE(Probability(0.800) == Probability(0.801));
+  TEST_ASSERT_TRUE(Probability(0.800) == Probability(0.8001));
+
+  TEST_ASSERT_TRUE(Probability(0.63) != Probability(0.64));
+  TEST_ASSERT_TRUE(Probability(0.63) != Probability(0.632));
+  TEST_ASSERT_TRUE(Probability(0.63) == Probability(0.631));
+}
+void test_probability_arithmetic(void) {
+  assert_probability_equal(Probability(0) + Probability(1), Probability(1));
+  assert_probability_equal(Probability(0.1) + Probability(0.1),
+                           Probability(0.2));
+  assert_probability_equal(Probability(1) + Probability(0.01), Probability(1));
+  assert_probability_equal((Probability(1) += Probability(0.01)),
+                           Probability(1));
+  assert_probability_equal((Probability(1) += Probability(1)), Probability(1));
+  TEST_ASSERT_EQUAL(Probability(1) - Probability(0.4f), 0.6f);
+
+  assert_probability_equal((Probability(1) += 0.5f), Probability(1));
+  assert_probability_equal((Probability(1) += -0.5f), Probability(0.5));
+  assert_probability_equal((Probability(1) += -2.f), Probability(0));
+
+  assert_probability_equal(Probability(0.5) * Probability(0.5),
+                           Probability(0.25));
+  assert_probability_equal(Probability(0.5) * Probability(1), Probability(0.5));
+  assert_probability_equal(Probability(0.5) * Probability(0), Probability(0));
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_seconds);
@@ -221,6 +273,10 @@ extern "C" void app_main(void) {
   RUN_TEST(test_level_arithmetic);
   RUN_TEST(test_level_to_duration);
   RUN_TEST(test_level_logscale);
+
+  RUN_TEST(test_probability_sanity);
+  RUN_TEST(test_probability_comparison);
+  RUN_TEST(test_probability_arithmetic);
   UNITY_END();
 }
 int main(int argc, char **argv) { app_main(); }

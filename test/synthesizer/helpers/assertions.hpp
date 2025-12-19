@@ -22,6 +22,14 @@ inline void assert_level_not_equal(EnvelopeLevel a, EnvelopeLevel b, int line) {
   UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
 }
 
+inline void assert_probability_equal(Probability a, Probability b, int line) {
+  UNITY_TEST_ASSERT(a == b, line, __msg_for(a, b).c_str());
+}
+inline void assert_probability_not_equal(Probability a, Probability b,
+                                         int line) {
+  UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
+}
+
 template <typename A, typename B>
 inline void assert_duration_equal(SimpleDuration<A> a, SimpleDuration<B> b,
                                   int line) {
@@ -70,6 +78,12 @@ inline void assert_instrument_not_equal(Instrument a, Instrument b, int line) {
 
 #define assert_level_not_equal(a, b)                                           \
   synth::assertions::assert_level_not_equal(a, b, __LINE__);
+
+#define assert_probability_equal(a, b)                                         \
+  synth::assertions::assert_probability_equal(a, b, __LINE__);
+
+#define assert_probability_not_equal(a, b)                                     \
+  synth::assertions::assert_probability_not_equal(a, b, __LINE__);
 
 #define assert_duration_equal(a, b)                                            \
   synth::assertions::assert_duration_equal(a, b, __LINE__);
