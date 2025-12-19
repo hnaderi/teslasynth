@@ -2,7 +2,7 @@
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
-#include "notes.hpp"
+#include "voice.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cstddef>
 #include <cstdint>
