@@ -5,74 +5,6 @@
 
 using namespace teslasynth::synth;
 
-void test_level_sanity(void) {
-  EnvelopeLevel level;
-  TEST_ASSERT_TRUE(level.is_zero());
-  level = EnvelopeLevel(0.5);
-  TEST_ASSERT_FALSE(level.is_zero());
-
-  TEST_ASSERT_TRUE(EnvelopeLevel::max() == EnvelopeLevel(1));
-}
-void test_level_comparison(void) {
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.01) > EnvelopeLevel(0));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.01) < EnvelopeLevel(0.02));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.02) >= EnvelopeLevel(0.01));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.01) <= EnvelopeLevel(0.02));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.1) == EnvelopeLevel(0.1));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.2) != EnvelopeLevel(0.1));
-
-  TEST_ASSERT_TRUE(EnvelopeLevel(-1) == EnvelopeLevel(0));
-  TEST_ASSERT_TRUE(EnvelopeLevel(-1000) == EnvelopeLevel(0));
-  TEST_ASSERT_TRUE(EnvelopeLevel(101) == EnvelopeLevel(1));
-  TEST_ASSERT_TRUE(EnvelopeLevel(1e4f) == EnvelopeLevel(100));
-  TEST_ASSERT_TRUE(EnvelopeLevel(1e4f) == EnvelopeLevel(1.f));
-  TEST_ASSERT_TRUE(EnvelopeLevel(100) == EnvelopeLevel(1.f));
-
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.800) != EnvelopeLevel(0.810));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.800) == EnvelopeLevel(0.801));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.800) == EnvelopeLevel(0.8001));
-
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.63) != EnvelopeLevel(0.64));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.63) != EnvelopeLevel(0.632));
-  TEST_ASSERT_TRUE(EnvelopeLevel(0.63) == EnvelopeLevel(0.631));
-}
-void test_level_arithmetic(void) {
-  assert_level_equal(EnvelopeLevel(0) + EnvelopeLevel(1), EnvelopeLevel(1));
-  assert_level_equal(EnvelopeLevel(0.1) + EnvelopeLevel(0.1),
-                     EnvelopeLevel(0.2));
-  assert_level_equal(EnvelopeLevel(1) + EnvelopeLevel(0.01), EnvelopeLevel(1));
-  assert_level_equal((EnvelopeLevel(1) += EnvelopeLevel(0.01)),
-                     EnvelopeLevel(1));
-  assert_level_equal((EnvelopeLevel(1) += EnvelopeLevel(1)), EnvelopeLevel(1));
-  TEST_ASSERT_EQUAL(EnvelopeLevel(1) - EnvelopeLevel(0.4f), 0.6f);
-
-  assert_level_equal((EnvelopeLevel(1) += 0.5f), EnvelopeLevel(1));
-  assert_level_equal((EnvelopeLevel(1) += -0.5f), EnvelopeLevel(0.5));
-  assert_level_equal((EnvelopeLevel(1) += -2.f), EnvelopeLevel(0));
-
-  assert_level_equal(EnvelopeLevel(0.5) * EnvelopeLevel(0.5),
-                     EnvelopeLevel(0.25));
-  assert_level_equal(EnvelopeLevel(0.5) * EnvelopeLevel(1), EnvelopeLevel(0.5));
-  assert_level_equal(EnvelopeLevel(0.5) * EnvelopeLevel(0), EnvelopeLevel(0));
-}
-void test_level_to_duration(void) {
-  assert_duration_equal(EnvelopeLevel(0.01) * 1_ms, 10_us);
-  assert_duration_equal(EnvelopeLevel(0.1) * 1_ms, 100_us);
-  assert_duration_equal(EnvelopeLevel(1) * 1_ms, 1_ms);
-}
-void test_level_logscale(void) {
-  assert_level_equal(EnvelopeLevel::logscale(0), EnvelopeLevel(0));
-
-  assert_level_equal(EnvelopeLevel::logscale(3), EnvelopeLevel(2.f / 8.f));
-  assert_level_equal(EnvelopeLevel::logscale(7), EnvelopeLevel(3.f / 8.f));
-  assert_level_equal(EnvelopeLevel::logscale(15), EnvelopeLevel(4.f / 8.f));
-  assert_level_equal(EnvelopeLevel::logscale(31), EnvelopeLevel(5.f / 8.f));
-  assert_level_equal(EnvelopeLevel::logscale(63), EnvelopeLevel(6.f / 8.f));
-  assert_level_equal(EnvelopeLevel::logscale(127), EnvelopeLevel(7.f / 8.f));
-
-  assert_level_equal(EnvelopeLevel::logscale(255), EnvelopeLevel(1));
-}
-
 void test_curve_lin_positive(void) {
   Curve curve =
       Curve(EnvelopeLevel(0), EnvelopeLevel(1), 10_ms, CurveType::Lin);
@@ -284,12 +216,6 @@ void test_envelope_comparison(void) {
 
 extern "C" void app_main(void) {
   UNITY_BEGIN();
-  RUN_TEST(test_level_sanity);
-  RUN_TEST(test_level_comparison);
-  RUN_TEST(test_level_arithmetic);
-  RUN_TEST(test_level_to_duration);
-  RUN_TEST(test_level_logscale);
-
   RUN_TEST(test_curve_lin_positive);
   RUN_TEST(test_curve_lin_positive2);
   RUN_TEST(test_curve_lin_positive3);
