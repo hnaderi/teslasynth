@@ -1,6 +1,7 @@
 #pragma once
 
 #include "notes.hpp"
+#include "voice_event.hpp"
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -15,10 +16,22 @@
 namespace teslasynth::synth {
 using namespace teslasynth::core;
 
-template <std::uint8_t MAX_NOTES = CONFIG_MAX_NOTES> class Voice final {
+template <std::uint8_t MAX_NOTES = CONFIG_MAX_NOTES, class ELEMENT = VoiceEvent>
+class Voice final {
   uint8_t _size = MAX_NOTES;
-  std::array<Note, MAX_NOTES> _notes;
+  std::array<ELEMENT, MAX_NOTES> _notes;
   std::array<uint8_t, MAX_NOTES> _numbers;
+
+  uint8_t find_free(uint8_t id) {
+    uint8_t idx = 0;
+    for (uint8_t i = 0; i < _size; i++) {
+      if (_notes[i].is_active() && _numbers[i] != id)
+        continue;
+      idx = i;
+      break;
+    }
+    return idx;
+  }
 
 public:
   Voice() {}
@@ -27,19 +40,23 @@ public:
   Voice &operator=(const Voice &) = delete;
   Voice &operator=(Voice &&) = delete;
   Voice(uint8_t size) : _size(std::min(size, MAX_NOTES)) {}
-  Note &start(const MidiNote &mnote, Duration time,
-              const Instrument &instrument, Hertz tuning) {
-    uint8_t idx = 0;
-    for (uint8_t i = 0; i < _size; i++) {
-      if (_notes[i].is_active() && _numbers[i] != mnote.number)
-        continue;
-      idx = i;
-      break;
-    }
+  ELEMENT &start(const MidiNote &mnote, Duration time,
+                 const Instrument &instrument, Hertz tuning) {
+    const auto idx = find_free(mnote.number);
     _notes[idx].start(mnote, time, instrument, tuning);
     _numbers[idx] = mnote.number;
     return _notes[idx];
   }
+
+  ELEMENT &start(const MidiNote &mnote, const Percussion &params,
+                 Duration time) {
+    const auto id = mnote.number + 128;
+    const auto idx = find_free(id);
+    _notes[idx].start(mnote.velocity, params, time);
+    _numbers[idx] = id;
+    return _notes[idx];
+  }
+
   void release(uint8_t number, Duration time) {
     for (uint8_t i = 0; i < _size; i++) {
       if (_notes[i].is_active() && _numbers[i] == number) {
@@ -56,7 +73,7 @@ public:
       _notes[i].off();
   }
 
-  Note &next() {
+  ELEMENT &next() {
     uint8_t out = 0;
     Duration min = Duration::max();
     for (uint8_t i = 0; i < _size; i++) {

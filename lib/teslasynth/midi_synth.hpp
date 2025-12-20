@@ -269,7 +269,7 @@ public:
   Pulse sample(uint8_t ch, Duration16 max) {
     Pulse res;
 
-    Note *note = &_voices[ch].next();
+    auto *note = &_voices[ch].next();
     Duration next_edge = note->current().start;
     while (next_edge < _track.played_time(ch) && note->is_active()) {
       note->next();

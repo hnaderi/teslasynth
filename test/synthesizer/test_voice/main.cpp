@@ -2,8 +2,8 @@
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
-#include "voice.hpp"
 #include "synthesizer/helpers/assertions.hpp"
+#include "voice.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -13,17 +13,18 @@ constexpr Hertz tuning = 100_hz;
 Instrument instrument{.envelope = ADSR::constant(EnvelopeLevel(1)),
                       .vibrato = Vibrato::none()};
 constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
+typedef Voice<4, Note> NoteVoice;
 
 void test_empty(void) {
   Voice<> voice;
   TEST_ASSERT_EQUAL(0, voice.active());
 
-  Note &note = voice.next();
+  auto &note = voice.next();
   TEST_ASSERT_FALSE(note.is_active());
   TEST_ASSERT_FALSE(note.next());
 }
 
-void assert_note(Voice<> &voice, const MidiNote &mnote, const Duration &time) {
+void assert_note(NoteVoice &voice, const MidiNote &mnote, const Duration &time) {
   Note &note = voice.start(mnote, time, instrument, tuning);
 
   TEST_ASSERT_TRUE(note.is_active());
@@ -32,7 +33,7 @@ void assert_note(Voice<> &voice, const MidiNote &mnote, const Duration &time) {
 }
 
 void test_start(void) {
-  Voice<> voice;
+  NoteVoice voice;
   for (size_t i = 0; i < voice.max_size(); i++) {
     auto mnote = mnotef(i);
     Duration time = 1000_us * static_cast<int>(i);
@@ -43,7 +44,7 @@ void test_start(void) {
 
 void test_should_limit_concurrent_voice(void) {
   for (size_t max = 1; max < 5; max++) {
-    Voice<> voice(max);
+    NoteVoice voice(max);
     for (uint8_t i = 0; i < max; i++) {
       assert_note(voice, mnotef(i), 100_us * i);
       TEST_ASSERT_EQUAL(i + 1, voice.active());
@@ -57,7 +58,7 @@ void test_should_limit_concurrent_voice(void) {
 }
 
 void test_should_restart_the_same_note(void) {
-  Voice<> voice(2);
+  NoteVoice voice(2);
   assert_note(voice, mnotef(0), 200_us);
   assert_note(voice, mnotef(0), 100_us);
   TEST_ASSERT_EQUAL(1, voice.active());
@@ -66,17 +67,17 @@ void test_should_restart_the_same_note(void) {
 }
 
 void test_should_return_the_note_with_least_time(void) {
-  Voice<> voice;
+  NoteVoice voice;
   assert_note(voice, mnotef(1), 200_us);
   assert_note(voice, mnotef(2), 50_us);
   assert_note(voice, mnotef(3), 100_us);
-  Note &note = voice.next();
+  auto &note = voice.next();
   assert_hertz_equal(note.frequency(), mnotef(2).frequency(tuning));
   assert_duration_equal(note.current().start, 50_us);
 }
 
 void test_should_return_the_note_with_least_time_after_tick(void) {
-  Voice<> voice(4);
+  NoteVoice voice(4);
   assert_note(voice, mnotef(1), 200_us);
   assert_note(voice, mnotef(2), 50_us);
   assert_note(voice, mnotef(3), 100_us);
@@ -102,7 +103,7 @@ void test_should_return_the_note_with_least_time_after_tick(void) {
 }
 
 void test_should_release_note(void) {
-  Voice<> voice;
+  NoteVoice voice;
   auto mnote = mnotef(1);
   assert_note(voice, mnote, 200_ms);
   Note &note = voice.next();
@@ -113,7 +114,7 @@ void test_should_release_note(void) {
 }
 
 void test_should_release_note_on_start_with_zero_velocity(void) {
-  Voice<> voice;
+  NoteVoice voice;
   auto mnote = mnotef(1);
   assert_note(voice, mnote, 200_ms);
   Note &note = voice.next();
@@ -124,7 +125,7 @@ void test_should_release_note_on_start_with_zero_velocity(void) {
 }
 
 void test_should_not_release_other_voice(void) {
-  Voice<> voice;
+  NoteVoice voice;
   assert_note(voice, mnotef(0), 100_ms);
   assert_note(voice, mnotef(1), 200_ms);
   Note &note = voice.next();
@@ -134,7 +135,7 @@ void test_should_not_release_other_voice(void) {
 }
 
 void test_should_allow_the_minimum_size_of_one(void) {
-  Voice<> voice(1);
+  NoteVoice voice(1);
   assert_note(voice, mnotef(0), 100_ms);
   assert_note(voice, mnotef(1), 200_ms);
   TEST_ASSERT_EQUAL(voice.active(), 1);
@@ -145,7 +146,7 @@ void test_should_allow_the_minimum_size_of_one(void) {
 }
 
 void test_off(void) {
-  Voice<> voice;
+  NoteVoice voice;
   assert_note(voice, mnotef(0), 200_ms);
   assert_note(voice, mnotef(1), 200_ms);
   TEST_ASSERT_EQUAL(2, voice.active());
@@ -156,7 +157,7 @@ void test_off(void) {
 }
 
 void test_should_return_the_note_with_least_time2(void) {
-  Voice<> voice;
+  NoteVoice voice;
   Note *note1 = &voice.start(mnotef(1), 200_us, instrument, tuning),
        *note2 = &voice.start(mnotef(2), 1_s, instrument, tuning),
        *note3 = &voice.start(mnotef(3), 2_s, instrument, tuning);
@@ -195,7 +196,7 @@ void test_should_return_the_note_with_least_time2(void) {
 }
 
 void test_adjust_size(void) {
-  Voice<4> voice(3);
+  NoteVoice voice(3);
   assert_note(voice, mnotef(0), 200_ms);
   assert_note(voice, mnotef(1), 200_ms);
   TEST_ASSERT_EQUAL(2, voice.active());

@@ -99,7 +99,7 @@ StreamBufferHandle_t init(PlaybackHandle handle) {
 
   constexpr BaseType_t app_core =
       CONFIG_FREERTOS_NUMBER_OF_CORES > 1 ? 1 : tskNO_AFFINITY;
-  constexpr size_t stack_size = 2 * 1024;
+  constexpr size_t stack_size = 4 * 1024;
   xTaskCreatePinnedToCore(input, "Input", stack_size, nullptr, 10, nullptr,
                           app_core);
   xTaskCreatePinnedToCore(output, "Output", stack_size, nullptr, 10, nullptr,
