@@ -90,6 +90,9 @@ struct MidiChannelNumber {
   uint8_t value;
   constexpr MidiChannelNumber(uint8_t v = 0) : value(v & 0x0F) {}
   constexpr operator uint8_t() const { return value; }
+
+  constexpr static uint8_t min = 0;
+  constexpr static uint8_t max = 15;
 };
 
 struct MidiStatus {

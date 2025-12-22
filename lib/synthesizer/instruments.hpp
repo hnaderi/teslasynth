@@ -12,10 +12,10 @@ struct Instrument {
   ADSR envelope;
   Vibrato vibrato;
 
-  constexpr bool operator==(Instrument b) const {
+  constexpr bool operator==(const Instrument &b) const {
     return envelope == b.envelope && vibrato == b.vibrato;
   }
-  constexpr bool operator!=(Instrument b) const {
+  constexpr bool operator!=(const Instrument &b) const {
     return envelope != b.envelope || vibrato != b.vibrato;
   }
 

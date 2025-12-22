@@ -2,6 +2,7 @@
 
 #include "../midi/midi_core.hpp"
 #include "../synthesizer/voice.hpp"
+#include "channel_mapping.hpp"
 #include "config_data.hpp"
 #include "core.hpp"
 #include "instruments.hpp"
@@ -153,9 +154,9 @@ template <std::uint8_t OUTPUTS = 1, class N = Voice<>> class Teslasynth final {
   TrackState<OUTPUTS> _track;
   Instrument const *_instruments = instruments.begin();
   size_t _instruments_size = instruments.size();
-  std::array<uint8_t, OUTPUTS> current_instrument_{};
   std::array<N, OUTPUTS> _voices;
   std::array<DutyLimiter, OUTPUTS> _limiters;
+  InstrumentMapping current_instrument_;
 
 public:
   Teslasynth(
@@ -224,49 +225,59 @@ public:
     }
   }
 
-  inline void change_instrument(uint8_t ch, uint8_t n) {
-    if (ch < OUTPUTS) {
-      current_instrument_[ch] =
-          std::min<uint8_t>(_instruments_size, std::max<uint8_t>(0, n));
-    }
+  inline void change_instrument(MidiChannelNumber ch, uint8_t n) {
+    current_instrument_[ch] =
+        std::min<uint8_t>(_instruments_size, std::max<uint8_t>(0, n));
   }
 
-  inline constexpr uint8_t instrument_number(uint8_t ch) const {
-    assert(ch < OUTPUTS);
+  inline constexpr uint8_t instrument_number(MidiChannelNumber ch) const {
     return config_.channel(ch).instrument.value_or(
         config_.synth().instrument.value_or(current_instrument_[ch]));
   }
 
-  inline const Instrument &instrument(uint8_t ch) const {
+  inline const Instrument &instrument(MidiChannelNumber ch) const {
     const auto nr = instrument_number(ch);
     return nr < _instruments_size ? _instruments[nr] : default_instrument();
   }
 
-  inline void note_off(uint8_t ch, uint8_t number, Duration time) {
+  inline void note_off(MidiChannelNumber ch, uint8_t number, Duration time) {
     if (_track.is_playing()) {
-      if (ch < OUTPUTS) {
-        Duration delta = _track.on_receive(ch, time);
-        _voices[ch].release(number, delta);
+      if (auto output_id = config_.routing().mapping[ch].value()) {
+        Duration delta = _track.on_receive(*output_id, time);
+        _voices[*output_id].release(number, delta);
       }
     }
   }
-  inline void note_off(uint8_t ch, MidiNote mnote, Duration time) {
+  inline void note_off(MidiChannelNumber ch, MidiNote mnote, Duration time) {
     note_off(ch, mnote.number, time);
   }
 
-  inline void note_on(uint8_t ch, uint8_t number, uint8_t velocity,
+  inline void note_on(MidiChannelNumber ch, uint8_t number, uint8_t velocity,
                       Duration time) {
-    if (ch < OUTPUTS) {
-      Duration delta = _track.on_receive(ch, time);
-      _voices[ch].start({number, velocity}, delta, instrument(ch),
-                        config_.synth().tuning);
+    if (auto output_id = config_.routing().mapping[ch].value()) {
+      Duration delta = _track.on_receive(*output_id, time);
+      MidiNote mnote{number, velocity};
+      if (ch == 9 && config_.routing().percussion) {
+        constexpr static Percussion p{
+            .burst = 80_ms,
+            .prf = 1200_hz,
+            .noise = Probability(0.25f),
+            .skip = Probability(0.1f),
+        };
+        PercussivePreset preset{&p};
+        _voices[*output_id].start(mnote, delta, preset);
+      } else {
+        PitchPreset preset{&instrument(ch), config_.synth().tuning};
+        _voices[*output_id].start(mnote, delta, preset);
+      }
     }
   }
-  inline void note_on(uint8_t ch, MidiNote mnote, Duration time) {
+  inline void note_on(MidiChannelNumber ch, MidiNote mnote, Duration time) {
     note_on(ch, mnote.number, mnote.velocity, time);
   }
 
   Pulse sample(uint8_t ch, Duration16 max) {
+    assert(ch < OUTPUTS);
     Pulse res;
 
     auto *note = &_voices[ch].next();
@@ -321,8 +332,9 @@ public:
 
   const TrackState<OUTPUTS> &track() const { return _track; }
   const N &voice(uint8_t i = 0) const {
-    assert(i < OUTPUTS);
-    return _voices[i];
+    auto ch = OutputNumber<OUTPUTS>::from(i);
+    assert(ch.has_value());
+    return _voices[*ch];
   }
 };
 

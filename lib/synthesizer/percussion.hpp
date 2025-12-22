@@ -15,6 +15,22 @@ struct Percussion {
   Hertz prf = 0_hz;
   Probability noise = Probability();
   Probability skip = Probability();
+
+  constexpr bool operator==(const Percussion &b) const {
+    return burst == b.burst && prf == b.prf && noise == b.noise &&
+           skip == b.skip;
+  }
+  constexpr bool operator!=(const Percussion &b) const {
+    return burst != b.burst || prf != b.prf || noise != b.noise ||
+           skip != b.skip;
+  }
+
+  inline operator std::string() const {
+    std::string stream = "Burst " + std::string(burst) + " PRF " +
+                         std::string(prf) + " Noise " + std::string(noise) +
+                         " Skip " + std::string(skip);
+    return stream;
+  }
 };
 
 class Hit {
@@ -27,7 +43,7 @@ class Hit {
   inline float random();
 
 public:
-  void start(uint8_t velocity, const Percussion &params, Duration time);
+  void start(const MidiNote& mnote, Duration time, const Percussion &params);
   bool next();
   const NotePulse &current() const { return current_; }
   bool is_active() const { return now < end; }

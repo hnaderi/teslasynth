@@ -43,7 +43,8 @@ bool Hit::next() {
   return active;
 }
 
-void Hit::start(uint8_t velocity, const Percussion &params, Duration time) {
+void Hit::start(const MidiNote &mnote, Duration time,
+                const Percussion &params) {
   // Xorshift relies on rng_state not be zero
   // Reset it if zero, otherwise use whatever value in memory (possibly some
   // garbage from other colocated data)
@@ -52,7 +53,7 @@ void Hit::start(uint8_t velocity, const Percussion &params, Duration time) {
 
   now = time;
   end = time + params.burst;
-  volume_ = EnvelopeLevel::logscale(velocity * 2 + 1);
+  volume_ = EnvelopeLevel::logscale(mnote.velocity * 2 + 1);
   prf = params.prf;
   noise_ = params.noise;
   skip_ = params.skip;

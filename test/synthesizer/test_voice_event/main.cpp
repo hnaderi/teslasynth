@@ -3,6 +3,7 @@
 #include "instruments.hpp"
 #include "notes.hpp"
 #include "percussion.hpp"
+#include "presets.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include "voice_event.hpp"
 #include <cstdint>
@@ -23,7 +24,8 @@ void test_empty(void) {
 static void start_tone(VoiceEvent &event) {
   const MidiNote mnote{.number = 69, .velocity = 127};
   const Instrument instrument;
-  event.start(mnote, 1_s, instrument, 100_hz);
+  const PitchPreset preset{&instrument, 100_hz};
+  event.start(mnote, 1_s, preset);
 }
 
 void test_start_tone(void) {
@@ -55,7 +57,8 @@ void test_start_tone(void) {
 void test_start_hit(void) {
   VoiceEvent event;
   const Percussion percussion{20_ms, 1_khz};
-  event.start(127, percussion, 1_s);
+  const PercussivePreset preset{&percussion};
+  event.start({127, 0}, 1_s, preset);
 
   const Duration32 period = 1_ms;
   Duration32 now = 1_s;

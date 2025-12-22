@@ -1,6 +1,7 @@
 #pragma once
 
 #include "notes.hpp"
+#include "presets.hpp"
 #include "voice_event.hpp"
 #include <algorithm>
 #include <array>
@@ -40,20 +41,12 @@ public:
   Voice &operator=(const Voice &) = delete;
   Voice &operator=(Voice &&) = delete;
   Voice(uint8_t size) : _size(std::min(size, MAX_NOTES)) {}
-  ELEMENT &start(const MidiNote &mnote, Duration time,
-                 const Instrument &instrument, Hertz tuning) {
-    const auto idx = find_free(mnote.number);
-    _notes[idx].start(mnote, time, instrument, tuning);
-    _numbers[idx] = mnote.number;
-    return _notes[idx];
-  }
 
-  ELEMENT &start(const MidiNote &mnote, const Percussion &params,
-                 Duration time) {
-    const auto id = mnote.number + 128;
-    const auto idx = find_free(id);
-    _notes[idx].start(mnote.velocity, params, time);
-    _numbers[idx] = id;
+  ELEMENT &start(const MidiNote &mnote, Duration time,
+                 const SoundPreset &preset) {
+    const auto idx = find_free(mnote.number);
+    _notes[idx].start(mnote, time, preset);
+    _numbers[idx] = mnote.number;
     return _notes[idx];
   }
 

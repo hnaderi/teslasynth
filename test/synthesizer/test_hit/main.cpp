@@ -18,7 +18,7 @@ void test_empty(void) {
 void test_start(void) {
   Hit hit;
 
-  hit.start(127, {30_ms, 1_khz}, 1_s);
+  hit.start({127, 0}, 1_s, {30_ms, 1_khz});
   TEST_ASSERT_TRUE(hit.is_active());
   TEST_ASSERT_TRUE(hit.current().start >= 1_s);
   TEST_ASSERT_FALSE(hit.current().period.is_zero());
@@ -28,7 +28,7 @@ void test_start(void) {
 void test_generate_bursts(void) {
   Hit hit;
 
-  hit.start(127, {30_ms, 1_khz}, 1_s);
+  hit.start({127, 0}, 1_s, {30_ms, 1_khz});
   TEST_ASSERT_TRUE(hit.is_active());
   Duration32 last = 1_s;
   auto counter = 0;

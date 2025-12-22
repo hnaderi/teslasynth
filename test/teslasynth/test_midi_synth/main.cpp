@@ -5,6 +5,7 @@
 #include "midi_core.hpp"
 #include "midi_synth.hpp"
 #include "notes.hpp"
+#include "presets.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include "unity_internals.h"
 #include <cstdint>
@@ -26,8 +27,37 @@ public:
   struct Started {
     MidiNote mnote;
     Duration time;
-    Instrument instrument;
-    Hertz tuning;
+    const SoundPreset preset;
+
+    bool is_pitch() const {
+      return std::holds_alternative<PitchPreset>(preset);
+    }
+    bool is_perc() const {
+      return std::holds_alternative<PercussivePreset>(preset);
+    }
+    const PitchPreset &as_pitch() const {
+      return std::get<PitchPreset>(preset);
+    }
+
+    const PercussivePreset &as_perc() const {
+      return std::get<PercussivePreset>(preset);
+    }
+
+    void
+    assert_instrument(const Instrument &expectedInst //, Hertz expectedTuning,
+    ) const {
+      TEST_ASSERT_TRUE_MESSAGE(is_pitch(),
+                               "Expected PitchPreset but got PercussivePreset");
+      const auto &p = as_pitch();
+      assert_instrument_equal(expectedInst, *p.instrument);
+    }
+    void assert_percussion(const Percussion &expectedPerc) const {
+      TEST_ASSERT_TRUE_MESSAGE(is_perc(),
+                               "Expected PercussivePreset but got PitchPreset");
+      const auto &p = as_perc();
+      TEST_ASSERT_TRUE_MESSAGE(expectedPerc == *p.percussion,
+                               "Percussion pointer mismatch");
+    }
   };
 
   struct Released {
@@ -44,11 +74,11 @@ private:
   std::vector<uint8_t> adjusts_;
 
 public:
-  Note &start(const MidiNote &mnote, Duration time,
-              const Instrument &instrument, Hertz tuning) {
-    started_.push_back({mnote, time, instrument, tuning});
+  Note &start(const MidiNote &mnote, Duration time, const SoundPreset &preset) {
+    started_.push_back({mnote, time, preset});
     return note;
   }
+
   void release(uint8_t number, Duration time) {
     released_.push_back({number, time});
   }
@@ -88,7 +118,7 @@ void test_should_handle_note_on(void) {
     assert_duration_equal(notes.started().back().time, now);
     TEST_ASSERT_EQUAL(69 + i, notes.started().back().mnote.number);
     TEST_ASSERT_EQUAL(10 * i, notes.started().back().mnote.velocity);
-    TEST_ASSERT_TRUE(notes.started().back().instrument == default_instrument());
+    notes.started().back().assert_instrument(default_instrument());
   }
 }
 
@@ -143,7 +173,7 @@ void test_should_handle_instrument_change(void) {
 
     TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, voice.started().size());
-    assert_instrument_equal(voice.started().back().instrument, instrument(i));
+    voice.started().back().assert_instrument(instrument(i));
   }
 }
 
@@ -167,7 +197,7 @@ void test_should_ignore_instrument_change_when_config_has_instrument(void) {
 
     TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, voice.started().size());
-    assert_instrument_equal(voice.started().back().instrument, instrument(2));
+    voice.started().back().assert_instrument(instrument(2));
   }
 }
 
@@ -223,7 +253,7 @@ void test_should_start_playing_the_first_note_on_message(void) {
   assert_duration_equal(voice.started().back().time, Duration::zero());
   TEST_ASSERT_EQUAL(69, voice.started().back().mnote.number);
   TEST_ASSERT_EQUAL(127, voice.started().back().mnote.velocity);
-  TEST_ASSERT_TRUE(voice.started().back().instrument == default_instrument());
+  voice.started().back().assert_instrument(default_instrument());
 }
 
 void test_should_ignore_off_messages_when_not_playing(void) {

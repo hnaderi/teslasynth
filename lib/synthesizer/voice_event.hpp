@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <notes.hpp>
 #include <optional>
+#include <presets.hpp>
 #include <string>
 
 namespace teslasynth::synth {
@@ -29,9 +30,7 @@ private:
   Type type_ = Type::None;
 
 public:
-  void start(const MidiNote &mnote, Duration time,
-              const Instrument &instrument, Hertz tuning);
-  void start(uint8_t velocity, const Percussion &params, Duration time);
+  void start(const MidiNote &mnote, Duration time, const SoundPreset &preset);
 
   void release(Duration time);
   void off();

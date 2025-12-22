@@ -2,6 +2,7 @@
 
 #include "../midi/midi_core.hpp"
 #include "../synthesizer/notes.hpp"
+#include "channel_mapping.hpp"
 #include "core.hpp"
 #include "instruments.hpp"
 #include <algorithm>
@@ -98,9 +99,15 @@ struct SynthConfig {
   }
 };
 
+template <std::uint8_t OUTPUTS = 1> struct MidiRoutingConfig final {
+  ChannelMapping<OUTPUTS> mapping;
+  bool percussion = false;
+};
+
 template <std::uint8_t OUTPUTS = 1> class Configuration {
   SynthConfig synth_;
   std::array<ChannelConfig, OUTPUTS> channels_{};
+  MidiRoutingConfig<OUTPUTS> routing_{};
 
 public:
   constexpr Configuration() {}
@@ -130,10 +137,15 @@ public:
   const std::array<ChannelConfig, OUTPUTS> &channels() const {
     return channels_;
   }
+
+  MidiRoutingConfig<OUTPUTS> &routing() { return routing_; }
+  const MidiRoutingConfig<OUTPUTS> &routing() const { return routing_; }
+
   constexpr uint8_t channels_size() const { return OUTPUTS; }
 
   constexpr bool operator==(const Configuration<OUTPUTS> &other) const {
-    return synth_ == other.synth_ && channels_ == other.channels_;
+    return synth_ == other.synth_ && channels_ == other.channels_ &&
+           routing_ == other.routing_;
   }
 
   inline operator std::string() const {
