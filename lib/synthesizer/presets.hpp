@@ -1,9 +1,5 @@
 #pragma once
 
-#include "array"
-#include "envelope.hpp"
-#include "lfo.hpp"
-#include <core/hertz.hpp>
 #include <instruments.hpp>
 #include <percussion.hpp>
 #include <stddef.h>

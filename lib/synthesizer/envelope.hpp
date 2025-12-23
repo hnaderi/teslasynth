@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.hpp"
+#include "curve.hpp"
 #include <cmath>
 #include <cstdint>
 #include <optional>
@@ -8,9 +9,6 @@
 
 namespace teslasynth::synth {
 using namespace teslasynth::core;
-
-constexpr float epsilon = 0.001;
-enum CurveType { Lin, Exp, Const };
 
 struct ADSR {
   Duration32 attack;
@@ -60,30 +58,6 @@ struct ADSR {
 
     return stream;
   }
-};
-
-union CurveState {
-  float tau;   // Exp
-  float slope; // Lin
-};
-
-class Curve {
-  EnvelopeLevel _target;
-  CurveType _type;
-  Duration32 _total;
-
-  Duration32 _elapsed;
-  EnvelopeLevel _current;
-  CurveState _state;
-  bool _target_reached = false;
-
-public:
-  Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total,
-        CurveType type);
-  Curve(EnvelopeLevel constant);
-  EnvelopeLevel update(Duration32 delta);
-  bool is_target_reached() const { return _target_reached; }
-  std::optional<Duration32> will_reach_target(const Duration32 &dt) const;
 };
 
 class Envelope {
