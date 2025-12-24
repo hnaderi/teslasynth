@@ -48,8 +48,7 @@ struct MidiNote {
 
 class Note final {
   Hertz _freq = Hertz(0);
-  Envelope _envelope =
-      Envelope(ADSR{0_us, 0_us, EnvelopeLevel(0), 0_us, CurveType::Lin});
+  Envelope _envelope;
   Vibrato _vibrato;
   NotePulse _pulse;
   EnvelopeLevel _level, _volume;

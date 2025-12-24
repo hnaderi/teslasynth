@@ -144,7 +144,7 @@ void test_note_start_after_release(void) {
 
 void test_note_envelope(void) {
   Envelope envelope(
-      ADSR{200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms, CurveType::Lin});
+      envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
   note.start(mnote1, 0_us, envelope, tuning);
   assert_duration_equal(note.current().start, 0_ms);
   assert_level_equal(note.current().volume, EnvelopeLevel::zero());
@@ -188,7 +188,7 @@ void test_note_envelope(void) {
 
 void test_note_envelope2(void) {
   Envelope envelope(
-      ADSR{200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms, CurveType::Lin});
+      envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
   note.start(mnote1, 0_us, envelope, tuning);
   assert_duration_equal(note.current().start, 0_ms);
   assert_level_equal(note.current().volume, EnvelopeLevel::zero());
@@ -232,7 +232,7 @@ void test_note_envelope2(void) {
 
 void test_note_volume(void) {
   Envelope envelope(
-      ADSR{200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms, CurveType::Lin});
+      envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
 
   auto volume = EnvelopeLevel(7.f / 8);
   note.start(mnote(0, 63), 0_us, envelope, tuning);

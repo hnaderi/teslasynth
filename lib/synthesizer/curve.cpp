@@ -12,7 +12,8 @@ constexpr float logfactor = 6.907755278982137;
 
 Curve::Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total,
              CurveType type)
-    : _target(target), _type(type), _total(total), _current(start) {
+    : _target(target), _type(type), _total(total), _current(start),
+      _const(false) {
   const auto t = total.micros();
   if (t <= 0) {
     _target_reached = true;
@@ -25,25 +26,21 @@ Curve::Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total,
     case Lin:
       _state.slope = (target - start) / t;
       break;
-    case Const:
-      _target_reached = true;
-      _current = target;
-      break;
     }
 }
 Curve::Curve(EnvelopeLevel constant)
-    : _target(constant), _type(Const), _current(constant),
-      _target_reached(true) {}
+    : _target(constant), _type(Lin), _current(constant), _target_reached(false),
+      _const(true) {}
 
 std::optional<Duration32> Curve::will_reach_target(const Duration32 &dt) const {
-  if (_type != Const)
+  if (!_const)
     return (dt + _elapsed) - _total;
   else
-    return dt;
+    return std::nullopt;
 }
 
 EnvelopeLevel Curve::update(Duration32 delta) {
-  if (_target_reached || _type == Const) {
+  if (_target_reached || _const) {
     // noop
   } else if (_elapsed + delta >= _total) {
     _target_reached = true;

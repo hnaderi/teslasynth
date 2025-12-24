@@ -15,8 +15,7 @@
 #include <vector>
 
 constexpr Hertz tuning = 100_hz;
-Instrument instrument{.envelope = ADSR::constant(EnvelopeLevel(1)),
-                      .vibrato = Vibrato::none()};
+Instrument instrument{.envelope = EnvelopeLevel(1), .vibrato = Vibrato::none()};
 PitchPreset preset{&instrument, tuning};
 
 constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }

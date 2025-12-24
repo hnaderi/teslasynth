@@ -52,12 +52,6 @@ inline void assert_hertz_equal(Hertz a, Hertz b, int line) {
 inline void assert_hertz_not_equal(Hertz a, Hertz b, int line) {
   UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
 }
-inline void assert_adsr_equal(ADSR a, ADSR b, int line) {
-  UNITY_TEST_ASSERT(a == b, line, __msg_for(a, b).c_str());
-}
-inline void assert_adsr_not_equal(ADSR a, ADSR b, int line) {
-  UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
-}
 inline void assert_vibrato_equal(Vibrato a, Vibrato b, int line) {
   UNITY_TEST_ASSERT(a == b, line, __msg_for(a, b).c_str());
 }
@@ -96,12 +90,6 @@ inline void assert_instrument_not_equal(Instrument a, Instrument b, int line) {
 
 #define assert_hertz_not_equal(a, b)                                           \
   synth::assertions::assert_hertz_not_equal(a, b, __LINE__);
-
-#define assert_adsr_equal(a, b)                                                \
-  synth::assertions::assert_adsr_equal(a, b, __LINE__);
-
-#define assert_adsr_not_equal(a, b)                                            \
-  synth::assertions::assert_adsr_not_equal(a, b, __LINE__);
 
 #define assert_vibrato_equal(a, b)                                             \
   synth::assertions::assert_vibrato_equal(a, b, __LINE__);

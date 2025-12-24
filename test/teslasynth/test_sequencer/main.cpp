@@ -20,7 +20,7 @@ constexpr ChannelConfig config_(uint8_t notes) {
 constexpr ChannelConfig config = config_(4);
 constexpr SynthConfig sconf = {.tuning = 100_hz};
 constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
-constexpr Instrument instrument{.envelope = ADSR::constant(EnvelopeLevel(1)),
+constexpr Instrument instrument{.envelope = EnvelopeLevel(1),
                                 .vibrato = Vibrato::none()};
 
 struct PulseBufferOverview {

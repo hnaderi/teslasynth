@@ -9,7 +9,7 @@
 namespace teslasynth::synth {
 using namespace teslasynth::core;
 
-enum CurveType { Lin, Exp, Const };
+enum CurveType { Lin, Exp };
 union CurveState {
   float tau;   // Exp
   float slope; // Lin
@@ -23,7 +23,7 @@ class Curve {
   Duration32 _elapsed;
   EnvelopeLevel _current;
   CurveState _state;
-  bool _target_reached = false;
+  bool _target_reached = false, _const;
 
 public:
   Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total,
@@ -32,5 +32,7 @@ public:
   EnvelopeLevel update(Duration32 delta);
   bool is_target_reached() const { return _target_reached; }
   std::optional<Duration32> will_reach_target(const Duration32 &dt) const;
+  constexpr CurveType type() const { return _type; }
+  constexpr bool hold() const { return _const; }
 };
 } // namespace teslasynth::synth
