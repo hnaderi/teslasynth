@@ -51,7 +51,7 @@ void test_envelope_exp_full(void) {
   TEST_ASSERT_TRUE(env.is_off());
 }
 void test_envelope_const_full(void) {
-  Envelope2<envelopes::ConstConfig> env(EnvelopeLevel(0.5));
+  Envelope env(EnvelopeLevel(0.5));
   TEST_ASSERT_EQUAL(0, env.stage());
   assert_level_equal(env.update(3_ms, true), EnvelopeLevel(0.5));
   assert_level_equal(env.update(3000_ms, true), EnvelopeLevel(0.5));
@@ -61,7 +61,7 @@ void test_envelope_const_full(void) {
 }
 
 void test_envelope_const_zero(void) {
-  Envelope2<envelopes::ConstConfig> env(EnvelopeLevel(0));
+  Envelope env(EnvelopeLevel(0));
   TEST_ASSERT_EQUAL(0, env.stage());
   assert_level_equal(env.update(0_ms, true), EnvelopeLevel(0));
   assert_level_equal(env.update(3_ms, true), EnvelopeLevel(0));
@@ -71,7 +71,7 @@ void test_envelope_const_zero(void) {
   TEST_ASSERT_TRUE(env.is_off());
 }
 void test_envelope_const_value(void) {
-  Envelope2<envelopes::ConstConfig> env(EnvelopeLevel(0.4));
+  Envelope env(EnvelopeLevel(0.4));
   TEST_ASSERT_EQUAL(0, env.stage());
   assert_level_equal(env.update(0_ms, true), EnvelopeLevel(0.4));
   assert_level_equal(env.update(3_ms, true), EnvelopeLevel(0.4));
