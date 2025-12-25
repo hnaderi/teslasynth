@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { NumberInput } from './components/NumberInput';
 import { ConfirmDialog } from './components/confirmation';
 import { InstrumentSelect } from './components/InstrumentSelect';
+import { RoutingConfigSection } from './components/RoutingConfigSection';
 const synthConfig = (init) => fetch('/api/config/synth', init)
 
 function SynthChannelConfigSection({ channel, channelIdx, onChange, instruments }) {
@@ -157,6 +158,14 @@ function SynthConfigForm({
                     })
                 ))}
             </div>
+
+            <RoutingConfigSection
+                routing={draft.routing}
+                channelCount={draft.channels.length}
+                onChange={routing =>
+                    setDraft({ ...draft, routing })
+                }
+            />
 
             <footer>
                 <div class="grid">

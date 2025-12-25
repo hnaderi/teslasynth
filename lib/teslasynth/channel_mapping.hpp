@@ -68,6 +68,8 @@ public:
   }
   constexpr const Mapping &data() const { return data_; }
   constexpr auto size() const { return data_.size(); }
+  constexpr auto begin() const { return data_.begin(); }
+  constexpr auto end() const { return data_.end(); }
 };
 
 class InstrumentMapping final {

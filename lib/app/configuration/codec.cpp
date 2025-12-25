@@ -74,6 +74,28 @@ bool parse(JSONParser &parser, AppConfig &config) {
     }
   }
 
+  auto routing = root.get(keys::routing);
+  if (routing.is_obj()) {
+    auto mapping = routing.get(keys::mapping);
+    auto percussion = routing.get(keys::percussion);
+
+    if (percussion.is_bool() && mapping.is_arr()) {
+      config.routing().percussion = *percussion.boolean();
+      auto &array = config.routing().mapping;
+      uint8_t i = 0;
+      for (const auto &m : mapping.arr()) {
+        if (i >= array.size() || !m.is_number()) {
+          return false;
+        }
+        array[i] = *m.number();
+        i++;
+      }
+    } else
+      return false;
+  } else {
+    return false;
+  }
+
   return true;
 }
 
@@ -100,6 +122,15 @@ JSONEncoder encode(const AppConfig &config) {
     else
       obj.add_null(keys::instrument);
   }
+
+  auto routing = root.add_object(keys::routing);
+  routing.add_bool(keys::percussion, config.routing().percussion);
+  auto routing_array = routing.add_array(keys::mapping);
+  for (const auto &m : config.routing().mapping) {
+    auto o = m.value();
+    routing_array.add(o.has_value() ? static_cast<int>(*o) : -1);
+  }
+
   return encoder;
 }
 } // namespace teslasynth::app::configuration::codec

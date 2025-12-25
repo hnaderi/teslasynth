@@ -13,6 +13,9 @@ constexpr const char *tuning = "tuning";
 constexpr const char *notes = "notes";
 constexpr const char *channels = "channels";
 constexpr const char *instrument = "instrument";
+constexpr const char *routing = "routing";
+constexpr const char *percussion = "percussion";
+constexpr const char *mapping = "mapping";
 }; // namespace keys
 
 bool parse(helpers::JSONParser &parser, AppConfig &config);
