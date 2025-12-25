@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../midi/midi_core.hpp"
+#include "../synthesizer/bank/percussions.hpp"
 #include "../synthesizer/voice.hpp"
 #include "channel_mapping.hpp"
 #include "config_data.hpp"
@@ -258,13 +259,7 @@ public:
       Duration delta = _track.on_receive(*output_id, time);
       MidiNote mnote{number, velocity};
       if (ch == 9 && config_.routing().percussion) {
-        constexpr static Percussion p{
-            .burst = 80_ms,
-            .prf = 1200_hz,
-            .noise = Probability(0.25f),
-            .skip = Probability(0.1f),
-        };
-        PercussivePreset preset{&p};
+        PercussivePreset preset{&bank::percussion_from_midi_note(number)};
         _voices[*output_id].start(mnote, delta, preset);
       } else {
         PitchPreset preset{&instrument(ch), config_.synth().tuning};

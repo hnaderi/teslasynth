@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "argtable3/argtable3.h"
+#include "config_data.hpp"
 #include "config_parser.hpp"
 #include "core.hpp"
 #include "esp_console.h"
@@ -25,6 +26,8 @@ constexpr const char *duty_window = "duty-window";
 constexpr const char *tuning = "tuning";
 constexpr const char *notes = "notes";
 constexpr const char *instrument = "instrument";
+constexpr const char *percussion = "percussion";
+constexpr const char *routing = "routing";
 }; // namespace keys
 
 typedef struct {
@@ -94,6 +97,22 @@ void print_channel_config(uint8_t nr, const ChannelConfig &config) {
          instrument_value(config));
 }
 
+void print_routing_config(const AppMidiRoutingConfig &config) {
+  printf("Routing configuration:\n"
+         "\t%s = %s",
+         keys::percussion, config.percussion ? "on" : "off");
+  for (auto i = 0; i < config.mapping.size(); i++) {
+    if (i % 4 == 0)
+      printf("\n\t");
+    auto v = config.mapping[i].value();
+    if (v)
+      printf("[%d -> %d] ", i + 1, *v + 1);
+    else
+      printf("[%d -> x] ", i + 1);
+  }
+  printf("\n");
+}
+
 int print_config(AppConfig &config) {
   printf("Synth configuration:\n"
          "\t%s = %s\n"
@@ -104,6 +123,7 @@ int print_config(AppConfig &config) {
   for (auto i = 0; i < config.channels_size(); i++) {
     print_channel_config(i, config.channel(i));
   }
+  print_routing_config(config.routing());
 
   return 0;
 }
@@ -116,12 +136,8 @@ int update_config(AppConfig &config, const char *val) {
   }
 
   const auto key = result.value().key, value = result.value().value;
-  const auto channel = result.value().channel;
-  if (channel > config.channels_size()) {
-    printf("Invalid channel number %d\n", channel);
-    return 2;
-  }
-  if (channel == 0) {
+  const auto index = result.value().channel;
+  if (index == 0) {
     if (key == keys::instrument) {
       if (!set_instrument(value, config.synth().instrument)) {
         return 3;
@@ -137,42 +153,84 @@ int update_config(AppConfig &config, const char *val) {
                std::string(value).c_str());
         return 3;
       }
+    } else if (key == keys::percussion) {
+      auto n = parser::parse_number<int>(value);
+      if (n.has_value()) {
+        config.routing().percussion = *n > 0;
+      } else {
+        printf("Invalid percussion: %s, use 0 or less to turn off, larger "
+               "values to turn on",
+               std::string(value).c_str());
+        return 3;
+      }
     } else {
       printf("Unknown key: %s\n", std::string(key).c_str());
       return 3;
     }
   } else {
-    ChannelConfig &chConfig = config.channel(channel - 1);
     if (key == keys::max_on_time) {
-      if (!set_duration(value, chConfig.max_on_time, keys::max_on_time)) {
+      if (index > config.channels_size()) {
+        printf("Invalid channel number %d\n", index);
+        return 2;
+      }
+      if (!set_duration(value, config.channel(index - 1).max_on_time,
+                        keys::max_on_time)) {
         return 3;
       }
     } else if (key == keys::min_deadtime) {
-      if (!set_duration(value, chConfig.min_deadtime, keys::min_deadtime)) {
+      if (!set_duration(value, config.channel(index - 1).min_deadtime,
+                        keys::min_deadtime)) {
         return 3;
       }
     } else if (key == keys::notes) {
+      if (index > config.channels_size()) {
+        printf("Invalid channel number %d\n", index);
+        return 2;
+      }
       auto n = parser::parse_number<uint8_t>(value);
       if (n.has_value() && n < config.channels_size()) {
-        chConfig.notes = *n;
+        config.channel(index - 1).notes = *n;
       } else {
         printf("Invalid frequency: %s", std::string(value).c_str());
         return 3;
       }
     } else if (key == keys::max_duty) {
+      if (index > config.channels_size()) {
+        printf("Invalid channel number %d\n", index);
+        return 2;
+      }
       auto n = parser::parse_number<float>(value);
       if (n.has_value()) {
-        chConfig.max_duty = DutyCycle(*n);
+        config.channel(index - 1).max_duty = DutyCycle(*n);
       } else {
         printf("Invalid dutycycle: %s", std::string(value).c_str());
         return 3;
       }
     } else if (key == keys::duty_window) {
-      if (!set_duration(value, chConfig.duty_window, keys::duty_window)) {
+      if (index > config.channels_size()) {
+        printf("Invalid channel number %d\n", index);
+        return 2;
+      }
+      if (!set_duration(value, config.channel(index - 1).duty_window,
+                        keys::duty_window)) {
         return 3;
       }
     } else if (key == keys::instrument) {
-      if (!set_instrument(value, chConfig.instrument)) {
+      if (index > config.channels_size()) {
+        printf("Invalid channel number %d\n", index);
+        return 2;
+      }
+      if (!set_instrument(value, config.channel(index - 1).instrument)) {
+        return 3;
+      }
+    } else if (key == keys::routing) {
+      auto n = parser::parse_number<int>(value);
+      if (n.has_value()) {
+        config.routing().mapping[index - 1] = *n - 1;
+      } else {
+        printf("Invalid mapping value: %s, use 0 or less to turn off, or "
+               "a valid output number to turn on",
+               std::string(value).c_str());
         return 3;
       }
     } else {

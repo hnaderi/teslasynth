@@ -13,11 +13,11 @@ struct Vibrato {
 
   constexpr static Vibrato none() { return {}; }
 
-  constexpr bool operator==(Vibrato b) const {
+  constexpr bool operator==(const Vibrato &b) const {
     return freq == b.freq && depth == b.depth;
   }
 
-  constexpr bool operator!=(Vibrato b) const {
+  constexpr bool operator!=(const Vibrato &b) const {
     return freq != b.freq || depth != b.depth;
   }
 

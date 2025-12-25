@@ -1,7 +1,9 @@
 #pragma once
 
-#include "midi_synth.hpp"
+#include "config_data.hpp"
 #include "sdkconfig.h"
 
-typedef teslasynth::midisynth::Configuration<CONFIG_TESLASYNTH_OUTPUT_COUNT>
-    AppConfig;
+using AppConfig =
+    teslasynth::midisynth::Configuration<CONFIG_TESLASYNTH_OUTPUT_COUNT>;
+using AppMidiRoutingConfig =
+    teslasynth::midisynth::MidiRoutingConfig<CONFIG_TESLASYNTH_OUTPUT_COUNT>;

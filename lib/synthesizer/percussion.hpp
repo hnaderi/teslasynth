@@ -1,5 +1,6 @@
 #pragma once
 
+#include "envelope.hpp"
 #include <core.hpp>
 #include <core/duration.hpp>
 #include <core/probability.hpp>
@@ -15,20 +16,22 @@ struct Percussion {
   Hertz prf = 0_hz;
   Probability noise = Probability();
   Probability skip = Probability();
+  envelopes::EnvelopeConfig envelope = EnvelopeLevel(1);
 
   constexpr bool operator==(const Percussion &b) const {
     return burst == b.burst && prf == b.prf && noise == b.noise &&
-           skip == b.skip;
+           skip == b.skip && envelope == b.envelope;
   }
   constexpr bool operator!=(const Percussion &b) const {
     return burst != b.burst || prf != b.prf || noise != b.noise ||
-           skip != b.skip;
+           skip != b.skip || envelope != b.envelope;
   }
 
   inline operator std::string() const {
-    std::string stream = "Burst " + std::string(burst) + " PRF " +
-                         std::string(prf) + " Noise " + std::string(noise) +
-                         " Skip " + std::string(skip);
+    std::string stream =
+        "Burst " + std::string(burst) + " PRF " + std::string(prf) + " Noise " +
+        std::string(noise) + " Skip " + std::string(skip) + " Envelope " +
+        std::visit([](auto const &e) { return std::string(e); }, envelope);
     return stream;
   }
 };
@@ -39,11 +42,12 @@ class Hit {
   Hertz prf = 0_hz;
   Probability noise_ = Probability(), skip_ = Probability();
   EnvelopeLevel volume_;
+  Envelope envelope_;
   NotePulse current_;
   inline float random();
 
 public:
-  void start(const MidiNote& mnote, Duration time, const Percussion &params);
+  void start(const MidiNote &mnote, Duration time, const Percussion &params);
   bool next();
   const NotePulse &current() const { return current_; }
   bool is_active() const { return now < end; }

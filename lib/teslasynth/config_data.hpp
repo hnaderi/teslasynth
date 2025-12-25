@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../midi/midi_core.hpp"
-#include "../synthesizer/notes.hpp"
+#include "../synthesizer/voice.hpp"
 #include "channel_mapping.hpp"
 #include "core.hpp"
 #include "instruments.hpp"

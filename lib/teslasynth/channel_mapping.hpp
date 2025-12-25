@@ -40,6 +40,12 @@ public:
   constexpr std::optional<OutputNumber<OUTPUTS>> value() const {
     return OutputNumber<OUTPUTS>::from(value_);
   }
+  inline operator std::string() const {
+    if (has_value())
+      return std::to_string(value_);
+    else
+      return "x";
+  }
 };
 
 template <std::uint8_t OUTPUTS = 1> class ChannelMapping final {
@@ -61,6 +67,7 @@ public:
     return data_[ch.value];
   }
   constexpr const Mapping &data() const { return data_; }
+  constexpr auto size() const { return data_.size(); }
 };
 
 class InstrumentMapping final {
