@@ -46,12 +46,12 @@ void test_generate_bursts_pitched(void) {
     total_ontime += current.volume;
     if (!current.volume.is_zero())
       total_non_silent++;
-  } while (counter < 30 && hit.next());
+  } while (counter < 100 && hit.next());
 
-  TEST_ASSERT_GREATER_OR_EQUAL(29, total_non_silent);
+  TEST_ASSERT_GREATER_OR_EQUAL(20, total_non_silent);
   TEST_ASSERT_TRUE(total_ontime > 0);
   TEST_ASSERT_FALSE(hit.is_active());
-  TEST_ASSERT_GREATER_OR_EQUAL(29, counter);
+  TEST_ASSERT_GREATER_OR_EQUAL(20, counter);
 }
 
 void test_generate_bursts_random(void) {

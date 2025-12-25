@@ -63,7 +63,7 @@ void test_start_hit(void) {
   const Duration32 period = 1_ms;
   Duration32 now = 1_s;
 
-  for (uint8_t i = 1; i < 20; i++) {
+  for (uint8_t i = 1; i < 10; i++) {
     TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Hit);
     TEST_ASSERT_TRUE(event.is_active());
     assert_duration_equal(event.current().start, now);

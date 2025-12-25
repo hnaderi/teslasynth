@@ -1,6 +1,7 @@
 #pragma once
 
 #include "percussion.hpp"
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 
@@ -134,7 +135,7 @@ constexpr std::array<Percussion, percussion_size> percussion_kit{{
      .envelope = envelopes::AD::exponential(3_ms, 900_ms)},
 }};
 
-inline PercussionId midi_to_percussion(uint8_t note) {
+constexpr const PercussionId midi_to_percussion(uint8_t note) {
   switch (note) {
   // 35–36: Kicks
   case 35: // Acoustic Bass Drum
