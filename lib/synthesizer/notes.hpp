@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.hpp"
+#include "core/hertz.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
@@ -27,25 +28,6 @@ struct NotePulse {
   }
 };
 
-struct MidiNote {
-  uint8_t number;
-  uint8_t velocity;
-
-  constexpr Hertz frequency(Hertz tuning = 440_hz) const {
-    return tuning * exp2f((number - 69) / 12.0f);
-  }
-
-  constexpr EnvelopeLevel volume() const {
-    return EnvelopeLevel(velocity / 127.f);
-  }
-  constexpr bool operator==(MidiNote b) const {
-    return number == b.number && velocity == b.velocity;
-  }
-  constexpr bool operator!=(MidiNote b) const {
-    return number != b.number || velocity != b.velocity;
-  }
-};
-
 class Note final {
   Hertz _freq = Hertz(0);
   Envelope _envelope;
@@ -57,11 +39,17 @@ class Note final {
   bool _released = false;
 
 public:
-  void start(const MidiNote &mnote, Duration time, Envelope env,
-             Vibrato vibrato, Hertz tuning);
-  void start(const MidiNote &mnote, Duration time, const Instrument &instrument,
-             Hertz tuning);
-  void start(const MidiNote &mnote, Duration time, Envelope env, Hertz tuning);
+  void start(Hertz prf, EnvelopeLevel amplitude, Duration time,
+             const Envelope &env, const Vibrato &vibrato);
+
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+             const Envelope &env, const Vibrato &vibrato, Hertz tuning);
+
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+             const Instrument &instrument, Hertz tuning);
+
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+             const Envelope &env, Hertz tuning);
   void release(Duration time);
 
   void off();
@@ -74,6 +62,10 @@ public:
   const Duration &now() const { return _now; }
   const Hertz &frequency() const { return _freq; }
   const EnvelopeLevel &max_volume() const { return _volume; }
+
+  static constexpr Hertz frequency_for(uint8_t number, Hertz tuning = 440_hz) {
+    return tuning * exp2f((number - 69) / 12.0f);
+  }
 };
 
 } // namespace teslasynth::synth

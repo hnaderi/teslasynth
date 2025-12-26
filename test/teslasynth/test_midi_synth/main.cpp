@@ -1,4 +1,5 @@
 #include "core.hpp"
+#include "core/envelope_level.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
@@ -14,7 +15,7 @@
 
 using namespace teslasynth::midisynth;
 
-constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
+constexpr uint8_t mnotef(int i) { return static_cast<uint8_t>(69 + i); }
 constexpr Instrument instrument(int i) {
   return {.envelope = EnvelopeLevel(i * 0.1), .vibrato = Vibrato::none()};
 }
@@ -24,7 +25,8 @@ class FakeNotes {
 
 public:
   struct Started {
-    MidiNote mnote;
+    uint8_t number;
+    EnvelopeLevel amplitude;
     Duration time;
     const SoundPreset preset;
 
@@ -60,7 +62,7 @@ public:
   };
 
   struct Released {
-    uint8_t mnote;
+    uint8_t number;
     Duration time;
   };
 
@@ -73,8 +75,9 @@ private:
   std::vector<uint8_t> adjusts_;
 
 public:
-  Note &start(const MidiNote &mnote, Duration time, const SoundPreset &preset) {
-    started_.push_back({mnote, time, preset});
+  Note &start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+              const SoundPreset &preset) {
+    started_.push_back({number, amplitude, time, preset});
     return note;
   }
 
@@ -115,8 +118,9 @@ void test_should_handle_note_on(void) {
     TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, notes.started().size());
     assert_duration_equal(notes.started().back().time, now);
-    TEST_ASSERT_EQUAL(69 + i, notes.started().back().mnote.number);
-    TEST_ASSERT_EQUAL(10 * i, notes.started().back().mnote.velocity);
+    TEST_ASSERT_EQUAL(69 + i, notes.started().back().number);
+    assert_level_equal(notes.started().back().amplitude,
+                       EnvelopeLevel::logscale(2 * (10 * i) + 1));
     notes.started().back().assert_instrument(default_instrument());
   }
 }
@@ -133,7 +137,7 @@ void test_should_handle_note_off(void) {
     TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, voice.released().size());
     assert_duration_equal(voice.released().back().time, now);
-    TEST_ASSERT_EQUAL(69 + i, voice.released().back().mnote);
+    TEST_ASSERT_EQUAL(69 + i, voice.released().back().number);
   }
 }
 
@@ -250,8 +254,8 @@ void test_should_start_playing_the_first_note_on_message(void) {
   TEST_ASSERT_TRUE(track.is_playing());
   TEST_ASSERT_EQUAL(1, voice.started().size());
   assert_duration_equal(voice.started().back().time, Duration::zero());
-  TEST_ASSERT_EQUAL(69, voice.started().back().mnote.number);
-  TEST_ASSERT_EQUAL(127, voice.started().back().mnote.velocity);
+  TEST_ASSERT_EQUAL(69, voice.started().back().number);
+  assert_level_equal(voice.started().back().amplitude, EnvelopeLevel::max());
   voice.started().back().assert_instrument(default_instrument());
 }
 

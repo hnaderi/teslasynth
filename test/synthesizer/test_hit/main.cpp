@@ -1,7 +1,6 @@
 #include "core/duration.hpp"
-#include "core/probability.hpp"
+#include "core/envelope_level.hpp"
 #include "percussion.hpp"
-#include "presets.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cstdint>
 #include <cstdio>
@@ -21,17 +20,17 @@ void test_empty(void) {
 void test_start(void) {
   Hit hit;
 
-  hit.start({127, 0}, 1_s, {30_ms, 1_khz});
+  hit.start(127, EnvelopeLevel::zero(), 1_s, {30_ms, 1_khz});
   TEST_ASSERT_TRUE(hit.is_active());
   TEST_ASSERT_TRUE(hit.current().start >= 1_s);
   TEST_ASSERT_FALSE(hit.current().period.is_zero());
-  TEST_ASSERT_FALSE(hit.current().volume.is_zero());
+  assert_level_equal(hit.current().volume, EnvelopeLevel::zero());
 }
 
 void test_generate_bursts_pitched(void) {
   Hit hit;
 
-  hit.start({127, 127}, 1_s, {30_ms, 1_khz});
+  hit.start(127, EnvelopeLevel::max(), 1_s, {30_ms, 1_khz});
   TEST_ASSERT_TRUE(hit.is_active());
   Duration32 last = 1_s;
   auto counter = 0;
@@ -57,7 +56,7 @@ void test_generate_bursts_pitched(void) {
 void test_generate_bursts_random(void) {
   Hit hit;
   Percussion params{.burst = 30_ms, .prf = 0_hz, .noise = Probability(1)};
-  hit.start({127, 0}, 1_s, params);
+  hit.start(127, EnvelopeLevel::max(), 1_s, params);
   TEST_ASSERT_TRUE(hit.is_active());
   Duration32 last = 1_s;
   auto counter = 0;
@@ -72,7 +71,7 @@ void test_generate_bursts_random(void) {
     total_ontime += current.volume;
     if (!current.volume.is_zero())
       total_non_silent++;
-  } while (counter < 30 && hit.next());
+  } while (counter < 100 && hit.next());
 
   // Mostly random, but should not be silent
   TEST_ASSERT_GREATER_THAN(10, total_non_silent);

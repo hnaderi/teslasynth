@@ -1,4 +1,5 @@
 #include "core.hpp"
+#include "core/envelope_level.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
@@ -10,29 +11,35 @@
 
 namespace teslasynth::synth {
 
-void Note::start(const MidiNote &mnote, Duration time, Envelope env,
-                 Vibrato vibrato, Hertz tuning) {
-  if (_active && mnote.velocity == 0)
+void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time,
+                 const Envelope &env, const Vibrato &vibrato) {
+  if (_active && amplitude.is_zero())
     return release(time);
-  _freq = mnote.frequency(tuning);
+  _freq = prf;
   _envelope = env;
   _vibrato = vibrato;
   _active = true;
   _released = false;
   _level = _envelope.update(0_us, true);
-  _volume = EnvelopeLevel::logscale(mnote.velocity * 2 + 1);
+  _volume = amplitude;
   _now = time;
   next();
 }
 
-void Note::start(const MidiNote &mnote, Duration time,
-                 const Instrument &instrument, Hertz tuning) {
-  start(mnote, time, instrument.envelope, instrument.vibrato, tuning);
+void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+                 const Envelope &env, const Vibrato &vibrato, Hertz tuning) {
+  start(frequency_for(number, tuning), amplitude, time, env, vibrato);
 }
 
-void Note::start(const MidiNote &mnote, Duration time, Envelope env,
-                 Hertz tuning) {
-  start(mnote, time, env, Vibrato::none(), tuning);
+void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+                 const Instrument &instrument, Hertz tuning) {
+  start(number, amplitude, time, instrument.envelope, instrument.vibrato,
+        tuning);
+}
+
+void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+                 const Envelope &env, Hertz tuning) {
+  start(number, amplitude, time, env, Vibrato::none(), tuning);
 }
 
 void Note::release(Duration time) {

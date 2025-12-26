@@ -30,7 +30,8 @@ private:
   Type type_ = Type::None;
 
 public:
-  void start(const MidiNote &mnote, Duration time, const SoundPreset &preset);
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+             const SoundPreset &preset);
 
   void release(Duration time);
   void off();

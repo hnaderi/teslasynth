@@ -6,6 +6,7 @@
 #include <optional>
 #include <stdint.h>
 #include <string>
+#include "duration.hpp"
 
 namespace teslasynth::core {
 

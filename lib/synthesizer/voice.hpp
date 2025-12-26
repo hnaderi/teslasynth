@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/envelope_level.hpp"
 #include "notes.hpp"
 #include "presets.hpp"
 #include "voice_event.hpp"
@@ -42,11 +43,11 @@ public:
   Voice &operator=(Voice &&) = delete;
   Voice(uint8_t size) : _size(std::min(size, MAX_NOTES)) {}
 
-  ELEMENT &start(const MidiNote &mnote, Duration time,
+  ELEMENT &start(uint8_t number, EnvelopeLevel amplitude, Duration time,
                  const SoundPreset &preset) {
-    const auto idx = find_free(mnote.number);
-    _notes[idx].start(mnote, time, preset);
-    _numbers[idx] = mnote.number;
+    const auto idx = find_free(number);
+    _notes[idx].start(number, amplitude, time, preset);
+    _numbers[idx] = number;
     return _notes[idx];
   }
 
@@ -58,9 +59,7 @@ public:
       }
     }
   }
-  inline void release(const MidiNote &mnote, Duration time) {
-    release(mnote.number, time);
-  }
+
   void off() {
     for (uint8_t i = 0; i < _size; i++)
       _notes[i].off();

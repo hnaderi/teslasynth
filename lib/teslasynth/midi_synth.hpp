@@ -249,26 +249,25 @@ public:
       }
     }
   }
-  inline void note_off(MidiChannelNumber ch, MidiNote mnote, Duration time) {
-    note_off(ch, mnote.number, time);
-  }
 
   inline void note_on(MidiChannelNumber ch, uint8_t number, uint8_t velocity,
                       Duration time) {
     if (auto output_id = config_.routing().mapping[ch].value()) {
       Duration delta = _track.on_receive(*output_id, time);
-      MidiNote mnote{number, velocity};
+      auto amplitude = EnvelopeLevel::logscale(velocity * 2 + 1);
+
       if (ch == 9 && config_.routing().percussion) {
         PercussivePreset preset{&bank::percussion_from_midi_note(number)};
-        _voices[*output_id].start(mnote, delta, preset);
+        _voices[*output_id].start(number, amplitude, delta, preset);
       } else {
         PitchPreset preset{&instrument(ch), config_.synth().tuning};
-        _voices[*output_id].start(mnote, delta, preset);
+        _voices[*output_id].start(number, amplitude, delta, preset);
       }
     }
   }
-  inline void note_on(MidiChannelNumber ch, MidiNote mnote, Duration time) {
-    note_on(ch, mnote.number, mnote.velocity, time);
+
+  inline void note_on(MidiChannelNumber ch, uint8_t number, Duration time) {
+    note_on(ch, number, 127, time);
   }
 
   Pulse sample(uint8_t ch, Duration16 max) {

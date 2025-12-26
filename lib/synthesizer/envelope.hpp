@@ -203,12 +203,11 @@ class Envelope {
           } else if constexpr (std::is_same_v<C, envelopes::Const>) {
             return EnvelopeEngine<envelopes::ConstConfig>(c);
           } else {
-            static_assert(always_false<C>::value, "Unknown envelope config");
+            static_assert(false, "Unknown envelope config");
           }
         },
         cfg);
   }
-  template <typename T> struct always_false : std::false_type {};
 
 public:
   Envelope() {}

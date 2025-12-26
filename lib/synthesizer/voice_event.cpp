@@ -43,19 +43,19 @@ bool VoiceEvent::next() {
   return res;
 }
 
-void VoiceEvent::start(const MidiNote &mnote, Duration time,
-                       const SoundPreset &preset) {
+void VoiceEvent::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+                 const SoundPreset &preset) {
   std::visit(
       [&](auto &&arg) -> void {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, PitchPreset>) {
           type_ = Type::Tone;
-          state.note.start(mnote, time, *arg.instrument, arg.tuning);
+          state.note.start(number, amplitude, time, *arg.instrument, arg.tuning);
         }
 
         if constexpr (std::is_same_v<T, PercussivePreset>) {
           type_ = Type::Hit;
-          state.hit.start(mnote, time, *arg.percussion);
+          state.hit.start(number, amplitude, time, *arg.percussion);
         }
       },
       preset);

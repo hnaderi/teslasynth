@@ -1,5 +1,6 @@
 #include "core.hpp"
 #include "core/duration.hpp"
+#include "core/envelope_level.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
@@ -14,23 +15,29 @@
 #include <unity.h>
 #include <vector>
 
+using namespace teslasynth::core;
+using namespace teslasynth::synth;
+
 constexpr Hertz tuning = 100_hz;
 Instrument instrument{.envelope = EnvelopeLevel(1), .vibrato = Vibrato::none()};
 PitchPreset preset{&instrument, tuning};
 
-constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
+constexpr uint8_t mnotef(int i) { return static_cast<uint8_t>(69 + i); }
 class FakeEvent {
-  MidiNote mnote_;
+  uint8_t number_;
+  EnvelopeLevel amplitude_;
   Duration started_, released_;
   std::optional<SoundPreset> preset_;
   bool active = false, is_released_ = false;
   NotePulse pulse;
 
 public:
-  void start(const MidiNote &mnote, Duration time, const SoundPreset &preset) {
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+             const SoundPreset &preset) {
     started_ = time;
     preset_ = preset;
-    mnote_ = mnote;
+    number_ = number;
+    amplitude_ = amplitude;
     pulse.start = time;
     active = true;
   }
@@ -41,7 +48,7 @@ public:
   void off() { active = false; }
   bool next() {
     if (!is_released_ || pulse.start < released_) {
-      pulse.start += mnote_.frequency(tuning).period();
+      pulse.start += Note::frequency_for(number_, tuning).period();
     } else {
       active = false;
     }
@@ -51,10 +58,11 @@ public:
   bool is_active() const { return active; }
   bool is_released() const { return is_released_; }
 
-  void assert_started(const MidiNote &mnote, Duration time,
+  void assert_started(uint8_t number, EnvelopeLevel amplitude, Duration time,
                       const SoundPreset &preset) {
     TEST_ASSERT_TRUE(active);
-    TEST_ASSERT_TRUE_MESSAGE(mnote_ == mnote, "Midi notes are not equal");
+    TEST_ASSERT_EQUAL_MESSAGE(number_, number, "Midi notes are not equal");
+    assert_level_equal(amplitude_, amplitude);
     assert_duration_equal(started_, time);
     TEST_ASSERT_TRUE(preset_.has_value());
     TEST_ASSERT_TRUE_MESSAGE(*preset_ == preset, "SoundPresets are not equal");
@@ -77,12 +85,12 @@ void test_empty(void) {
   TEST_ASSERT_FALSE(evt.next());
 }
 
-void assert_note(TestVoice &voice, const MidiNote &mnote,
-                 const Duration &time) {
-  auto &evt = voice.start(mnote, time, preset);
+void assert_note(TestVoice &voice, const uint8_t number, const Duration &time) {
+  EnvelopeLevel amp = EnvelopeLevel::max();
+  auto &evt = voice.start(number, amp, time, preset);
 
   TEST_ASSERT_TRUE(evt.is_active());
-  evt.assert_started(mnote, time, preset);
+  evt.assert_started(number, amp, time, preset);
 }
 
 void test_start(void) {
@@ -125,7 +133,7 @@ void test_should_return_the_note_with_least_time(void) {
   assert_note(voice, mnotef(2), 50_us);
   assert_note(voice, mnotef(3), 100_us);
   auto &evt = voice.next();
-  evt.assert_started(mnotef(2), 50_us, preset);
+  evt.assert_started(mnotef(2), EnvelopeLevel::max(), 50_us, preset);
   assert_duration_equal(evt.current().start, 50_us);
 }
 
@@ -135,19 +143,19 @@ void test_should_return_the_note_with_least_time_after_tick(void) {
   assert_note(voice, mnotef(2), 50_us);
   assert_note(voice, mnotef(3), 100_us);
   auto &note1 = voice.next();
-  note1.assert_started(mnotef(2), 50_us, preset);
+  note1.assert_started(mnotef(2), EnvelopeLevel::max(), 50_us, preset);
 
   TEST_ASSERT_TRUE(note1.next());
   TEST_ASSERT_TRUE(note1.current().start > 200_us);
 
   auto &note2 = voice.next();
-  note2.assert_started(mnotef(3), 100_us, preset);
+  note2.assert_started(mnotef(3), EnvelopeLevel::max(), 100_us, preset);
 
   TEST_ASSERT_TRUE(note2.next());
   TEST_ASSERT_TRUE(note2.current().start > 200_us);
 
   auto &note3 = voice.next();
-  note3.assert_started(mnotef(1), 200_us, preset);
+  note3.assert_started(mnotef(1), EnvelopeLevel::max(), 200_us, preset);
 }
 
 void test_should_release_note(void) {
@@ -156,7 +164,7 @@ void test_should_release_note(void) {
   assert_note(voice, mnote, 200_ms);
   auto &note = voice.next();
   TEST_ASSERT_FALSE(note.is_released());
-  voice.release(mnote.number, 3000_ms);
+  voice.release(mnote, 3000_ms);
   note = voice.next();
   note.assert_released(3000_ms);
 }
@@ -167,7 +175,7 @@ void test_should_not_release_other_voice(void) {
   assert_note(voice, mnotef(1), 200_ms);
   auto &note = voice.next();
   TEST_ASSERT_FALSE(note.is_released());
-  voice.release(mnotef(1).number, 3000_us);
+  voice.release(mnotef(1), 3000_us);
   TEST_ASSERT_FALSE(note.is_released());
 }
 
@@ -179,7 +187,7 @@ void test_should_allow_the_minimum_size_of_one(void) {
   TEST_ASSERT_EQUAL(voice.size(), 1);
 
   auto &note = voice.next();
-  note.assert_started(mnotef(1), 200_ms, preset);
+  note.assert_started(mnotef(1), EnvelopeLevel::max(), 200_ms, preset);
 }
 
 void test_off(void) {
@@ -195,9 +203,9 @@ void test_off(void) {
 
 void test_should_return_the_note_with_least_time2(void) {
   TestVoice voice;
-  auto *note1 = &voice.start(mnotef(1), 200_us, preset),
-       *note2 = &voice.start(mnotef(2), 1_s, preset),
-       *note3 = &voice.start(mnotef(3), 2_s, preset);
+  auto *note1 = &voice.start(mnotef(1), EnvelopeLevel::max(), 200_us, preset),
+       *note2 = &voice.start(mnotef(2), EnvelopeLevel::max(), 1_s, preset),
+       *note3 = &voice.start(mnotef(3), EnvelopeLevel::max(), 2_s, preset);
   voice.release(mnotef(1), 1_s);
   voice.release(mnotef(2), 2_s);
   voice.release(mnotef(3), 3_s);
@@ -207,7 +215,7 @@ void test_should_return_the_note_with_least_time2(void) {
   TEST_ASSERT_EQUAL(note1, note);
 
   while (note->is_active()) {
-    note->assert_started(mnotef(1), 200_us, preset);
+    note->assert_started(mnotef(1), EnvelopeLevel::max(), 200_us, preset);
     note->next();
   }
   TEST_ASSERT_FALSE(note1->is_active());
@@ -217,7 +225,7 @@ void test_should_return_the_note_with_least_time2(void) {
   TEST_ASSERT_EQUAL(note2, note);
   TEST_ASSERT_EQUAL(2, voice.active());
   while (note->is_active()) {
-    note->assert_started(mnotef(2), 1_s, preset);
+    note->assert_started(mnotef(2), EnvelopeLevel::max(), 1_s, preset);
     note->next();
   }
 
@@ -226,7 +234,7 @@ void test_should_return_the_note_with_least_time2(void) {
   TEST_ASSERT_EQUAL(note3, note);
   TEST_ASSERT_EQUAL(1, voice.active());
   while (note->is_active()) {
-    note->assert_started(mnotef(3), 2_s, preset);
+    note->assert_started(mnotef(3), EnvelopeLevel::max(), 2_s, preset);
     note->next();
   }
   TEST_ASSERT_EQUAL(0, voice.active());

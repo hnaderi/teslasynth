@@ -47,7 +47,8 @@ class Hit {
   inline float random();
 
 public:
-  void start(const MidiNote &mnote, Duration time, const Percussion &params);
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
+             const Percussion &params);
   bool next();
   const NotePulse &current() const { return current_; }
   bool is_active() const { return now < end; }

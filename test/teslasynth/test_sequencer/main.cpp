@@ -19,7 +19,7 @@ constexpr ChannelConfig config_(uint8_t notes) {
 }
 constexpr ChannelConfig config = config_(4);
 constexpr SynthConfig sconf = {.tuning = 100_hz};
-constexpr MidiNote mnotef(int i) { return {static_cast<uint8_t>(69 + i), 127}; }
+constexpr uint8_t mnotef(int i) { return static_cast<uint8_t>(69 + i); }
 constexpr Instrument instrument{.envelope = EnvelopeLevel(1),
                                 .vibrato = Vibrato::none()};
 

@@ -135,7 +135,7 @@ constexpr std::array<Percussion, percussion_size> percussion_kit{{
      .envelope = envelopes::AD::exponential(3_ms, 900_ms)},
 }};
 
-constexpr const PercussionId midi_to_percussion(uint8_t note) {
+constexpr PercussionId midi_to_percussion(uint8_t note) {
   switch (note) {
   // 35–36: Kicks
   case 35: // Acoustic Bass Drum

@@ -22,10 +22,9 @@ void test_empty(void) {
 }
 
 static void start_tone(VoiceEvent &event) {
-  const MidiNote mnote{.number = 69, .velocity = 127};
   const Instrument instrument;
   const PitchPreset preset{&instrument, 100_hz};
-  event.start(mnote, 1_s, preset);
+  event.start(69, EnvelopeLevel::max(), 1_s, preset);
 }
 
 void test_start_tone(void) {
@@ -58,7 +57,7 @@ void test_start_hit(void) {
   VoiceEvent event;
   const Percussion percussion{20_ms, 1_khz};
   const PercussivePreset preset{&percussion};
-  event.start({127, 0}, 1_s, preset);
+  event.start(127, EnvelopeLevel::zero(), 1_s, preset);
 
   const Duration32 period = 1_ms;
   Duration32 now = 1_s;
