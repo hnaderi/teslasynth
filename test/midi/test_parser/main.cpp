@@ -158,6 +158,19 @@ void parser_feed_after_touch_channel(void) {
                             MidiChannelMessage::after_touch_channel(11, 90));
 }
 
+void parser_feed_pitchbend_channel(void) {
+  Messages msgs;
+  MidiParser parser([&](const MidiChannelMessage &m) { msgs.push_back(m); });
+  auto status = MidiStatus(MidiMessageType::PitchBend, 12);
+  const uint8_t data[] = {status, 0, 0x40};
+  parser.feed(data, 3);
+  TEST_ASSERT_TRUE(parser.has_status());
+  TEST_ASSERT_EQUAL(status, parser.status());
+  TEST_ASSERT_EQUAL(1, msgs.size());
+  assert_midi_message_equal(msgs.back(),
+                            MidiChannelMessage::pitchbend(12, 8192));
+}
+
 void parser_feed_bytes_with_status(void) {
   for (auto type : message_types::channel::two) {
     Messages msgs;
@@ -357,6 +370,7 @@ extern "C" void app_main(void) {
   RUN_TEST(parser_feed_program_change);
   RUN_TEST(parser_feed_after_touch);
   RUN_TEST(parser_feed_after_touch_channel);
+  RUN_TEST(parser_feed_pitchbend_channel);
 
   RUN_TEST(parser_feed_bytes_with_status);
   RUN_TEST(parser_feed_bytes_with_running_status);

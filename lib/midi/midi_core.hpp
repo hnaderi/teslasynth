@@ -174,6 +174,15 @@ struct MidiChannelMessage {
     };
   }
 
+  static constexpr MidiChannelMessage pitchbend(uint8_t ch, uint16_t value) {
+    return {
+        .type = MidiMessageType::PitchBend,
+        .channel = ch,
+        .data0 = value & 0x7F,
+        .data1 = (value >> 7) & 0x7F,
+    };
+  }
+
   static constexpr MidiChannelMessage
   control_change(uint8_t ch, ControlChange number, uint8_t value) {
     return {
