@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../midi/midi_core.hpp"
+#include "channel_state.hpp"
+#include "core/envelope_level.hpp"
 #include <cstddef>
 #include <cstdint>
 
@@ -82,6 +84,23 @@ public:
   }
   uint8_t &operator[](midi::MidiChannelNumber ch) { return data_[ch.value]; }
   constexpr const Mapping &data() const { return data_; }
+};
+
+class MidiChannels final {
+  typedef std::array<synth::ChannelState, 16> Mapping;
+  Mapping data_{};
+
+public:
+  constexpr const synth::ChannelState &
+  operator[](midi::MidiChannelNumber ch) const {
+    return data_[ch.value];
+  }
+  synth::ChannelState &operator[](midi::MidiChannelNumber ch) {
+    return data_[ch.value];
+  }
+  constexpr auto size() const { return data_.size(); }
+  constexpr auto begin() const { return data_.begin(); }
+  constexpr auto end() const { return data_.end(); }
 };
 
 } // namespace teslasynth::midisynth

@@ -3,9 +3,8 @@
 #include <cmath>
 #include <optional>
 
-using namespace teslasynth::core;
-
 namespace teslasynth::synth {
+using namespace teslasynth::core;
 
 // -log_e(0.001)
 constexpr float logfactor = 6.907755278982137;

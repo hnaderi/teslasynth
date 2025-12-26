@@ -158,6 +158,7 @@ template <std::uint8_t OUTPUTS = 1, class N = Voice<>> class Teslasynth final {
   std::array<N, OUTPUTS> _voices;
   std::array<DutyLimiter, OUTPUTS> _limiters;
   InstrumentMapping current_instrument_;
+  MidiChannels channels_;
 
 public:
   Teslasynth(
