@@ -3,7 +3,6 @@
 #include "instruments.hpp"
 #include "lfo.hpp"
 #include "midi_synth.hpp"
-#include "notes.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include "unity_internals.h"
 #include <cstdint>

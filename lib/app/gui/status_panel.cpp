@@ -9,7 +9,6 @@
 #include "font/lv_symbol_def.h"
 #include "freertos/task.h"
 #include "misc/lv_area.h"
-#include "notes.hpp"
 #include "synthesizer_events.hpp"
 #include "widgets/label/lv_label.h"
 #include <cstdint>

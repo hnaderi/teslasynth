@@ -1,9 +1,9 @@
+#include "note.hpp"
 #include "core.hpp"
 #include "core/envelope_level.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
-#include "notes.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstddef>

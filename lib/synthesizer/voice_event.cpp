@@ -1,6 +1,5 @@
 #include "voice_event.hpp"
 #include <core/envelope_level.hpp>
-#include <notes.hpp>
 
 namespace teslasynth::synth {
 bool VoiceEvent::is_active() const {

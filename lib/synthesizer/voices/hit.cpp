@@ -1,4 +1,4 @@
-#include "percussion.hpp"
+#include "hit.hpp"
 #include "core/duration.hpp"
 #include <core/envelope_level.hpp>
 #include <core/hertz.hpp>

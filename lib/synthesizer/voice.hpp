@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/envelope_level.hpp"
-#include "notes.hpp"
 #include "presets.hpp"
 #include "voice_event.hpp"
 #include <algorithm>

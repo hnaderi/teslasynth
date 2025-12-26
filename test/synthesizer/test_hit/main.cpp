@@ -1,6 +1,6 @@
 #include "core/duration.hpp"
 #include "core/envelope_level.hpp"
-#include "percussion.hpp"
+#include "voices/hit.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cstdint>
 #include <cstdio>

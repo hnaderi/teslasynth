@@ -2,7 +2,7 @@
 #include "core/envelope_level.hpp"
 #include "envelope.hpp"
 #include "lfo.hpp"
-#include "notes.hpp"
+#include "voices/note.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cstdint>
 #include <unity.h>

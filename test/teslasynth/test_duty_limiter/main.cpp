@@ -1,7 +1,6 @@
 #include "core.hpp"
 #include "envelope.hpp"
 #include "midi_synth.hpp"
-#include "notes.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cstdint>
 #include <unity.h>

@@ -4,11 +4,13 @@
 #include "envelope.hpp"
 #include "lfo.hpp"
 #include "percussion.hpp"
+#include "pulse.hpp"
+#include "voices/hit.hpp"
+#include "voices/note.hpp"
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <notes.hpp>
 #include <optional>
 #include <presets.hpp>
 #include <string>

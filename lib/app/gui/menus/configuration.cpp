@@ -1,7 +1,6 @@
 #include "configuration/storage.hpp"
 #include "lvgl.h"
 #include "midi_synth.hpp"
-#include "notes.hpp"
 
 namespace teslasynth::app::gui {
 
