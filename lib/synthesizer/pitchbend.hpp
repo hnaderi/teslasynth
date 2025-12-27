@@ -32,6 +32,8 @@ public:
     return normalized != b.normalized || range != b.range;
   }
 
+  constexpr bool is_zero() const { return normalized == 0; }
+
   constexpr float multiplier() const {
     float semitones = normalized * range;
     return exp2f(semitones / 12.0f);

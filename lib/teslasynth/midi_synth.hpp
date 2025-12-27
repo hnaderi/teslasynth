@@ -2,12 +2,11 @@
 
 #include "../midi/midi_core.hpp"
 #include "../synthesizer/bank/percussions.hpp"
-#include "../synthesizer/voice.hpp"
 #include "channel_mapping.hpp"
 #include "config_data.hpp"
-#include "core.hpp"
 #include "core/envelope_level.hpp"
 #include "instruments.hpp"
+#include "pitchbend.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -210,6 +209,7 @@ public:
     case MidiMessageType::AfterTouchChannel:
       break;
     case MidiMessageType::PitchBend:
+      pitchbend(msg.channel, (msg.data1 & 0x7F) << 7 | (msg.data0 & 0x7F));
       break;
     }
   }
@@ -233,6 +233,10 @@ public:
 
   inline void channel_volume(MidiChannelNumber ch, uint8_t volume) {
     channels_[ch].amplitude = EnvelopeLevel(volume / 127.f);
+  }
+
+  inline void pitchbend(MidiChannelNumber ch, uint16_t value) {
+    channels_[ch].pitch_bend = PitchBend::midi(value);
   }
 
   inline void change_instrument(MidiChannelNumber ch, uint8_t n) {

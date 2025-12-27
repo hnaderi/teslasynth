@@ -4,6 +4,7 @@
 #include "lfo.hpp"
 #include "midi_core.hpp"
 #include "midi_synth.hpp"
+#include "pitchbend.hpp"
 #include "presets.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include "unity_internals.h"
@@ -308,6 +309,25 @@ void test_should_handle_channel_volume(void) {
   }
 }
 
+void test_should_handle_pitch_bend(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &voice = tsynth.voice();
+
+  for (auto ch = 0; ch < 16; ch++) {
+    // Route channel to the only output we have here
+    tsynth.configuration().routing().mapping[ch] = 0;
+
+    auto msg = MidiChannelMessage::pitchbend(ch, 1000 * ch);
+    tsynth.handle(msg, 0_s);
+    tsynth.handle(MidiChannelMessage::note_on(ch, 69, 127), 0_ms);
+
+    TEST_ASSERT_EQUAL(ch + 1, voice.started().size());
+    auto channel_state = voice.started().back().state;
+    TEST_ASSERT_NOT_NULL(channel_state);
+    TEST_ASSERT_TRUE(channel_state->pitch_bend == PitchBend::midi(ch * 1000));
+  }
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_note_pulse_empty);
@@ -325,6 +345,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_adjust_note_sizes);
   RUN_TEST(test_reload_config_should_adjust_note_sizes);
   RUN_TEST(test_should_handle_channel_volume);
+  RUN_TEST(test_should_handle_pitch_bend);
 
   UNITY_END();
 }

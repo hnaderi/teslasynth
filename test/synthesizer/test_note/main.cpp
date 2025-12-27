@@ -1,11 +1,16 @@
 #include "channel_state.hpp"
 #include "core.hpp"
+#include "core/duration.hpp"
 #include "core/envelope_level.hpp"
+#include "core/functions.hpp"
+#include "core/hertz.hpp"
 #include "envelope.hpp"
 #include "lfo.hpp"
+#include "pitchbend.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include "voices/note.hpp"
 #include <cstdint>
+#include <sys/types.h>
 #include <unity.h>
 
 using namespace teslasynth::synth;
@@ -346,6 +351,25 @@ void test_off(void) {
   TEST_ASSERT_FALSE(note.is_active());
 }
 
+void test_note_pitchbend(void) {
+  ChannelState state;
+  state.pitch_bend = PitchBend(0.5);
+
+  Hertz base_freq = 100_hz;
+  note.start(base_freq, amplitude, 0_us, Envelope(EnvelopeLevel::max()),
+             Vibrato::none(), &state);
+
+  assert_duration_equal(note.now(), 10_ms);
+  Hertz freq = base_freq;
+  for (int i = 0; i < 5000; i++) {
+    auto period = freq.period();
+    assert_duration_equal(note.current().period, period);
+
+    note.next();
+    freq = lerp(freq, state.pitch_bend * base_freq, 0.1);
+  }
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
@@ -364,6 +388,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_note_envelope_constant);
   RUN_TEST(test_note_vibrato);
   RUN_TEST(test_off);
+  RUN_TEST(test_note_pitchbend);
   UNITY_END();
 }
 

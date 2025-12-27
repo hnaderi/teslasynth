@@ -1,6 +1,8 @@
 #include "note.hpp"
 #include "core.hpp"
 #include "core/envelope_level.hpp"
+#include "core/functions.hpp"
+#include "core/hertz.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
@@ -16,7 +18,7 @@ void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time,
                  const ChannelState *channel) {
   if (_active && amplitude.is_zero())
     return release(time);
-  _freq = prf;
+  _current_freq = _freq = prf;
   _envelope = env;
   _vibrato = vibrato;
   _active = true;
@@ -25,8 +27,6 @@ void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time,
   _volume = amplitude;
   _now = time;
   _channel = channel;
-  _bending = false;
-  _pitchbend = 0_us;
   next();
 }
 
@@ -60,7 +60,7 @@ bool Note::next() {
   if (_envelope.is_off())
     _active = false;
   if (_active) {
-    Duration32 period = (_freq + _vibrato.offset(now())).period();
+    Duration32 period = (_current_freq + _vibrato.offset(now())).period();
     _pulse.start = _now;
     _pulse.volume =
         _level * _volume *
@@ -80,6 +80,12 @@ bool Note::next() {
         _level = _envelope.update(period, false);
     }
     _now = next_tick;
+    if (_channel != nullptr) {
+      if (!_channel->pitch_bend.is_zero()) {
+        _current_freq = lerp(_current_freq, _channel->pitch_bend * _freq,
+                             _channel->smoothing);
+      }
+    }
   }
   return _active;
 }

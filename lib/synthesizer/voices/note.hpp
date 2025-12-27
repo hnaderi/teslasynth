@@ -19,7 +19,7 @@ namespace teslasynth::synth {
 using namespace teslasynth::core;
 
 class Note final {
-  Hertz _freq = Hertz(0);
+  Hertz _freq = Hertz(0), _current_freq = Hertz(0);
   Envelope _envelope;
   Vibrato _vibrato;
   NotePulse _pulse;
@@ -27,9 +27,6 @@ class Note final {
   Duration _release, _now;
   bool _active = false;
   bool _released = false;
-
-  bool _bending = false;
-  Duration16 _pitchbend;
 
   ChannelState const *_channel;
 
