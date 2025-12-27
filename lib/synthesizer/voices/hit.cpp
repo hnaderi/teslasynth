@@ -1,6 +1,7 @@
 #include "hit.hpp"
 #include "core/duration.hpp"
 #include <core/envelope_level.hpp>
+#include <core/functions.hpp>
 #include <core/hertz.hpp>
 
 namespace teslasynth::synth {
@@ -15,12 +16,6 @@ float frand(uint32_t &x) {
 }
 
 constexpr Hertz min_prf = 20_hz, max_prf = 4_khz;
-template <typename T> T clip(T t, const T &from, const T &to) {
-  return std::max<T>(from, std::min<T>(t, to));
-}
-template <typename T> T lerp(T a, T b, float t) {
-  return a * (1.0f - t) + b * t;
-}
 } // namespace
 
 float Hit::random() { return frand(rng_state); }
@@ -42,7 +37,9 @@ bool Hit::next() {
     if (skip_ > 0 && random() < skip_)
       current_.volume = EnvelopeLevel(0);
     else
-      current_.volume = volume_ * level * EnvelopeLevel(0.75 + 0.25 * random());
+      current_.volume =
+          volume_ * level * EnvelopeLevel(0.75 + 0.25 * random()) *
+          (_channel != nullptr ? _channel->amplitude : EnvelopeLevel::max());
 
     now += period;
   }
@@ -50,7 +47,7 @@ bool Hit::next() {
 }
 
 void Hit::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                const Percussion &params) {
+                const Percussion &params, const ChannelState *channel) {
   // Xorshift relies on rng_state not be zero
   // Reset it if zero, otherwise use whatever value in memory (possibly some
   // garbage from other colocated data)
@@ -65,6 +62,7 @@ void Hit::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
   prf = params.prf;
   noise_ = Probability(lerp(float(params.noise), 1.0f, amplitude * 0.3f));
   skip_ = params.skip;
+  _channel = channel;
 
   next();
 }

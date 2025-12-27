@@ -43,9 +43,10 @@ public:
   Voice(uint8_t size) : _size(std::min(size, MAX_NOTES)) {}
 
   ELEMENT &start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                 const SoundPreset &preset) {
+                 const SoundPreset &preset,
+                 const ChannelState *channel = nullptr) {
     const auto idx = find_free(number);
-    _notes[idx].start(number, amplitude, time, preset);
+    _notes[idx].start(number, amplitude, time, preset, channel);
     _numbers[idx] = number;
     return _notes[idx];
   }

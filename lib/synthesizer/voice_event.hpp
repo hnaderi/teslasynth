@@ -33,7 +33,7 @@ private:
 
 public:
   void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const SoundPreset &preset);
+             const SoundPreset &preset, const ChannelState *channel = nullptr);
 
   void release(Duration time);
   void off();

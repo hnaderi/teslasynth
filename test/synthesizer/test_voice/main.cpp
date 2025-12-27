@@ -1,3 +1,4 @@
+#include "channel_state.hpp"
 #include "core/duration.hpp"
 #include "core/envelope_level.hpp"
 #include "instruments.hpp"
@@ -27,16 +28,18 @@ class FakeEvent {
   std::optional<SoundPreset> preset_;
   bool active = false, is_released_ = false;
   NotePulse pulse;
+  ChannelState const *_channel;
 
 public:
   void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const SoundPreset &preset) {
+             const SoundPreset &preset, const ChannelState *channel = nullptr) {
     started_ = time;
     preset_ = preset;
     number_ = number;
     amplitude_ = amplitude;
     pulse.start = time;
     active = true;
+    _channel = channel;
   }
   void release(Duration time) {
     released_ = time;
@@ -63,6 +66,10 @@ public:
     assert_duration_equal(started_, time);
     TEST_ASSERT_TRUE(preset_.has_value());
     TEST_ASSERT_TRUE_MESSAGE(*preset_ == preset, "SoundPresets are not equal");
+  }
+
+  void assert_started_with_channel_state(const ChannelState *state) {
+    TEST_ASSERT_EQUAL_MESSAGE(_channel, state, "Channel state is not the same");
   }
 
   void assert_released(Duration time) {
@@ -255,6 +262,16 @@ void test_adjust_size(void) {
   TEST_ASSERT_EQUAL(1, voice.active());
 }
 
+void test_should_pass_channel_state(void) {
+  TestVoice voice;
+  ChannelState state;
+
+  auto &evt =
+      voice.start(mnotef(1), EnvelopeLevel::max(), 200_us, preset, &state);
+
+  evt.assert_started_with_channel_state(&state);
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
@@ -269,6 +286,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_off);
   RUN_TEST(test_should_return_the_note_with_least_time2);
   RUN_TEST(test_adjust_size);
+  RUN_TEST(test_should_pass_channel_state);
 
   UNITY_END();
 }

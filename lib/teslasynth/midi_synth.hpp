@@ -6,6 +6,7 @@
 #include "channel_mapping.hpp"
 #include "config_data.hpp"
 #include "core.hpp"
+#include "core/envelope_level.hpp"
 #include "instruments.hpp"
 #include <algorithm>
 #include <array>
@@ -196,6 +197,9 @@ public:
       case ControlChange::ALL_NOTES_OFF:
         off();
         break;
+      case ControlChange::CHANNEL_VOLUME_MSB:
+        channel_volume(msg.channel, msg.data1);
+        break;
       default:
         break;
       }
@@ -225,6 +229,10 @@ public:
       _limiters[i] = DutyLimiter(config_.channel(i).max_duty,
                                  config_.channel(i).duty_window);
     }
+  }
+
+  inline void channel_volume(MidiChannelNumber ch, uint8_t volume) {
+    channels_[ch].amplitude = EnvelopeLevel(volume / 127.f);
   }
 
   inline void change_instrument(MidiChannelNumber ch, uint8_t n) {
@@ -259,10 +267,12 @@ public:
 
       if (ch == 9 && config_.routing().percussion) {
         PercussivePreset preset{&bank::percussion_from_midi_note(number)};
-        _voices[*output_id].start(number, amplitude, delta, preset);
+        _voices[*output_id].start(number, amplitude, delta, preset,
+                                  &channels_[ch]);
       } else {
         PitchPreset preset{&instrument(ch), config_.synth().tuning};
-        _voices[*output_id].start(number, amplitude, delta, preset);
+        _voices[*output_id].start(number, amplitude, delta, preset,
+                                  &channels_[ch]);
       }
     }
   }

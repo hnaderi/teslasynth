@@ -1,6 +1,5 @@
-#include "core.hpp"
+#include "channel_state.hpp"
 #include "core/envelope_level.hpp"
-#include "envelope.hpp"
 #include "instruments.hpp"
 #include "lfo.hpp"
 #include "midi_core.hpp"
@@ -28,6 +27,7 @@ public:
     EnvelopeLevel amplitude;
     Duration time;
     const SoundPreset preset;
+    const ChannelState *state;
 
     bool is_pitch() const {
       return std::holds_alternative<PitchPreset>(preset);
@@ -75,8 +75,8 @@ private:
 
 public:
   Note &start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-              const SoundPreset &preset) {
-    started_.push_back({number, amplitude, time, preset});
+              const SoundPreset &preset, const ChannelState *state = nullptr) {
+    started_.push_back({number, amplitude, time, preset, state});
     return note;
   }
 
@@ -288,6 +288,26 @@ void test_reload_config_should_adjust_note_sizes(void) {
   TEST_ASSERT_EQUAL(2, voice.adjusted().back());
 }
 
+void test_should_handle_channel_volume(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &voice = tsynth.voice();
+
+  for (auto ch = 0; ch < 16; ch++) {
+    // Route channel to the only output we have here
+    tsynth.configuration().routing().mapping[ch] = 0;
+
+    auto msg = MidiChannelMessage::control_change(
+        ch, ControlChange::CHANNEL_VOLUME_MSB, 8 * ch);
+    tsynth.handle(msg, 0_s);
+    tsynth.handle(MidiChannelMessage::note_on(ch, 69, 127), 0_ms);
+
+    TEST_ASSERT_EQUAL(ch + 1, voice.started().size());
+    auto channel_state = voice.started().back().state;
+    TEST_ASSERT_NOT_NULL(channel_state);
+    assert_level_equal(channel_state->amplitude, EnvelopeLevel(8 * ch / 127.f));
+  }
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_note_pulse_empty);
@@ -304,6 +324,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_ignore_off_messages_when_not_playing);
   RUN_TEST(test_should_adjust_note_sizes);
   RUN_TEST(test_reload_config_should_adjust_note_sizes);
+  RUN_TEST(test_should_handle_channel_volume);
 
   UNITY_END();
 }

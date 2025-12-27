@@ -12,7 +12,8 @@
 namespace teslasynth::synth {
 
 void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time,
-                 const Envelope &env, const Vibrato &vibrato) {
+                 const Envelope &env, const Vibrato &vibrato,
+                 const ChannelState *channel) {
   if (_active && amplitude.is_zero())
     return release(time);
   _freq = prf;
@@ -23,23 +24,29 @@ void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time,
   _level = _envelope.update(0_us, true);
   _volume = amplitude;
   _now = time;
+  _channel = channel;
+  _bending = false;
+  _pitchbend = 0_us;
   next();
 }
 
 void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                 const Envelope &env, const Vibrato &vibrato, Hertz tuning) {
-  start(frequency_for(number, tuning), amplitude, time, env, vibrato);
+                 const Envelope &env, const Vibrato &vibrato, Hertz tuning,
+                 const ChannelState *channel) {
+  start(frequency_for(number, tuning), amplitude, time, env, vibrato, channel);
 }
 
 void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                 const Instrument &instrument, Hertz tuning) {
+                 const Instrument &instrument, Hertz tuning,
+                 const ChannelState *channel) {
   start(number, amplitude, time, instrument.envelope, instrument.vibrato,
-        tuning);
+        tuning, channel);
 }
 
 void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                 const Envelope &env, Hertz tuning) {
-  start(number, amplitude, time, env, Vibrato::none(), tuning);
+                 const Envelope &env, Hertz tuning,
+                 const ChannelState *channel) {
+  start(number, amplitude, time, env, Vibrato::none(), tuning, channel);
 }
 
 void Note::release(Duration time) {
@@ -55,7 +62,9 @@ bool Note::next() {
   if (_active) {
     Duration32 period = (_freq + _vibrato.offset(now())).period();
     _pulse.start = _now;
-    _pulse.volume = _level * _volume;
+    _pulse.volume =
+        _level * _volume *
+        (_channel != nullptr ? _channel->amplitude : EnvelopeLevel::max());
     _pulse.period = period;
 
     Duration next_tick = _now + period;

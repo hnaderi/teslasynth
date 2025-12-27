@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../pulse.hpp"
 #include "../percussion.hpp"
+#include "../pulse.hpp"
+#include "channel_state.hpp"
 #include "envelope.hpp"
 #include <core.hpp>
 #include <core/duration.hpp>
@@ -20,11 +21,13 @@ class Hit {
   EnvelopeLevel volume_;
   Envelope envelope_;
   NotePulse current_;
+
+  ChannelState const *_channel;
   inline float random();
 
 public:
   void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const Percussion &params);
+             const Percussion &params, const ChannelState *channel = nullptr);
   bool next();
   const NotePulse &current() const { return current_; }
   bool is_active() const { return now < end; }

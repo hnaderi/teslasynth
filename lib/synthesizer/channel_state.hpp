@@ -1,4 +1,6 @@
-#include "core.hpp"
+#pragma once
+
+#include "core/envelope_level.hpp"
 #include "pitchbend.hpp"
 
 namespace teslasynth::synth {

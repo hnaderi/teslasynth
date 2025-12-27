@@ -1,6 +1,8 @@
 #pragma once
 
+#include "../channel_state.hpp"
 #include "core.hpp"
+#include "core/duration.hpp"
 #include "core/hertz.hpp"
 #include "envelope.hpp"
 #include "instruments.hpp"
@@ -26,18 +28,27 @@ class Note final {
   bool _active = false;
   bool _released = false;
 
+  bool _bending = false;
+  Duration16 _pitchbend;
+
+  ChannelState const *_channel;
+
 public:
   void start(Hertz prf, EnvelopeLevel amplitude, Duration time,
-             const Envelope &env, const Vibrato &vibrato);
+             const Envelope &env, const Vibrato &vibrato,
+             const ChannelState *channel = nullptr);
 
   void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const Envelope &env, const Vibrato &vibrato, Hertz tuning);
+             const Envelope &env, const Vibrato &vibrato, Hertz tuning,
+             const ChannelState *channel = nullptr);
 
   void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const Instrument &instrument, Hertz tuning);
+             const Instrument &instrument, Hertz tuning,
+             const ChannelState *channel = nullptr);
 
   void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const Envelope &env, Hertz tuning);
+             const Envelope &env, Hertz tuning,
+             const ChannelState *channel = nullptr);
   void release(Duration time);
 
   void off();

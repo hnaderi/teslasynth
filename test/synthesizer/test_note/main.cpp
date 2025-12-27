@@ -1,9 +1,10 @@
+#include "channel_state.hpp"
 #include "core.hpp"
 #include "core/envelope_level.hpp"
 #include "envelope.hpp"
 #include "lfo.hpp"
-#include "voices/note.hpp"
 #include "synthesizer/helpers/assertions.hpp"
+#include "voices/note.hpp"
 #include <cstdint>
 #include <unity.h>
 
@@ -287,6 +288,18 @@ void test_note_volume(void) {
   TEST_ASSERT_FALSE(note.next());
 }
 
+void test_note_volume_channel(void) {
+  ChannelState state;
+
+  note.start(100_hz, EnvelopeLevel::max(), 0_us, Envelope(EnvelopeLevel::max()),
+             Vibrato::none(), &state);
+
+  assert_level_equal(note.current().volume, EnvelopeLevel::max());
+  state.amplitude = EnvelopeLevel(0.5);
+  TEST_ASSERT_TRUE(note.next());
+  assert_level_equal(note.current().volume, EnvelopeLevel(0.5));
+}
+
 void test_note_envelope_constant(void) {
   for (auto n = 1; n <= 10; n++) {
     EnvelopeLevel volume(0.1 * n);
@@ -345,6 +358,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_note_second_start);
   RUN_TEST(test_note_start_after_release);
   RUN_TEST(test_note_volume);
+  RUN_TEST(test_note_volume_channel);
   RUN_TEST(test_note_envelope);
   RUN_TEST(test_note_envelope2);
   RUN_TEST(test_note_envelope_constant);
