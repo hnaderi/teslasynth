@@ -5,17 +5,17 @@
 
 namespace teslasynth::app::configuration::codec {
 namespace keys {
-constexpr const char *max_on_time = "max-on-time";
-constexpr const char *min_deadtime = "min-deadtime";
-constexpr const char *max_duty = "max-duty";
-constexpr const char *duty_window = "duty-window";
-constexpr const char *tuning = "tuning";
-constexpr const char *notes = "notes";
-constexpr const char *channels = "channels";
-constexpr const char *instrument = "instrument";
-constexpr const char *routing = "routing";
-constexpr const char *percussion = "percussion";
-constexpr const char *mapping = "mapping";
+constexpr char max_on_time[] = "max-on-time";
+constexpr char min_deadtime[] = "min-deadtime";
+constexpr char max_duty[] = "max-duty";
+constexpr char duty_window[] = "duty-window";
+constexpr char tuning[] = "tuning";
+constexpr char notes[] = "notes";
+constexpr char channels[] = "channels";
+constexpr char instrument[] = "instrument";
+constexpr char routing[] = "routing";
+constexpr char percussion[] = "percussion";
+constexpr char mapping[] = "mapping";
 }; // namespace keys
 
 bool parse(helpers::JSONParser &parser, AppConfig &config);

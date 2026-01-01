@@ -3,7 +3,6 @@ dependencies:
     version: ">=5.5.0"
 
   joltwallet/littlefs: ^1.20.3
-  espressif/cbor: ^0.6.0~1
   espressif/cjson: ^1.7.19
   espressif/mdns: ^1.9.1
   espressif/esp_tinyusb:

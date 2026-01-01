@@ -231,24 +231,16 @@ void init(const configuration::hardware::FullDisplayPanelConfig &config) {
 }
 
 void init(const configuration::hardware::DisplayConfig &display) {
-#ifdef CONFIG_TESLASYNTH_GUI_NONE
-  return;
-#else
   switch (display.type) {
-#ifdef CONFIG_TESLASYNTH_GUI_FULL
   case configuration::hardware::DisplayType::full:
     init(display.config.full);
     break;
-#endif
   case configuration::hardware::DisplayType::minimal:
     init(display.config.minimal);
     break;
   case configuration::hardware::DisplayType::none:
     ESP_LOGI(TAG, "No display configured.");
-  default:
-    ESP_LOGE(TAG, "Unknown display type.");
   }
-#endif
 }
 
 } // namespace teslasynth::app::gui

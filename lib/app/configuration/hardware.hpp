@@ -76,7 +76,7 @@ enum class DisplayType {
 struct NoDisplay {};
 struct DisplayConfig {
   DisplayType type = DisplayType::none;
-  struct PanelConfig {
+  union PanelConfig {
     NoDisplay none;
     MinimalDisplayPanelConfig minimal;
     FullDisplayPanelConfig full;
@@ -88,19 +88,15 @@ struct DisplayConfig {
 };
 
 struct LEDConfig {
-  gpio_num_t pin = static_cast<gpio_num_t>(CONFIG_TESLASYNTH_OUTPUT_GPIO_LED);
-  LogicType logic =
-#ifdef CONFIG_TESLASYNTH_OUTPUT_GPIO_LED_ACTIVE_LOW
-      LogicType::active_low;
-#else
-      LogicType::active_high;
-#endif
+  gpio_num_t pin;
+  LogicType logic;
+
+  LEDConfig();
 };
 
 struct OutputConfig {
   constexpr static uint8_t size = CONFIG_TESLASYNTH_OUTPUT_COUNT;
   std::array<OutputChannelConfig, size> channels;
-  LEDConfig led;
 };
 
 struct InputConfig {
@@ -108,10 +104,12 @@ struct InputConfig {
 };
 
 struct HardwareConfig {
-  uint32_t version = 0;
+  constexpr static uint32_t current_version = 0;
+  uint32_t version = current_version;
   DisplayConfig display;
-  OutputConfig outputs{};
+  OutputConfig output{};
   InputConfig input;
+  LEDConfig led;
 
   HardwareConfig();
 };

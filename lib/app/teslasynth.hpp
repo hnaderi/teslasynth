@@ -1,6 +1,7 @@
 #pragma once
 
 #include "application.hpp"
+#include "configuration/hardware.hpp"
 #include "freertos/idf_additions.h"
 
 namespace teslasynth::app {
@@ -12,7 +13,7 @@ void init();
 }
 
 namespace rmt {
-void init(void);
+void init(const configuration::hardware::OutputConfig &config);
 }
 
 namespace midi {

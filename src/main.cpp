@@ -1,6 +1,5 @@
 #include "application.hpp"
 #include "configuration/storage.hpp"
-#include "devices/display.hpp"
 #include "devices/signal_led.hpp"
 #include "devices/wifi.hpp"
 #include "esp_event.h"
@@ -10,16 +9,17 @@
 #include "teslasynth.hpp"
 #include "web/server.hpp"
 
-static const char *TAG = "TESLASYNTH";
 using namespace teslasynth::app;
 
+static constexpr char TAG[] = "TESLASYNTH";
 static configuration::hardware::HardwareConfig hconfig;
 static Application app;
 
 extern "C" void app_main(void) {
   devices::storage::init();
   ESP_ERROR_CHECK(esp_event_loop_create_default());
-  app.load(configuration::synth::read());
+  if (app.reload_config())
+    ESP_LOGW(TAG, "Synth config fallbacks to factory settings.");
   cli::init(app.ui());
 
   const bool is_provisioned = configuration::hardware::read(hconfig);
@@ -30,9 +30,9 @@ extern "C" void app_main(void) {
     web::server::start(app.ui());
   } else {
     helpers::maintenance::init(hconfig.input);
-    devices::signal_led::init(hconfig.outputs.led);
+    devices::signal_led::init(hconfig.led);
     gui::init(hconfig.display);
-    devices::rmt::init();
+    devices::rmt::init(hconfig.output);
     auto sbuf = synth::init(app.playback());
     devices::midi::init(sbuf);
   }

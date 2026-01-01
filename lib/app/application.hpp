@@ -110,6 +110,13 @@ public:
     impl.configuration() = config;
     impl.reload_config();
   }
+  bool reload_config() {
+    AppConfig config;
+    bool res = configuration::synth::read(config);
+    if (res)
+      load(config);
+    return res;
+  }
   PlaybackHandle playback() { return PlaybackHandle(&impl, write_lock); }
   UIHandle ui() { return UIHandle(&impl, write_lock, read_lock); }
 };

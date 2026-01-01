@@ -2,6 +2,7 @@
 
 #ifdef CONFIG_SOC_RMT_SUPPORTED
 
+#include "configuration/hardware.hpp"
 #include "driver/rmt_common.h"
 #include "driver/rmt_encoder.h"
 #include "driver/rmt_tx.h"
@@ -24,7 +25,7 @@ using teslasynth::midisynth::Pulse;
 
 namespace {
 
-const char *TAG = "RMT-DRIVER";
+constexpr char TAG[] = "RMT-DRIVER";
 
 inline void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
   if (current->is_zero()) {
@@ -60,6 +61,7 @@ size_t callback(const void *data, size_t data_size, size_t symbols_written,
     *done = true;
   return written;
 }
+
 rmt_channel_handle_t channels[CONFIG_TESLASYNTH_OUTPUT_COUNT];
 rmt_encoder_handle_t encoders[CONFIG_TESLASYNTH_OUTPUT_COUNT];
 
@@ -72,37 +74,25 @@ constexpr rmt_transmit_config_t tx_config = {
         },
 };
 
-const uint8_t output_pins[] = {
-#if CONFIG_TESLASYNTH_OUTPUT_COUNT >= 1
-    CONFIG_TESLASYNTH_OUTPUT_GPIO_PIN1,
-#endif
-#if CONFIG_TESLASYNTH_OUTPUT_COUNT >= 2
-    CONFIG_TESLASYNTH_OUTPUT_GPIO_PIN2,
-#endif
-#if CONFIG_TESLASYNTH_OUTPUT_COUNT >= 3
-    CONFIG_TESLASYNTH_OUTPUT_GPIO_PIN3,
-#endif
-#if CONFIG_TESLASYNTH_OUTPUT_COUNT >= 4
-    CONFIG_TESLASYNTH_OUTPUT_GPIO_PIN4,
-#endif
-};
 } // namespace
 
 void enable(void) {
   ESP_LOGI(TAG, "Enable RMT TX channel(s)");
   for (uint8_t i = 0; i < CONFIG_TESLASYNTH_OUTPUT_COUNT; ++i) {
-    ESP_ERROR_CHECK(rmt_enable(channels[i]));
+    if (channels[i] != nullptr)
+      ESP_ERROR_CHECK(rmt_enable(channels[i]));
   }
 }
 
 void disable(void) {
   ESP_LOGI(TAG, "Disable RMT TX channel(s)");
   for (uint8_t i = 0; i < CONFIG_TESLASYNTH_OUTPUT_COUNT; ++i) {
-    ESP_ERROR_CHECK(rmt_disable(channels[i]));
+    if (channels[i] != nullptr)
+      ESP_ERROR_CHECK(rmt_disable(channels[i]));
   }
 }
 
-void init(void) {
+void init(const configuration::hardware::OutputConfig &config) {
   ESP_LOGI(TAG, "Create %u RMT TX channel(s)", CONFIG_TESLASYNTH_OUTPUT_COUNT);
 
   constexpr rmt_simple_encoder_config_t encoder_config = {
@@ -127,8 +117,14 @@ void init(void) {
           },
   };
 
-  for (uint8_t i = 0; i < CONFIG_TESLASYNTH_OUTPUT_COUNT; ++i) {
-    tx_chan_config.gpio_num = static_cast<gpio_num_t>(output_pins[i]);
+  for (uint8_t i = 0; i < config.size; ++i) {
+    const auto pin = config.channels[i].pin;
+    if (pin == GPIO_NUM_NC) {
+      channels[i] = nullptr;
+      encoders[i] = nullptr;
+      continue;
+    }
+    tx_chan_config.gpio_num = pin;
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_config, &channels[i]));
     ESP_ERROR_CHECK(rmt_new_simple_encoder(&encoder_config, &encoders[i]));
   }
