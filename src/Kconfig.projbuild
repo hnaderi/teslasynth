@@ -87,7 +87,12 @@ config CONFIG_DEFAULT_MAX_DUTY
         You can configure max concurrent notes up to this value.
 endmenu
 
+config TESLASYNTH_GUI_ENABLED
+    bool "Enable GUI support"
+    default "y"
+
 menu "GUI"
+depends on TESLASYNTH_GUI_ENABLED
 
 choice TESLASYNTH_GUI
     prompt "GUI type"

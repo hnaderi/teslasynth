@@ -24,10 +24,6 @@ static void input(void *) {
   MidiChannelMessage msg;
   MidiParser parser([&](const MidiChannelMessage msg) {
     auto now = Duration64::micros(esp_timer_get_time());
-#if CONFIG_TESLASYNTH_DEBUG
-    ESP_LOGI(TAG, "Received: %s at %s", std::string(msg).c_str(),
-             std::string(now).c_str());
-#endif
     playback.handle(msg, now);
   });
   uint8_t buffer[256];
@@ -99,7 +95,7 @@ StreamBufferHandle_t init(PlaybackHandle handle) {
 
   constexpr BaseType_t app_core =
       CONFIG_FREERTOS_NUMBER_OF_CORES > 1 ? 1 : tskNO_AFFINITY;
-  constexpr size_t stack_size = 4 * 1024;
+  constexpr size_t stack_size = 8 * 1024;
   xTaskCreatePinnedToCore(input, "Input", stack_size, nullptr, 10, nullptr,
                           app_core);
   xTaskCreatePinnedToCore(output, "Output", stack_size, nullptr, 10, nullptr,

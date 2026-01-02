@@ -1,4 +1,5 @@
 #include "./setup.hpp"
+#include "configuration/hardware.hpp"
 #include "core/lv_obj.h"
 #include "core/lv_obj_pos.h"
 #include "core/lv_obj_style_gen.h"
@@ -231,15 +232,18 @@ void init(const configuration::hardware::FullDisplayPanelConfig &config) {
 }
 
 void init(const configuration::hardware::DisplayConfig &display) {
-  switch (display.type) {
-  case configuration::hardware::DisplayType::full:
-    init(display.config.full);
-    break;
-  case configuration::hardware::DisplayType::minimal:
-    init(display.config.minimal);
-    break;
-  case configuration::hardware::DisplayType::none:
-    ESP_LOGI(TAG, "No display configured.");
+  if (configuration::hardware::DisplayConfig::supported) {
+    switch (display.type) {
+    case configuration::hardware::DisplayType::full:
+      init(display.config.full);
+      break;
+    case configuration::hardware::DisplayType::minimal:
+      init(display.config.minimal);
+      break;
+    case configuration::hardware::DisplayType::none:
+    default:
+      ESP_LOGI(TAG, "No display configured.");
+    }
   }
 }
 

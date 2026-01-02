@@ -78,6 +78,12 @@ enum class DisplayType {
 
 struct NoDisplay {};
 struct DisplayConfig {
+  constexpr static bool supported =
+#ifdef CONFIG_TESLASYNTH_GUI_ENABLED
+      true;
+#else
+      false;
+#endif
   DisplayType type = DisplayType::none;
   union PanelConfig {
     NoDisplay none;

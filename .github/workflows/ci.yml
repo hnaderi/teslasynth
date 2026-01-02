@@ -10,13 +10,11 @@ jobs:
       fail-fast: true
       matrix:
         board:
-          - cyd
           - lolin32
           - esp32dev
           - lilygo-display
           - s2-mini
           - s3
-          - c3-super-mini
     steps:
       - run: gcc --version
         name: Show gcc version

@@ -106,7 +106,7 @@ void init(const configuration::hardware::LEDConfig &config) {
 
   led_apply_pattern(LED_PATTERN_OFF);
 
-  xTaskCreate(led_task_fn, "signal_led", 512, nullptr, 1, &led_task);
+  xTaskCreate(led_task_fn, "signal_led", 1024, nullptr, 1, &led_task);
 
   ESP_ERROR_CHECK(esp_event_handler_register(
       helpers::maintenance::MAINT_EVENT_BASE, ESP_EVENT_ANY_ID,
