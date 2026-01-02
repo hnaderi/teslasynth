@@ -32,6 +32,7 @@ struct TouchPanelConfig {
     XPT2046 = 0,
     STMPE610 = 1,
   } type;
+
   gpio_num_t cs = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
@@ -45,6 +46,7 @@ struct FullDisplayPanelConfig {
     ILI9341 = 0,
     ST7789 = 1,
   } type;
+
   gpio_num_t cs = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t dc = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;
@@ -59,8 +61,9 @@ struct FullDisplayPanelConfig {
 
 struct MinimalDisplayPanelConfig {
   enum class DisplayType {
-    SSD1306,
+    SSD1306 = 0,
   } type = DisplayType::SSD1306;
+
   gpio_num_t sda = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t scl = gpio_num_t::GPIO_NUM_NC;
   gpio_num_t rs = gpio_num_t::GPIO_NUM_NC;

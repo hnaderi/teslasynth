@@ -3,6 +3,7 @@
 #include "../helpers/json.hpp"
 #include "../helpers/sysinfo.h"
 #include "configuration/codec.hpp"
+#include "configuration/hardware.hpp"
 #include "configuration/storage.hpp"
 #include "esp_check.h"
 #include "esp_err.h"
@@ -141,6 +142,56 @@ esp_err_t synth_instruments_get_handler(httpd_req_t *req) {
   return ESP_FAIL;
 }
 
+esp_err_t hardware_config_get_handler(httpd_req_t *req) {
+  configuration::hardware::HardwareConfig hwconfg;
+  configuration::hardware::read(hwconfg);
+
+  httpd_resp_set_type(req, "application/json");
+  auto json = configuration::codec::encode(hwconfg).print();
+  httpd_resp_sendstr(req, json.value);
+  return ESP_OK;
+}
+
+esp_err_t hardware_config_put_handler(httpd_req_t *req) {
+  std::vector<char> body;
+  JSONParser parser;
+  ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
+
+  httpd_resp_set_type(req, "application/json");
+  auto parsed = configuration::codec::parse_hwconfig(parser);
+  if (parsed) {
+    const auto config = parsed.value();
+    auto res = configuration::hardware::persist(config);
+    if (res == ESP_OK) {
+      auto json = configuration::codec::encode(config).print();
+      httpd_resp_sendstr(req, json.value);
+    } else {
+      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                          "Error while setting configuration");
+    }
+    return res;
+  } else {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
+    return ESP_FAIL;
+  }
+}
+
+esp_err_t hardware_config_del_handler(httpd_req_t *req) {
+  std::vector<char> body;
+  httpd_resp_set_type(req, "application/json");
+
+  configuration::hardware::HardwareConfig config;
+  auto res = configuration::hardware::persist(config);
+  if (res == ESP_OK) {
+    auto json = configuration::codec::encode(config).print();
+    httpd_resp_sendstr(req, json.value);
+  } else {
+    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                        "Error while setting configuration");
+  }
+  return res;
+}
+
 esp_err_t index_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "text/html");
   httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
@@ -224,12 +275,19 @@ constexpr Resource resources[] = {
         .uri = "/api/synth/instruments",
         .get = synth_instruments_get_handler,
     },
+    {
+        .uri = "/api/config/hardware",
+        .get = hardware_config_get_handler,
+        .put = hardware_config_put_handler,
+        .del = hardware_config_del_handler,
+    },
 };
 
 void start(UIHandle handle) {
   ui = handle;
   httpd_handle_t server = NULL;
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+  config.max_uri_handlers = 4 * (sizeof(resources) / sizeof(Resource));
   config.uri_match_fn = httpd_uri_match_wildcard;
 
   ESP_LOGI(TAG, "Starting HTTP Server");

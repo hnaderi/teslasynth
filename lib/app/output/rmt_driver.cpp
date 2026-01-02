@@ -124,6 +124,7 @@ void init(const configuration::hardware::OutputConfig &config) {
       encoders[i] = nullptr;
       continue;
     }
+    ESP_LOGI(TAG, "Output#%d conneced to GPIO %d", i + 1, pin);
     tx_chan_config.gpio_num = pin;
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_config, &channels[i]));
     ESP_ERROR_CHECK(rmt_new_simple_encoder(&encoder_config, &encoders[i]));
@@ -145,7 +146,7 @@ void pulse_write(const midisynth::Pulse *pulse, size_t len, uint8_t ch) {
   }
 #endif
 
-  if (len == 0)
+  if (len == 0 || channels[ch] == nullptr)
     return;
   ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_transmit(channels[ch], encoders[ch], pulse,
                                              len * sizeof(Pulse), &tx_config));

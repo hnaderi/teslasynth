@@ -4,6 +4,7 @@ import { SynthConfigSection } from "./SynthConfigSection.jsx";
 import { ConfirmDialog } from './components/confirmation';
 import { SysInfoSection } from "./SysInfo.jsx";
 import { About } from './About.jsx';
+import { HardwareConfigSection } from './components/HardwareConfigSection.jsx';
 
 function RebootingScreen() {
     return (
@@ -54,6 +55,7 @@ export default function App() {
                 onConfirm={reboot}
             />
             <SynthConfigSection />
+            <HardwareConfigSection />
             <SysInfoSection />
             <About
                 open={isAboutOpened}
