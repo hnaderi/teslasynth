@@ -4,7 +4,6 @@
 #include "devices/wifi.hpp"
 #include "esp_event.h"
 #include "esp_log.h"
-#include "gui/setup.hpp"
 #include "helpers/maintenance.hpp"
 #include "teslasynth.hpp"
 #include "web/server.hpp"
@@ -31,7 +30,6 @@ extern "C" void app_main(void) {
   } else {
     helpers::maintenance::init(hconfig.input);
     devices::signal_led::init(hconfig.led);
-    gui::init(hconfig.display);
     devices::rmt::init(hconfig.output);
     auto sbuf = synth::init(app.playback());
     devices::midi::init(sbuf);

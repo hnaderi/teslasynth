@@ -3,6 +3,7 @@
 #include "../helpers/json.hpp"
 #include "application.hpp"
 #include "configuration/hardware.hpp"
+#include "configuration/synth.hpp"
 #include "result.hpp"
 
 namespace teslasynth::app::configuration::codec {
@@ -23,7 +24,7 @@ constexpr char mapping[] = "mapping";
 template <typename T>
 using Decoder = teslasynth::helpers::Result<T, const char *>;
 
-bool parse(helpers::JSONParser &parser, AppConfig &config);
+Decoder<AppConfig> parse_appconfig(helpers::JSONParser &parser);
 helpers::JSONEncoder encode(const AppConfig &config);
 
 Decoder<hardware::HardwareConfig> parse_hwconfig(helpers::JSONParser &parser);

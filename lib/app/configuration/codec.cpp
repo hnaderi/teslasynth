@@ -1,9 +1,15 @@
 #include "codec.hpp"
+#include "config_data.hpp"
 #include "configuration/hardware.hpp"
+#include "configuration/synth.hpp"
+#include "core/duration.hpp"
+#include "core/hertz.hpp"
 #include "helpers/json.hpp"
 #include "result.hpp"
 #include "soc/gpio_num.h"
 #include <cstdint>
+#include <limits>
+#include <optional>
 #include <sys/types.h>
 
 namespace teslasynth::app::configuration::codec {
@@ -13,73 +19,84 @@ using namespace core;
 using namespace hardware;
 
 namespace {
-inline bool parse_duration16(const JSONParser::JSONObjectView &j,
-                             const char *key, Duration16 &d) {
-  auto nn = j.get(key).number();
-  if (nn.has_value() && *nn <= UINT16_MAX) {
-    d = Duration16::micros(*nn);
-    return true;
+template <typename T = uint16_t>
+Decoder<SimpleDuration<T>> parse_duration(const JSONParser::JSONObjectView &j) {
+  auto nn = j.number();
+  if (nn.has_value() && *nn <= std::numeric_limits<T>::max()) {
+    return SimpleDuration<T>::micros(*nn);
   } else
-    return false;
+    return "Invalid duration";
+}
+
+Decoder<Hertz> parse_frequency(const JSONParser::JSONObjectView &j) {
+  auto freq = j.number_d();
+  if (freq.has_value() && *freq >= 1 && *freq <= 1000) {
+    return Hertz(*freq);
+  } else
+    return "Invalid frequency";
+}
+
+Decoder<uint8_t> parse_notes(const JSONParser::JSONObjectView &j) {
+  auto notes = j.number();
+  if (notes.has_value() && *notes >= 1 && *notes <= OutputConfig::size) {
+    return *notes;
+  } else
+    return "Invalid notes";
+}
+
+Decoder<DutyCycle> parse_duty(const JSONParser::JSONObjectView &j) {
+  auto duty = j.number_d();
+  if (duty.has_value() && *duty > 0 && *duty <= 100) {
+    return DutyCycle(*duty);
+  } else
+    return "Invalid dutycycle";
+}
+
+Decoder<JSONParser::JSONArrayView>
+parse_array(const JSONParser::JSONObjectView &j) {
+  if (j.is_arr())
+    return j.arr();
+  else
+    return "Not an array";
+}
+
+Decoder<std::optional<uint8_t>>
+parse_instrument(const JSONParser::JSONObjectView &j) {
+  if (j.is_null())
+    return std::optional<uint8_t>();
+  else if (j.is_number())
+    return std::optional{static_cast<uint8_t>(*j.number())};
+  else
+    return "Invalid instrument number";
 }
 } // namespace
 
-bool parse(JSONParser &parser, AppConfig &config) {
+Decoder<AppConfig> parse_appconfig(helpers::JSONParser &parser) {
   auto root = parser.root();
+  AppConfig config;
 
-  auto tuning = root.get(keys::tuning).number();
-  if (tuning.has_value() && *tuning >= 1 && *tuning <= 1000)
-    config.synth().tuning = Hertz(*tuning);
-  else
-    return false;
+  config.synth().tuning = TRY(parse_frequency(root.get(keys::tuning)));
+  config.synth().instrument = TRY(parse_instrument(root.get(keys::instrument)));
 
-  auto instrument = root.get(keys::instrument);
-  if (instrument.is_null())
-    config.synth().instrument = {};
-  else if (instrument.is_number())
-    config.synth().instrument = *instrument.number();
-  else
-    return false;
+  auto channels = TRY(parse_array(root.get(keys::channels)));
+  int idx = 0;
+  for (const auto &chobj : channels) {
+    if (idx >= config.channels_size() || !chobj.is_obj())
+      return "Invalid channel object";
 
-  auto channels = root.get(keys::channels);
-  if (channels.is_arr()) {
-    int idx = 0;
-    for (const auto &chobj : channels.arr()) {
-      if (idx >= config.channels_size() || !chobj.is_obj())
-        return false;
+    auto &ch = config.channel(idx);
 
-      auto &ch = config.channel(idx);
+    ch.notes = TRY(parse_notes(chobj.get(keys::notes)));
+    ch.instrument = TRY(parse_instrument(chobj.get(keys::instrument)));
+    ch.max_on_time = TRY(parse_duration(chobj.get(keys::max_on_time)));
+    ch.min_deadtime = TRY(parse_duration(chobj.get(keys::min_deadtime)));
+    ch.duty_window = TRY(parse_duration(chobj.get(keys::duty_window)));
+    ch.max_duty = TRY(parse_duty(chobj.get(keys::max_duty)));
 
-      auto notes = chobj.get(keys::notes).number();
-      if (notes.has_value())
-        ch.notes = *notes;
-      else
-        return false;
-
-      auto instrument = chobj.get(keys::instrument);
-      if (instrument.is_null())
-        ch.instrument = {};
-      else if (instrument.is_number())
-        ch.instrument = *instrument.number();
-      else
-        return false;
-
-      if (!parse_duration16(chobj, keys::max_on_time, ch.max_on_time))
-        return false;
-      if (!parse_duration16(chobj, keys::min_deadtime, ch.min_deadtime))
-        return false;
-      if (!parse_duration16(chobj, keys::duty_window, ch.duty_window))
-        return false;
-
-      auto max_duty = chobj.get(keys::max_duty).number_d();
-      if (max_duty.has_value() && *max_duty <= 100)
-        ch.max_duty = midisynth::DutyCycle(*max_duty);
-      else
-        return false;
-
-      idx++;
-    }
+    idx++;
   }
+  if (idx != config.channels_size())
+    return "Channel objects must match the channel size exactly";
 
   auto routing = root.get(keys::routing);
   if (routing.is_obj()) {
@@ -92,18 +109,18 @@ bool parse(JSONParser &parser, AppConfig &config) {
       uint8_t i = 0;
       for (const auto &m : mapping.arr()) {
         if (i >= array.size() || !m.is_number()) {
-          return false;
+          return "Unknown MIDI channel mapping";
         }
         array[i] = *m.number();
         i++;
       }
     } else
-      return false;
+      return "Invalid routing config";
   } else {
-    return false;
+    return "No routing object found";
   }
 
-  return true;
+  return config;
 }
 
 JSONEncoder encode(const AppConfig &config) {

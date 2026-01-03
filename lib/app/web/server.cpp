@@ -100,8 +100,9 @@ esp_err_t synth_config_put_handler(httpd_req_t *req) {
   ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
 
   httpd_resp_set_type(req, "application/json");
-  AppConfig config = ui.config_read();
-  if (parse(parser, config)) {
+  auto parsed = configuration::codec::parse_appconfig(parser);
+  if (parsed) {
+    auto config = parsed.value();
     ui.config_set(config, true);
     auto res = configuration::synth::persist(config);
     if (res == ESP_OK) {
@@ -112,9 +113,10 @@ esp_err_t synth_config_put_handler(httpd_req_t *req) {
                           "Error while setting configuration");
     }
     return res;
+  } else {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
+    return ESP_FAIL;
   }
-  httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid request.");
-  return ESP_FAIL;
 }
 
 esp_err_t synth_config_del_handler(httpd_req_t *req) {

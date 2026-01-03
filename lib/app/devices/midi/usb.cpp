@@ -6,8 +6,6 @@
 
 #include "../midi.hpp"
 #include "esp_log.h"
-#include "esp_timer.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "tinyusb.h"
 #include "tinyusb_default_config.h"
@@ -46,8 +44,8 @@ enum usb_endpoints {
 const char *s_str_desc[5] = {
     // array of pointer to string descriptors
     (char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
-    "TinyUSB",            // 1: Manufacturer
-    "TinyUSB Device",     // 2: Product
+    "hnaderi",            // 1: Manufacturer
+    "Teslasynth dongle",  // 2: Product
     "123456",             // 3: Serials, should use chip ID
     CONFIG_TESLASYNTH_DEVICE_NAME, // 4: MIDI
 };

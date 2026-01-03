@@ -23,25 +23,25 @@ config TESLASYNTH_OUTPUT_COUNT
 
 config TESLASYNTH_OUTPUT_GPIO_PIN1
     int "GPIO Pin for output #1"
-    default 4
+    default 12
     range 0 39
     depends on TESLASYNTH_OUTPUT_COUNT >= 1
 
 config TESLASYNTH_OUTPUT_GPIO_PIN2
     int "GPIO Pin for output #2"
-    default 4
+    default 13
     range 0 39
     depends on TESLASYNTH_OUTPUT_COUNT >= 2
 
 config TESLASYNTH_OUTPUT_GPIO_PIN3
     int "GPIO Pin for output #3"
-    default 4
+    default 14
     range 0 39
     depends on TESLASYNTH_OUTPUT_COUNT >= 3
 
 config TESLASYNTH_OUTPUT_GPIO_PIN4
     int "GPIO Pin for output #4"
-    default 4
+    default 27
     range 0 39
     depends on TESLASYNTH_OUTPUT_COUNT >= 4
 

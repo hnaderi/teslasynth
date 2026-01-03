@@ -1,5 +1,4 @@
 import { useEffect, useState } from "preact/hooks";
-import { DisplayConfigSection } from "./DisplayConfig";
 import { InputConfigSection } from "./InputConfig";
 import { LedConfigSection } from "./LEDConfig";
 import { OutputConfigSection } from "./OutputConfig";
@@ -46,8 +45,6 @@ export function HardwareConfigForm({
 
     return (
         <form onSubmit={save}>
-            <DisplayConfigSection display={draft.display} />
-
             <OutputConfigSection
                 channels={draft.output.channels}
                 onChange={channels =>
