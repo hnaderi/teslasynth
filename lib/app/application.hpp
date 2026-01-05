@@ -55,9 +55,9 @@ public:
   UIHandle(AppSynth *impl, SemaphoreHandle_t write, SemaphoreHandle_t read)
       : impl(impl), write_lock(write), read_lock(read) {}
 
-  inline auto &config_read() const {
+  inline AppConfig config_read() const {
     xSemaphoreTake(read_lock, portMAX_DELAY);
-    auto &res = impl->configuration();
+    auto res = impl->configuration();
     xSemaphoreGive(read_lock);
     return res;
   }
