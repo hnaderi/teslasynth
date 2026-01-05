@@ -22,8 +22,7 @@ extern "C" void app_main(void) {
   cli::init(app.ui());
 
   const bool is_provisioned = configuration::hardware::read(hconfig);
-  if ( // !is_provisioned ||
-      helpers::maintenance::check()) {
+  if (!is_provisioned || helpers::maintenance::check()) {
     ESP_LOGI(TAG, "Entering maintenance mode.");
     devices::wifi::init();
     web::server::start(app.ui());

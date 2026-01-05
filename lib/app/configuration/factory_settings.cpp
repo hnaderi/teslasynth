@@ -162,7 +162,6 @@ constexpr auto default_led_logic =
 LEDConfig::LEDConfig()
     : pin(GPIO_CONFIG(OUTPUT_GPIO_LED)), logic(default_led_logic) {}
 
-HardwareConfig::HardwareConfig()
-    : display(default_display), output(default_channels) {}
+HardwareConfig::HardwareConfig() : output(default_channels) {}
 
 } // namespace teslasynth::app::configuration::hardware

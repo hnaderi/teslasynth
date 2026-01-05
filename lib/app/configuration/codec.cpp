@@ -159,27 +159,6 @@ JSONEncoder encode(const AppConfig &config) {
 }
 
 namespace {
-void encode_display_minimal(JSONObjBuilder root,
-                            const MinimalDisplayPanelConfig &display) {
-  root.add("sda", display.sda);
-  root.add("scl", display.scl);
-  root.add("rs", display.rs);
-}
-void encode_display_full(JSONObjBuilder root,
-                         const FullDisplayPanelConfig &display) {}
-void encode_display(JSONObjBuilder root, const DisplayConfig &display) {
-  switch (display.type) {
-  case hardware::DisplayType::none:
-    root.add_object("none");
-    break;
-  case hardware::DisplayType::minimal:
-    encode_display_minimal(root.add_object("minimal"), display.config.minimal);
-    break;
-  case hardware::DisplayType::full:
-    encode_display_full(root.add_object("full"), display.config.full);
-    break;
-  }
-}
 void encode_hardware_output(JSONObjBuilder root, const OutputConfig &output) {
   auto channels = root.add_array("channels");
   for (const auto &ch : output.channels) {
@@ -193,10 +172,6 @@ void encode_hardware_led(JSONObjBuilder root, const LEDConfig &led) {
   root.add("pin", led.pin);
   root.add_bool("active-high", static_cast<bool>(led.logic));
 }
-
-#define decode(exp)                                                            \
-  if (!decoders::exp)                                                          \
-    return false;
 
 namespace decoders {
 
@@ -218,47 +193,6 @@ Decoder<LogicType> logic_type(const JSONParser::JSONObjectView &j) {
       return LogicType::active_low;
   } else
     return "Logic type is required!";
-}
-
-Decoder<MinimalDisplayPanelConfig>
-display_minimal(JSONParser::JSONObjectView obj) {
-  MinimalDisplayPanelConfig display;
-
-  display.type = hardware::MinimalDisplayPanelConfig::DisplayType::SSD1306;
-  display.sda = TRY(gpio(obj.get("sda")));
-  display.scl = TRY(gpio(obj.get("scl")));
-  display.rs = TRY(gpio(obj.get("rs")));
-
-  return display;
-}
-
-Decoder<FullDisplayPanelConfig> display_full(JSONParser::JSONObjectView obj) {
-  return "Not implemented yet!";
-}
-
-Decoder<DisplayConfig> display(JSONParser::JSONObjectView obj) {
-  auto none = obj.get("none");
-  auto minimal = obj.get("minimal");
-  auto full = obj.get("full");
-
-  uint8_t count = none.is_obj() + minimal.is_obj() + full.is_obj();
-  if (count != 1)
-    return "Must exactly be one of 'none', 'minimal', 'full'";
-
-  DisplayConfig display;
-
-  if (minimal.is_obj()) {
-    display.type = hardware::DisplayType::minimal;
-    display.config.minimal = TRY(display_minimal(minimal));
-  } else if (full.is_obj()) {
-    display.type = hardware::DisplayType::full;
-    display.config.full = TRY(display_full(full));
-  } else {
-    display.type = hardware::DisplayType::none;
-    display.config.none = hardware::NoDisplay();
-  }
-
-  return display;
 }
 
 Decoder<OutputConfig> hardware_output(JSONParser::JSONObjectView obj) {
@@ -301,7 +235,6 @@ Decoder<HardwareConfig> parse_hwconfig(JSONParser &parser) {
 
   HardwareConfig hwconf;
   hwconf.input = TRY(decoders::hardware_input(root.get("input")));
-  hwconf.display = TRY(decoders::display(root.get("display")));
   hwconf.output = TRY(decoders::hardware_output(root.get("output")));
   hwconf.led = TRY(decoders::hardware_led(root.get("led")));
 
@@ -310,7 +243,6 @@ Decoder<HardwareConfig> parse_hwconfig(JSONParser &parser) {
 JSONEncoder encode(const HardwareConfig &config) {
   JSONEncoder encoder;
   auto root = encoder.object();
-  encode_display(root.add_object("display"), config.display);
   encode_hardware_output(root.add_object("output"), config.output);
   encode_hardware_input(root.add_object("input"), config.input);
   encode_hardware_led(root.add_object("led"), config.led);

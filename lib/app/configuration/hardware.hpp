@@ -115,7 +115,6 @@ struct InputConfig {
 struct HardwareConfig {
   constexpr static uint32_t current_version = 0;
   uint32_t version = current_version;
-  DisplayConfig display;
   OutputConfig output{};
   InputConfig input;
   LEDConfig led;
