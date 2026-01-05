@@ -93,25 +93,30 @@ struct Pulse {
   }
 };
 
-template <std::uint8_t OUTPUTS = 1, std::size_t SIZE = 64> struct PulseBuffer {
-  std::array<uint8_t, OUTPUTS> written{};
-  std::array<Pulse, SIZE * OUTPUTS> pulses;
+template <std::uint8_t OUTPUTS = 1, std::size_t OUTPUT_BUFSIZE = 64>
+struct PulseBuffer {
+  constexpr static uint8_t outputs = OUTPUTS;
+  constexpr static size_t output_bufsize = OUTPUT_BUFSIZE;
+  constexpr static size_t size = OUTPUTS * OUTPUT_BUFSIZE;
+
+  std::array<uint8_t, outputs> written{};
+  std::array<Pulse, size> pulses;
 
   inline void clean() {
-    for (uint8_t ch = 0; ch < OUTPUTS; ch++) {
+    for (uint8_t ch = 0; ch < outputs; ch++) {
       written[ch] = 0;
     }
   }
   inline Pulse &at(uint8_t ch, uint8_t idx) {
-    assert(ch < OUTPUTS);
-    return pulses[ch * SIZE + idx];
+    assert(ch < outputs);
+    return pulses[ch * output_bufsize + idx];
   }
   inline Pulse &data(uint8_t ch) {
-    assert(ch < OUTPUTS);
-    return pulses[ch * SIZE];
+    assert(ch < outputs);
+    return pulses[ch * output_bufsize];
   }
   inline uint8_t &data_size(uint8_t ch) {
-    assert(ch < OUTPUTS);
+    assert(ch < outputs);
     return written[ch];
   }
 };

@@ -19,6 +19,7 @@
 #include <stdio.h>
 
 namespace teslasynth::app::devices::rmt {
+using configuration::hardware::OutputConfig;
 using teslasynth::midisynth::Pulse;
 
 #define RMT_BUZZER_RESOLUTION_HZ 1'000'000
@@ -62,8 +63,8 @@ size_t callback(const void *data, size_t data_size, size_t symbols_written,
   return written;
 }
 
-rmt_channel_handle_t channels[CONFIG_TESLASYNTH_OUTPUT_COUNT];
-rmt_encoder_handle_t encoders[CONFIG_TESLASYNTH_OUTPUT_COUNT];
+rmt_channel_handle_t channels[OutputConfig::size];
+rmt_encoder_handle_t encoders[OutputConfig::size];
 
 constexpr rmt_transmit_config_t tx_config = {
     .loop_count = 0,
@@ -78,7 +79,7 @@ constexpr rmt_transmit_config_t tx_config = {
 
 void enable(void) {
   ESP_LOGI(TAG, "Enable RMT TX channel(s)");
-  for (uint8_t i = 0; i < CONFIG_TESLASYNTH_OUTPUT_COUNT; ++i) {
+  for (uint8_t i = 0; i < OutputConfig::size; ++i) {
     if (channels[i] != nullptr)
       ESP_ERROR_CHECK(rmt_enable(channels[i]));
   }
@@ -86,14 +87,14 @@ void enable(void) {
 
 void disable(void) {
   ESP_LOGI(TAG, "Disable RMT TX channel(s)");
-  for (uint8_t i = 0; i < CONFIG_TESLASYNTH_OUTPUT_COUNT; ++i) {
+  for (uint8_t i = 0; i < OutputConfig::size; ++i) {
     if (channels[i] != nullptr)
       ESP_ERROR_CHECK(rmt_disable(channels[i]));
   }
 }
 
-void init(const configuration::hardware::OutputConfig &config) {
-  ESP_LOGI(TAG, "Create %u RMT TX channel(s)", CONFIG_TESLASYNTH_OUTPUT_COUNT);
+void init(const OutputConfig &config) {
+  ESP_LOGI(TAG, "Create %u RMT TX channel(s)", OutputConfig::size);
 
   constexpr rmt_simple_encoder_config_t encoder_config = {
       .callback = callback,

@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "configuration/hardware.hpp"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "freertos/idf_additions.h"
@@ -14,6 +15,7 @@
 
 namespace teslasynth::app::synth {
 using namespace teslasynth::midisynth;
+using configuration::hardware::OutputConfig;
 
 static const char *TAG = "SYNTH";
 
@@ -44,7 +46,7 @@ static void output(void *pvParams) {
   TickType_t lastTime = xTaskGetTickCount();
 
   int64_t processed = esp_timer_get_time();
-  PulseBuffer<CONFIG_TESLASYNTH_OUTPUT_COUNT, 64> buffer;
+  PulseBuffer<OutputConfig::size, 64> buffer;
 
   while (true) {
     vTaskDelayUntil(&lastTime, loopTime);
@@ -57,7 +59,7 @@ static void output(void *pvParams) {
     playback.sample_all(budget, buffer);
     playback.release();
 
-    for (uint8_t ch = 0; ch < CONFIG_TESLASYNTH_OUTPUT_COUNT; ch++) {
+    for (uint8_t ch = 0; ch < buffer.outputs; ch++) {
       devices::rmt::pulse_write(&buffer.data(ch), buffer.data_size(ch), ch);
     }
 

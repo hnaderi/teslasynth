@@ -4,14 +4,11 @@
 #include "esp_event.h"
 #include "freertos/idf_additions.h"
 #include "midi_synth.hpp"
-#include "sdkconfig.h"
 #include "synthesizer_events.hpp"
 #include <configuration/synth.hpp>
 
 namespace teslasynth::app {
 using namespace midisynth;
-
-typedef Teslasynth<CONFIG_TESLASYNTH_OUTPUT_COUNT> AppSynth;
 
 namespace {
 void on_track_play(bool playing) {
@@ -43,7 +40,8 @@ public:
   template <size_t BUFSIZE>
   inline void
   sample_all(Duration16 max,
-             PulseBuffer<CONFIG_TESLASYNTH_OUTPUT_COUNT, BUFSIZE> &output) {
+             PulseBuffer<configuration::hardware::OutputConfig::size, BUFSIZE>
+                 &output) {
     impl->sample_all(max, output);
   };
 };
