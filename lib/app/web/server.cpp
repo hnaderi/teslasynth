@@ -5,9 +5,11 @@
 #include "configuration/codec.hpp"
 #include "configuration/hardware.hpp"
 #include "configuration/storage.hpp"
+#include "esp_app_desc.h"
 #include "esp_check.h"
 #include "esp_err.h"
 #include "esp_http_server.h"
+#include "esp_idf_version.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "http_parser.h"
@@ -43,7 +45,14 @@ helpers::JSONEncoder encode(const ChipInfo &info) {
   root.add_bool("wifi", info.wifi);
   root.add_bool("ble", info.ble);
   root.add_bool("bt", info.bt);
+  root.add_bool("otg", info.otg);
   root.add_bool("emb-flash", info.emb_flash);
+
+  auto firmware = root.add_object("firmware");
+  auto app_version = esp_app_get_description();
+  firmware.add("version", app_version->version);
+  firmware.add("compile-time", app_version->date);
+  firmware.add("idf-version", esp_get_idf_version());
   return encoder;
 }
 

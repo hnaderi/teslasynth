@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { BooleanIndicator } from './components/BooleanIndicator';
 
 export function SysInfoSection() {
     const [info, setInfo] = useState(null);
@@ -16,11 +17,20 @@ export function SysInfoSection() {
             <header>
                 <hgroup>
                     <h2>System Information</h2>
-                    <p>Detected hardware capabilities</p>
+                    <p>Detected system capabilities</p>
                 </hgroup>
             </header>
 
             <div class="grid">
+                <article class="syscard">
+                    <header><strong>Firmware</strong></header>
+                    <ul>
+                        <li>Version: <code>{String(info['firmware']['version'])}</code></li>
+                        <li>Compile time: <code>{String(info['firmware']['compile-time'])}</code></li>
+                        <li>idf version: <code>{String(info['firmware']['idf-version'])}</code></li>
+                    </ul>
+                </article>
+
                 <article class="syscard">
                     <header><strong>Device</strong></header>
                     <ul>
@@ -34,16 +44,17 @@ export function SysInfoSection() {
                     <ul>
                         <li>Cores: <code>{info.cores}</code></li>
                         <li>Flash Size: <code>{info['flash-size']} MB</code></li>
-                        <li>Embedded Flash: <code>{String(info['emb-flash'])}</code></li>
+                        <li>Embedded Flash: <BooleanIndicator value={info['emb-flash']} label="emb-flash" /></li>
                     </ul>
                 </article>
 
                 <article class="syscard">
                     <header><strong>Connectivity</strong></header>
                     <ul>
-                        <li>Wi-Fi: <code>{String(info.wifi)}</code></li>
-                        <li>BLE: <code>{String(info.ble)}</code></li>
-                        <li>Bluetooth: <code>{String(info.bt)}</code></li>
+                        <li>Wi-Fi: <BooleanIndicator value={info.wifi} label="Wi-Fi" /></li>
+                        <li>BLE: <BooleanIndicator value={info.ble} label="BLE" /></li>
+                        <li>Bluetooth: <BooleanIndicator value={info.bt} label="BT" /></li>
+                        <li>USB-OTG: <BooleanIndicator value={info.otg} label="USB-OTG" /></li>
                     </ul>
                 </article>
             </div>

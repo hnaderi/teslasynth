@@ -7,7 +7,7 @@
 struct ChipInfo {
   const char *model;
   uint8_t cores;
-  bool wifi, ble, bt, emb_flash;
+  bool wifi, ble, bt, emb_flash, otg;
   uint32_t flash_size;
   uint16_t revision;
 };

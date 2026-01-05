@@ -2,8 +2,16 @@
 #include "esp_chip_info.h"
 #include "esp_err.h"
 #include "esp_flash.h"
+#include "sdkconfig.h"
 #include <cstddef>
 #include <stdint.h>
+
+constexpr static bool otg_supported
+#if CONFIG_SOC_USB_OTG_SUPPORTED
+    = true;
+#else
+    = false;
+#endif
 
 esp_err_t get_chip_info(ChipInfo &chip) {
   esp_chip_info_t info;
@@ -49,6 +57,8 @@ esp_err_t get_chip_info(ChipInfo &chip) {
   chip.ble = static_cast<bool>(info.features & CHIP_FEATURE_BLE);
   chip.bt = static_cast<bool>(info.features & CHIP_FEATURE_BT);
   chip.emb_flash = static_cast<bool>(info.features & CHIP_FEATURE_EMB_FLASH);
+  chip.otg = otg_supported;
+
   chip.flash_size = flash_size / (1024 * 1024);
   chip.revision = info.revision;
 
