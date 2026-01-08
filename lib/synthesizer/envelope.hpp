@@ -150,7 +150,7 @@ template <typename Traits> class EnvelopeEngine {
 
   constexpr Duration32 progress(Duration32 delta, bool on) {
     Duration32 remained = delta;
-    auto dt = _current.will_reach_target(remained);
+    auto dt = _current.how_much_remains_after(remained);
 
     while (!is_off() && (dt.has_value() || (_current.hold() && !on))) {
       if (_index < size - 1) {
@@ -163,7 +163,7 @@ template <typename Traits> class EnvelopeEngine {
         _current = Curve(EnvelopeLevel(0));
       }
       remained = *dt;
-      dt = _current.will_reach_target(remained);
+      dt = _current.how_much_remains_after(remained);
     }
     return remained;
   }

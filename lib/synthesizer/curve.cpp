@@ -31,11 +31,13 @@ Curve::Curve(EnvelopeLevel constant)
     : _target(constant), _type(Lin), _current(constant), _target_reached(false),
       _const(true) {}
 
-std::optional<Duration32> Curve::will_reach_target(const Duration32 &dt) const {
-  if (!_const)
+std::optional<Duration32>
+Curve::how_much_remains_after(const Duration32 &dt) const {
+  if (!_const) {
     return (dt + _elapsed) - _total;
-  else
+  } else {
     return std::nullopt;
+  }
 }
 
 EnvelopeLevel Curve::update(Duration32 delta) {
@@ -53,7 +55,7 @@ EnvelopeLevel Curve::update(Duration32 delta) {
       _current += _state.slope * dt;
 
     _elapsed += delta;
-    _target_reached = _current == _target || _elapsed >= _total;
+    _target_reached = _elapsed >= _total;
   }
   return _current;
 }

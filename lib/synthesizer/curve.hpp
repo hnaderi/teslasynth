@@ -31,7 +31,7 @@ public:
   Curve(EnvelopeLevel constant);
   EnvelopeLevel update(Duration32 delta);
   bool is_target_reached() const { return _target_reached; }
-  std::optional<Duration32> will_reach_target(const Duration32 &dt) const;
+  std::optional<Duration32> how_much_remains_after(const Duration32 &dt) const;
   constexpr CurveType type() const { return _type; }
   constexpr bool hold() const { return _const; }
 };
