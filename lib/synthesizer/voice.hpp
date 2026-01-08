@@ -24,14 +24,19 @@ class Voice final {
   std::array<uint8_t, MAX_NOTES> _numbers;
 
   uint8_t find_free(uint8_t id) {
-    uint8_t idx = 0;
     for (uint8_t i = 0; i < _size; i++) {
       if (_notes[i].is_active() && _numbers[i] != id)
         continue;
-      idx = i;
-      break;
+      return i;
     }
-    return idx;
+
+    EnvelopeLevel quietest = EnvelopeLevel::max();
+    uint8_t quietest_idx = 0;
+    for (uint8_t i = 0; i < _size; i++) {
+      if (_notes[i].current().volume < quietest)
+        quietest_idx = i;
+    }
+    return quietest_idx;
   }
 
 public:
@@ -55,7 +60,6 @@ public:
     for (uint8_t i = 0; i < _size; i++) {
       if (_notes[i].is_active() && _numbers[i] == number) {
         _notes[i].release(time);
-        return;
       }
     }
   }
