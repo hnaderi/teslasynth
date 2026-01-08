@@ -25,11 +25,8 @@ public:
   };
 
 private:
-  union State {
-    Note note;
-    Hit hit;
-  } state = {};
-  Type type_ = Type::None;
+  using VoiceState = std::variant<std::monostate, Note, Hit>;
+  VoiceState state{std::monostate{}};
 
 public:
   void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
@@ -41,6 +38,6 @@ public:
   bool next();
   const NotePulse &current() const;
   bool is_active() const;
-  const Type &type() const { return type_; }
+  Type type() const;
 };
 } // namespace teslasynth::synth
