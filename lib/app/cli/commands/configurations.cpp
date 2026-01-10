@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "argtable3/argtable3.h"
+#include "config_data.hpp"
 #include "config_patch_update.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
@@ -145,6 +146,10 @@ int playbackoff_cmd(int, char **) {
   return 0;
 }
 
+int device_limits_cmd(int, char **) {
+  printf("Max notes: %d\n", ChannelConfig::max_notes);
+  return 0;
+}
 } // namespace
 
 void register_configuration_commands(UIHandle handle) {
@@ -169,6 +174,11 @@ void register_configuration_commands(UIHandle handle) {
           .command = "off",
           .help = "All notes off instantly",
           .func = playbackoff_cmd,
+      },
+      esp_console_cmd_t{
+          .command = "limits",
+          .help = "Print device hard limits set in firmware at compile time",
+          .func = device_limits_cmd,
       },
   };
   for (auto &cmd : commands)
