@@ -1,14 +1,13 @@
 #include "application.hpp"
 #include "argtable3/argtable3.h"
-#include "config_data.hpp"
-#include "config_parser.hpp"
+#include "config_patch_update.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
-#include "instruments.hpp"
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <stdio.h>
+#include <string>
 
 namespace teslasynth::app::cli {
 using namespace synth;
@@ -35,38 +34,6 @@ typedef struct {
 } config_args_t;
 config_args_t config_args;
 
-bool set_duration(const std::string_view value, Duration16 &duration,
-                  const char *key) {
-  if (auto d = parser::parse_duration16(value)) {
-    duration = *d;
-    return true;
-  } else {
-    printf("Invalid duration value: %s "
-           "for key: %s\n"
-           "Valid values unsigned integer values "
-           "followed by an optional time unit [us (default), ms]\n",
-           std::string(value).c_str(), key);
-    return false;
-  }
-}
-
-bool set_instrument(const std::string_view value,
-                    std::optional<uint8_t> &instrument) {
-  auto d = parser::parse_number<uint8_t>(value);
-  if (value == "-" || *d == 0) {
-    instrument = std::nullopt;
-  } else if (d && *d <= instruments_size) {
-    instrument = *d - 1;
-  } else {
-    printf("Invalid instrument value: %s\n"
-           "Valid values are optional integer numbers, negative values are "
-           "considered as no value. Max allowed value is %du\n",
-           std::string(value).c_str(), instruments_size);
-    return false;
-  }
-  return true;
-}
-
 UIHandle handle_;
 
 #define cstr(value) std::string(value).c_str()
@@ -80,8 +47,8 @@ UIHandle handle_;
     return invalid_duration(value);                                            \
   }
 
-void print_channel_config(uint8_t nr, const ChannelConfig &config) {
-  printf("Channel[%u] configuration:\n"
+void print_output_config(uint8_t nr, const ChannelConfig &config) {
+  printf("Output[%u] configuration:\n"
          "\t%s = %u\n"
          "\t%s = %s\n"
          "\t%s = %s\n"
@@ -119,7 +86,7 @@ int print_config(AppConfig &config) {
          instrument_value(config.synth()));
 
   for (auto i = 0; i < config.channels_size(); i++) {
-    print_channel_config(i, config.channel(i));
+    print_output_config(i, config.channel(i));
   }
   print_routing_config(config.routing());
 
@@ -127,114 +94,10 @@ int print_config(AppConfig &config) {
 }
 
 int update_config(AppConfig &config, const char *val) {
-  const auto result = parser::parse_config_value(val);
-  if (!result) {
-    printf("Invalid key value pair '%s'", val);
-    return 1;
-  }
-
-  const auto key = result.value().key, value = result.value().value;
-  const auto index = result.value().channel;
-  if (index == 0) {
-    if (key == keys::instrument) {
-      if (!set_instrument(value, config.synth().instrument)) {
-        return 3;
-      }
-    } else if (key == keys::tuning) {
-      if (auto t = parser::parse_hertz(value)) {
-        config.synth().tuning = *t;
-      } else {
-        printf("Invalid frequency value: %s\n"
-               "Valid values are floating point numbers followed by an "
-               "optional unit "
-               "[Hz]\n",
-               std::string(value).c_str());
-        return 3;
-      }
-    } else if (key == keys::percussion) {
-      auto n = parser::parse_number<int>(value);
-      if (n.has_value()) {
-        config.routing().percussion = *n > 0;
-      } else {
-        printf("Invalid percussion: %s, use 0 or less to turn off, larger "
-               "values to turn on",
-               std::string(value).c_str());
-        return 3;
-      }
-    } else {
-      printf("Unknown key: %s\n", std::string(key).c_str());
-      return 3;
-    }
-  } else {
-    if (key == keys::max_on_time) {
-      if (index > config.channels_size()) {
-        printf("Invalid channel number %d\n", index);
-        return 2;
-      }
-      if (!set_duration(value, config.channel(index - 1).max_on_time,
-                        keys::max_on_time)) {
-        return 3;
-      }
-    } else if (key == keys::min_deadtime) {
-      if (!set_duration(value, config.channel(index - 1).min_deadtime,
-                        keys::min_deadtime)) {
-        return 3;
-      }
-    } else if (key == keys::notes) {
-      if (index > config.channels_size()) {
-        printf("Invalid channel number %d\n", index);
-        return 2;
-      }
-      auto n = parser::parse_number<uint8_t>(value);
-      if (n.has_value() && n < config.channels_size()) {
-        config.channel(index - 1).notes = *n;
-      } else {
-        printf("Invalid frequency: %s", std::string(value).c_str());
-        return 3;
-      }
-    } else if (key == keys::max_duty) {
-      if (index > config.channels_size()) {
-        printf("Invalid channel number %d\n", index);
-        return 2;
-      }
-      auto n = parser::parse_number<float>(value);
-      if (n.has_value()) {
-        config.channel(index - 1).max_duty = DutyCycle(*n);
-      } else {
-        printf("Invalid dutycycle: %s", std::string(value).c_str());
-        return 3;
-      }
-    } else if (key == keys::duty_window) {
-      if (index > config.channels_size()) {
-        printf("Invalid channel number %d\n", index);
-        return 2;
-      }
-      if (!set_duration(value, config.channel(index - 1).duty_window,
-                        keys::duty_window)) {
-        return 3;
-      }
-    } else if (key == keys::instrument) {
-      if (index > config.channels_size()) {
-        printf("Invalid channel number %d\n", index);
-        return 2;
-      }
-      if (!set_instrument(value, config.channel(index - 1).instrument)) {
-        return 3;
-      }
-    } else if (key == keys::routing) {
-      auto n = parser::parse_number<int>(value);
-      if (n.has_value()) {
-        config.routing().mapping[index - 1] = *n - 1;
-      } else {
-        printf("Invalid mapping value: %s, use 0 or less to turn off, or "
-               "a valid output number to turn on",
-               std::string(value).c_str());
-        return 3;
-      }
-    } else {
-      printf("Unknown key: %s\n", std::string(key).c_str());
-      return 3;
-    }
+  const auto res = config::patch::update(val, config);
+  if (!res) {
+    printf("\nError: %s\n", res.error().c_str());
+    return 2;
   }
   return 0;
 }

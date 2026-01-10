@@ -1,23 +1,21 @@
+#include "channel_mapping.hpp"
 #include "midi_core.hpp"
 #include "midi_synth.hpp"
-#include "channel_mapping.hpp"
 #include <unity.h>
 
 using namespace teslasynth::midisynth;
 
 void test_output_number_default(void) {
-  TEST_ASSERT_FALSE(OutputNumberOpt<>());
   TEST_ASSERT_FALSE(OutputNumberOpt<1>());
   TEST_ASSERT_FALSE(OutputNumberOpt<2>());
   TEST_ASSERT_FALSE(OutputNumberOpt<3>());
 }
 void test_output_number(void) {
-  TEST_ASSERT_FALSE(OutputNumberOpt<>(2));
   TEST_ASSERT_FALSE(OutputNumberOpt<1>(2));
   TEST_ASSERT_FALSE(OutputNumberOpt<2>(2));
   TEST_ASSERT_TRUE(OutputNumberOpt<3>(2));
 
-  const auto a = OutputNumberOpt<>(2);
+  const auto a = OutputNumberOpt<1>(1);
   TEST_ASSERT_TRUE(a.value() == std::nullopt);
 
   const auto b = OutputNumberOpt<1>(2);
@@ -27,7 +25,7 @@ void test_output_number(void) {
   TEST_ASSERT_TRUE(c.value() == std::nullopt);
 
   const auto d = OutputNumberOpt<3>(2);
-  TEST_ASSERT_TRUE(d.value() == std::optional(2));
+  TEST_ASSERT_TRUE(d.value() == OutputNumber<3>::from(2));
 }
 
 void test_midi_router_config(void) {

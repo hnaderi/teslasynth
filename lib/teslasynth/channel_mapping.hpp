@@ -2,13 +2,13 @@
 
 #include "../midi/midi_core.hpp"
 #include "channel_state.hpp"
-#include "core/envelope_level.hpp"
+#include <array>
 #include <cstddef>
 #include <cstdint>
 
 namespace teslasynth::midisynth {
 
-template <std::uint8_t OUTPUTS = 1> class OutputNumber final {
+template <std::uint8_t OUTPUTS> class OutputNumber final {
   static_assert(OUTPUTS >= 1, "Minimum number of outputs is 1");
   uint8_t value_;
 
@@ -24,9 +24,16 @@ public:
       return {};
   }
   constexpr operator uint8_t() const { return value_; }
+
+  constexpr bool operator==(const OutputNumber<OUTPUTS> &b) const {
+    return value_ == b.value_;
+  }
+  constexpr bool operator!=(const OutputNumber<OUTPUTS> &b) const {
+    return value_ != b.value_;
+  }
 };
 
-template <std::uint8_t OUTPUTS = 1> class OutputNumberOpt final {
+template <std::uint8_t OUTPUTS> class OutputNumberOpt final {
   static_assert(OUTPUTS >= 1, "Minimum number of outputs is 1");
   int8_t value_;
 
@@ -42,6 +49,18 @@ public:
   constexpr std::optional<OutputNumber<OUTPUTS>> value() const {
     return OutputNumber<OUTPUTS>::from(value_);
   }
+  constexpr bool operator==(const OutputNumberOpt<OUTPUTS> &b) const {
+    return value() == b.value();
+  }
+  constexpr bool operator!=(const OutputNumberOpt<OUTPUTS> &b) const {
+    return value() != b.value();
+  }
+  constexpr bool operator==(int b) const {
+    return value() == OutputNumber<OUTPUTS>::from(b);
+  }
+  constexpr bool operator!=(int b) const {
+    return value() != OutputNumber<OUTPUTS>::from(b);
+  }
   inline operator std::string() const {
     if (has_value())
       return std::to_string(value_);
@@ -51,7 +70,7 @@ public:
 };
 
 template <std::uint8_t OUTPUTS = 1> class ChannelMapping final {
-  typedef std::array<OutputNumberOpt<OUTPUTS>, 16> Mapping;
+  using Mapping = std::array<OutputNumberOpt<OUTPUTS>, 16>;
   Mapping data_{};
 
 public:
@@ -70,6 +89,8 @@ public:
   }
   constexpr const Mapping &data() const { return data_; }
   constexpr auto size() const { return data_.size(); }
+  constexpr auto begin() { return data_.begin(); }
+  constexpr auto end() { return data_.end(); }
   constexpr auto begin() const { return data_.begin(); }
   constexpr auto end() const { return data_.end(); }
 };

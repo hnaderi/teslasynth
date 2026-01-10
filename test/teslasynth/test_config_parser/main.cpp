@@ -1,6 +1,12 @@
+#include "config_data.hpp"
 #include "config_parser.hpp"
+#include "config_patch_update.hpp"
 #include "core.hpp"
+#include "result.hpp"
 #include "synthesizer/helpers/assertions.hpp"
+#include "unity_internals.h"
+#include <cstdio>
+#include <iostream>
 #include <unity.h>
 
 using namespace teslasynth::midisynth;
@@ -68,6 +74,25 @@ void test_parse_hertz_success(void) {
   assert_hertz_equal(result.value(), 520_hz);
 }
 
+void test_split_path(void) {
+  auto result = split("10");
+  TEST_ASSERT_EQUAL(1, result.size());
+  TEST_ASSERT_TRUE(result[0] == "10");
+
+  result = split("aA.bbbb.12.D");
+  TEST_ASSERT_EQUAL(4, result.size());
+  TEST_ASSERT_TRUE(result[0] == "aA");
+  TEST_ASSERT_TRUE(result[1] == "bbbb");
+  TEST_ASSERT_TRUE(result[2] == "12");
+  TEST_ASSERT_TRUE(result[3] == "D");
+
+  result = split("aA=bbbb 12=D", '=');
+  TEST_ASSERT_EQUAL(3, result.size());
+  TEST_ASSERT_TRUE(result[0] == "aA");
+  TEST_ASSERT_TRUE(result[1] == "bbbb 12");
+  TEST_ASSERT_TRUE(result[2] == "D");
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_parse_kv_errors);
@@ -76,6 +101,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_parse_kv_success3);
   RUN_TEST(test_parse_duration_success);
   RUN_TEST(test_parse_hertz_success);
+  RUN_TEST(test_split_path);
   UNITY_END();
 }
 int main(int argc, char **argv) { app_main(); }

@@ -79,4 +79,18 @@ std::optional<Hertz> parse_hertz(std::string_view s) {
   return std::nullopt;
 }
 
+std::vector<std::string_view> split(std::string_view path, char separator) {
+  std::vector<std::string_view> out;
+  size_t start = 0;
+
+  while (true) {
+    size_t dot = path.find(separator, start);
+    if (dot == std::string_view::npos) {
+      out.push_back(path.substr(start));
+      return out;
+    }
+    out.push_back(path.substr(start, dot - start));
+    start = dot + 1;
+  }
+}
 } // namespace teslasynth::midisynth::config::parser
