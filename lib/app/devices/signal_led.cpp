@@ -3,13 +3,12 @@
 #include "driver/gpio.h"
 #include "esp_event.h"
 #include "esp_log.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "soc/gpio_num.h"
 
 namespace teslasynth::app::devices::signal_led {
 namespace {
-constexpr char const *TAG = "LED";
+constexpr char TAG[] = "LED";
 
 typedef enum {
   LED_PATTERN_OFF,

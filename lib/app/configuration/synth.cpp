@@ -5,17 +5,20 @@
 #include <cstring>
 
 namespace teslasynth::app::configuration::synth {
-static const char *TAG = "synth_config";
-static const char *KEY = "config";
+
+namespace {
+constexpr char TAG[] = "synth_config";
+constexpr char KEY[] = "config";
 using namespace core;
 
-static esp_err_t init(nvs_handle_t &handle) {
+esp_err_t init(nvs_handle_t &handle) {
   esp_err_t err = nvs_open("synth", NVS_READWRITE, &handle);
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
   }
   return err;
 }
+} // namespace
 
 bool read(AppConfig &config) {
   bool success = true;

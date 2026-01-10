@@ -25,10 +25,11 @@
 
 namespace teslasynth::app::cli {
 
-static const char *TAG = "cmd_system_common";
+namespace {
+constexpr char TAG[] = "cmd_system_common";
 
 /* 'version' command */
-static int get_version(int argc, char **argv) {
+int get_version(int argc, char **argv) {
   ChipInfo info;
   if (get_chip_info(info) != ESP_OK) {
     return 1;
@@ -50,7 +51,7 @@ static int get_version(int argc, char **argv) {
   return 0;
 }
 
-static void register_version(void) {
+void register_version(void) {
   const esp_console_cmd_t cmd = {
       .command = "version",
       .help = "Get versions of firmware, chip and SDK",
@@ -62,12 +63,12 @@ static void register_version(void) {
 
 /** 'restart' command restarts the program */
 
-static int restart(int argc, char **argv) {
+int restart(int argc, char **argv) {
   ESP_LOGI(TAG, "Restarting");
   esp_restart();
 }
 
-static void register_restart(void) {
+void register_restart(void) {
   const esp_console_cmd_t cmd = {
       .command = "restart",
       .help = "Software reset of the chip",
@@ -77,12 +78,12 @@ static void register_restart(void) {
   ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
-static int maintenance(int argc, char **argv) {
+int maintenance(int argc, char **argv) {
   ESP_LOGI(TAG, "Rebooting to maintenance mode");
   teslasynth::app::helpers::maintenance::reboot();
 }
 
-static void register_maintenance(void) {
+void register_maintenance(void) {
   const esp_console_cmd_t cmd = {
       .command = "maintenance",
       .help = "Reboot to maintenance mode",
@@ -94,12 +95,12 @@ static void register_maintenance(void) {
 
 /** 'free' command prints available heap memory */
 
-static int free_mem(int argc, char **argv) {
+int free_mem(int argc, char **argv) {
   printf("%" PRIu32 "\n", esp_get_free_heap_size());
   return 0;
 }
 
-static void register_free(void) {
+void register_free(void) {
   const esp_console_cmd_t cmd = {
       .command = "free",
       .help = "Get the current size of free heap memory",
@@ -110,13 +111,13 @@ static void register_free(void) {
 }
 
 /* 'heap' command prints minimum heap size */
-static int heap_size(int argc, char **argv) {
+int heap_size(int argc, char **argv) {
   uint32_t heap_size = heap_caps_get_minimum_free_size(MALLOC_CAP_DEFAULT);
   printf("min heap size: %" PRIu32 "\n", heap_size);
   return 0;
 }
 
-static void register_heap(void) {
+void register_heap(void) {
   const esp_console_cmd_t heap_cmd = {
       .command = "heap",
       .help = "Get minimum size of free heap memory that was available during "
@@ -130,7 +131,7 @@ static void register_heap(void) {
 /** 'tasks' command prints the list of tasks and related information */
 #if WITH_TASKS_INFO
 
-static int tasks_info(int argc, char **argv) {
+int tasks_info(int argc, char **argv) {
   const size_t bytes_per_task = 40; /* see vTaskList description */
   char *task_list_buffer = malloc(uxTaskGetNumberOfTasks() * bytes_per_task);
   if (task_list_buffer == NULL) {
@@ -148,7 +149,7 @@ static int tasks_info(int argc, char **argv) {
   return 0;
 }
 
-static void register_tasks(void) {
+void register_tasks(void) {
   const esp_console_cmd_t cmd = {
       .command = "tasks",
       .help = "Get information about running tasks",
@@ -162,16 +163,16 @@ static void register_tasks(void) {
 
 /** log_level command changes log level via esp_log_level_set */
 
-static struct {
+struct {
   struct arg_str *tag;
   struct arg_str *level;
   struct arg_end *end;
 } log_level_args;
 
-static const char *s_log_level_names[] = {"none", "error", "warn",
-                                          "info", "debug", "verbose"};
+constexpr const char *s_log_level_names[] = {"none", "error", "warn",
+                                             "info", "debug", "verbose"};
 
-static int log_level(int argc, char **argv) {
+int log_level(int argc, char **argv) {
   int nerrors = arg_parse(argc, argv, (void **)&log_level_args);
   if (nerrors != 0) {
     arg_print_errors(stderr, log_level_args.end, argv[0]);
@@ -205,7 +206,7 @@ static int log_level(int argc, char **argv) {
   return 0;
 }
 
-static void register_log_level(void) {
+void register_log_level(void) {
   log_level_args.tag =
       arg_str1(NULL, NULL, "<tag|*>",
                "Log tag to set the level for, or * to set for all tags");
@@ -223,6 +224,7 @@ static void register_log_level(void) {
   };
   ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
+} // namespace
 
 void register_system_common(void) {
   register_free();

@@ -6,7 +6,7 @@
 #include <dirent.h>
 
 namespace {
-const char *TAG = "STORAGE";
+constexpr char TAG[] = "STORAGE";
 
 void initialize_nvs() {
   esp_err_t err = nvs_flash_init();

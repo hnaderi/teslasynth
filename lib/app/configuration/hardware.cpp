@@ -10,8 +10,8 @@
 namespace teslasynth::app::configuration::hardware {
 
 namespace {
-const char *TAG = "hw_config";
-const char *KEY = "config";
+constexpr char TAG[] = "hw_config";
+constexpr char KEY[] = "config";
 
 esp_err_t init(nvs_handle_t &handle) {
   esp_err_t err = nvs_open("hwconf", NVS_READWRITE, &handle);

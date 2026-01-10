@@ -22,7 +22,7 @@
 
 namespace teslasynth::app::devices::midi::ble {
 namespace {
-const char *TAG = "BLE_MIDI";
+constexpr char TAG[] = "BLE_MIDI";
 
 const ble_uuid128_t midi_service_uuid =
     BLE_UUID128_INIT(0x00, 0xC7, 0xC4, 0x4E, 0xE3, 0x6C, 0x51, 0xA7, 0x33, 0x4B,

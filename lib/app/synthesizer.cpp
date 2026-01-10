@@ -17,12 +17,13 @@ namespace teslasynth::app::synth {
 using namespace teslasynth::midisynth;
 using configuration::hardware::OutputConfig;
 
-static const char *TAG = "SYNTH";
+namespace {
 
-static PlaybackHandle playback;
-static StreamBufferHandle_t stream;
+constexpr char TAG[] = "SYNTH";
+PlaybackHandle playback;
+StreamBufferHandle_t stream;
 
-static void input(void *) {
+void input(void *) {
   MidiChannelMessage msg;
   MidiParser parser([&](const MidiChannelMessage msg) {
     auto now = Duration64::micros(esp_timer_get_time());
@@ -41,7 +42,7 @@ static void input(void *) {
   }
 }
 
-static void output(void *pvParams) {
+void output(void *pvParams) {
   constexpr TickType_t loopTime = pdMS_TO_TICKS(10);
   TickType_t lastTime = xTaskGetTickCount();
 
@@ -85,6 +86,7 @@ static void output(void *pvParams) {
 #endif
   }
 }
+} // namespace
 
 StreamBufferHandle_t init(PlaybackHandle handle) {
   ESP_LOGD(TAG, "init");

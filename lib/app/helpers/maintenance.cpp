@@ -28,7 +28,7 @@ void reboot() {
 }
 
 namespace {
-constexpr char const *TAG = "MAINTENANCE";
+constexpr char TAG[] = "MAINTENANCE";
 enum class MaintState { IDLE, HOLDING, WAIT_RELEASE };
 gpio_num_t button = gpio_num_t::GPIO_NUM_NC;
 #define MAINT_HOLD_MS 3000

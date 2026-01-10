@@ -13,7 +13,7 @@
 
 namespace teslasynth::app::devices::midi::usb {
 namespace {
-const char *TAG = "USB_MIDI";
+constexpr char TAG[] = "USB_MIDI";
 StreamBufferHandle_t midi_buffer;
 
 enum interface_count {

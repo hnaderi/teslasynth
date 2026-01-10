@@ -10,7 +10,7 @@
 
 namespace teslasynth::app::devices::wifi {
 namespace {
-constexpr char const *TAG = "WIFI";
+constexpr char TAG[] = "WIFI";
 
 void initialise_mdns(void) {
   mdns_init();

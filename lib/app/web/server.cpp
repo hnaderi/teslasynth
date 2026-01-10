@@ -28,7 +28,7 @@ using helpers::JSONParser;
 
 namespace {
 
-constexpr char const *TAG = "WEBSERVER";
+constexpr char TAG[] = "WEBSERVER";
 constexpr size_t max_body_length = 1024;
 static UIHandle ui;
 

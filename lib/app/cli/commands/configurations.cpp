@@ -2,11 +2,9 @@
 #include "argtable3/argtable3.h"
 #include "config_data.hpp"
 #include "config_parser.hpp"
-#include "core.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
 #include "instruments.hpp"
-#include "midi_synth.hpp"
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -19,15 +17,15 @@ using namespace midisynth::config;
 
 namespace {
 namespace keys {
-constexpr const char *max_on_time = "max-on-time";
-constexpr const char *min_deadtime = "min-deadtime";
-constexpr const char *max_duty = "max-duty";
-constexpr const char *duty_window = "duty-window";
-constexpr const char *tuning = "tuning";
-constexpr const char *notes = "notes";
-constexpr const char *instrument = "instrument";
-constexpr const char *percussion = "percussion";
-constexpr const char *routing = "routing";
+constexpr char max_on_time[] = "max-on-time";
+constexpr char min_deadtime[] = "min-deadtime";
+constexpr char max_duty[] = "max-duty";
+constexpr char duty_window[] = "duty-window";
+constexpr char tuning[] = "tuning";
+constexpr char notes[] = "notes";
+constexpr char instrument[] = "instrument";
+constexpr char percussion[] = "percussion";
+constexpr char routing[] = "routing";
 }; // namespace keys
 
 typedef struct {

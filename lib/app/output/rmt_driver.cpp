@@ -22,10 +22,8 @@ namespace teslasynth::app::devices::rmt {
 using configuration::hardware::OutputConfig;
 using teslasynth::midisynth::Pulse;
 
-#define RMT_BUZZER_RESOLUTION_HZ 1'000'000
-
 namespace {
-
+constexpr uint32_t rmt_resolution_hz = 1'000'000;
 constexpr char TAG[] = "RMT-DRIVER";
 
 inline void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
@@ -103,11 +101,10 @@ void init(const OutputConfig &config) {
   };
   rmt_tx_channel_config_t tx_chan_config = {
       .gpio_num = gpio_num_t::GPIO_NUM_NC,
-      .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
-      .resolution_hz = RMT_BUZZER_RESOLUTION_HZ,
+      .clk_src = RMT_CLK_SRC_DEFAULT,
+      .resolution_hz = rmt_resolution_hz,
       .mem_block_symbols = 64,
-      .trans_queue_depth = 10, // set the maximum number of transactions that
-                               // can pend in the background
+      .trans_queue_depth = 10,
       .flags =
           {
               .invert_out = false,
