@@ -2,8 +2,10 @@
 #include "argtable3/argtable3.h"
 #include "config_data.hpp"
 #include "config_patch_update.hpp"
+#include "configuration/hardware.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
+#include "soc/gpio_num.h"
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -150,6 +152,34 @@ int device_limits_cmd(int, char **) {
   printf("Max notes: %d\n", ChannelConfig::max_notes);
   return 0;
 }
+
+int hwconfig_cmd(int, char **) {
+  configuration::hardware::HardwareConfig hconfig;
+  configuration::hardware::read(hconfig);
+
+  printf("Number of outputs: %d\n", hconfig.output.size);
+  for (auto i = 0; i < hconfig.output.size; i++) {
+    const auto pin = hconfig.output.channels[i].pin;
+    if (pin == GPIO_NUM_NC)
+      printf("\tOutput#: %d not used.\n", i);
+    else
+      printf("\tOutput#: %d connected to GPIO %d\n", i, pin);
+  }
+
+  printf("Input button: ");
+  if (hconfig.input.maintenance == GPIO_NUM_NC)
+    printf("not configured.\n");
+  else
+    printf("GPIO %d\n", hconfig.input.maintenance);
+
+  printf("Status LED: ");
+  if (hconfig.led.pin == GPIO_NUM_NC)
+    printf("not configured.\n");
+  else
+    printf("GPIO %d, active %s\n", hconfig.input.maintenance,
+           static_cast<bool>(hconfig.led.logic) ? "high" : "low");
+  return 0;
+}
 } // namespace
 
 void register_configuration_commands(UIHandle handle) {
@@ -179,6 +209,11 @@ void register_configuration_commands(UIHandle handle) {
           .command = "limits",
           .help = "Print device hard limits set in firmware at compile time",
           .func = device_limits_cmd,
+      },
+      esp_console_cmd_t{
+          .command = "hwconfig",
+          .help = "Print hardware configuration",
+          .func = hwconfig_cmd,
       },
   };
   for (auto &cmd : commands)
