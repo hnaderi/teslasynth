@@ -10,9 +10,7 @@ jobs:
       fail-fast: true
       matrix:
         board:
-          - lolin32
           - esp32dev
-          - lilygo-display
           - s2-mini
           - s3
     steps:

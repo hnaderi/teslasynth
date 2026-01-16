@@ -9,8 +9,3 @@ dependencies:
     version: ^2.0.1~1
     rules:
       - if: target in ["esp32s2", "esp32s3", "esp32p4", "esp32h4"]
-  lvgl/lvgl: 9.4.0
-  espressif/esp_lvgl_port: ^2.6.3
-  espressif/esp_lcd_ili9341: ^2.0.1
-  espressif/esp_lcd_touch_stmpe610: ^1.0.7
-  atanisoft/esp_lcd_touch_xpt2046: ^1.0.6

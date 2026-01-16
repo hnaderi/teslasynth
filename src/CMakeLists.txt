@@ -3,11 +3,3 @@
 
 FILE(GLOB_RECURSE app_sources ${CMAKE_SOURCE_DIR}/src/*.*)
 idf_component_register(SRCS ${app_sources})
-
-# Monochrome
-lvgl_port_create_c_image("images/teslasynth_tiny.png" "assets/" "A1" "NONE")
-
-# Colored
-lvgl_port_create_c_image("images/teslasynth_240p_large.png" "assets/" "I4" "NONE")
-lvgl_port_create_c_image("images/teslasynth_240p_small.png" "assets/" "I4" "NONE")
-lvgl_port_add_images(${COMPONENT_LIB} "assets/")
