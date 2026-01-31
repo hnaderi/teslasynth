@@ -1,5 +1,5 @@
 {
-  "name": "teslasynth-dashboard",
+  "name": "dashboard",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
@@ -7,9 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:embed": "node generate.js",
-    "build:all": "vite build && node generate.js"
+    "build": "vite build && node generate.js"
   },
   "dependencies": {
     "@picocss/pico": "^2.1.1",

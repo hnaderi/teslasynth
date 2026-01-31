@@ -3,7 +3,7 @@ import path from 'path';
 import zlib from 'zlib';
 
 const DIST = path.resolve('./dist/index.html');
-const OUT = path.resolve('../src/assets/dashboard.c');
+const OUT = path.resolve('../../../src/assets/dashboard.c');
 
 const html = await fs.readFile(DIST, 'utf8');
 

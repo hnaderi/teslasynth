@@ -26,18 +26,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - uses: actions/setup-node@v6
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
         with:
-          node-version: 25
-          cache: "npm"
-          cache-dependency-path: dashboard/package-lock.json
+          cache: true
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
-      - run: npm --prefix dashboard ci
+      - run: pnpm install
 
       - name: build dashboard
-        run: npm --prefix dashboard run build:all
+        run: pnpm build:dashboard
       - name: Build PlatformIO Project
         run: pio run -e ${{ matrix.board }}
 

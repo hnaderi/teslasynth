@@ -1,0 +1,26 @@
+{
+  "name": "site",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "Hossein Naderi",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:embed": "node generate.js",
+    "build:all": "vite build && node generate.js"
+  },
+  "dependencies": {
+    "@picocss/pico": "^2.1.1",
+    "preact": "^10.28.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.2",
+    "fs-extra": "^11.3.2",
+    "gzip-size": "^7.0.0",
+    "sass": "^1.95.1",
+    "vite": "^7.2.7",
+    "vite-plugin-singlefile": "^2.3.0"
+  }
+}

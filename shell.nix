@@ -5,6 +5,7 @@ in pkgs.mkShell {
     platformio
     ruff
     clang-tools
+    pnpm
     tio
     rosegarden
     alsa-utils

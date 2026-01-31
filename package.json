@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "packageManager": "pnpm@9.1.0",
+  "author": "Hossein Naderi <hossein-naderi@hotmail.com>",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev:dashboard": "pnpm --filter dashboard dev",
+    "dev:site": "pnpm --filter site dev",
+    "build:dashboard": "pnpm --filter dashboard build",
+    "build:site": "pnpm --filter site build"
+  }
+}

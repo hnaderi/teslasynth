@@ -11,6 +11,6 @@
 /build/
 /managed_components/
 node_modules
-dashboard/dist
+dist
 *.gz
 /src/assets/
