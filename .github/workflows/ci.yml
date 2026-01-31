@@ -63,3 +63,24 @@ jobs:
 
       - name: Run tests
         run: pio test -e native --verbose
+
+    
+  website:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          cache: true
+      - run: pnpm install
+
+      - name: build website
+        run: pnpm build:site
+
+      - name: Publish site
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: web/apps/site/dist

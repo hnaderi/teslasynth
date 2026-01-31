@@ -15,10 +15,7 @@
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.2",
-    "fs-extra": "^11.3.2",
-    "gzip-size": "^7.0.0",
     "sass": "^1.95.1",
-    "vite": "^7.2.7",
-    "vite-plugin-singlefile": "^2.3.0"
+    "vite": "^7.2.7"
   }
 }

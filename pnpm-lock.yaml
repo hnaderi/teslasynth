@@ -48,21 +48,12 @@ importers:
       '@preact/preset-vite':
         specifier: ^2.10.2
         version: 2.10.3(@babel/core@7.28.6)(preact@10.28.2)(rollup@4.57.1)(vite@7.3.1(sass@1.97.3))
-      fs-extra:
-        specifier: ^11.3.2
-        version: 11.3.3
-      gzip-size:
-        specifier: ^7.0.0
-        version: 7.0.0
       sass:
         specifier: ^1.95.1
         version: 1.97.3
       vite:
         specifier: ^7.2.7
         version: 7.3.1(sass@1.97.3)
-      vite-plugin-singlefile:
-        specifier: ^2.3.0
-        version: 2.3.0(rollup@4.57.1)(vite@7.3.1(sass@1.97.3))
 
   web/packages/ui:
     dependencies:
