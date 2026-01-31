@@ -10,8 +10,9 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@teslasynth/ui": "workspace:*",
     "preact": "^10.28.0",
-    "@teslasynth/ui": "workspace:*"
+    "preact-router": "^4.1.2"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.2",
