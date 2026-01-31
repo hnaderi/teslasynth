@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import Logo from "./Logo.jsx";
+import { Logo } from "@teslasynth/ui/components/Logo";
 import { SynthConfigSection } from "./SynthConfigSection.jsx";
 import { ConfirmDialog } from './components/confirmation';
 import { SysInfoSection } from "./SysInfo.jsx";

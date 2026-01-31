@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "preact/hooks";
-import logoSvgRaw from "../logo.svg?raw";
+import logoSvgRaw from "../../../../assets/logo.svg?raw";
 
-export default function Logo({ size = 48 }) {
+export function Logo({ size = 48 }) {
     const ref = useRef(null);
 
     useEffect(() => {

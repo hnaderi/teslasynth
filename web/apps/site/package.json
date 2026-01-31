@@ -7,13 +7,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:embed": "node generate.js",
-    "build:all": "vite build && node generate.js"
+    "build": "vite build"
   },
   "dependencies": {
-    "@picocss/pico": "^2.1.1",
-    "preact": "^10.28.0"
+    "preact": "^10.28.0",
+    "@teslasynth/ui": "workspace:*"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.2",

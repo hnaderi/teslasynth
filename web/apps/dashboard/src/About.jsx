@@ -1,4 +1,4 @@
-import Logo from './Logo';
+import { Logo } from '@teslasynth/ui/components/Logo'
 import { Modal } from './components/modal';
 
 export function About({ open, onClose }) {

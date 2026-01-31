@@ -1,0 +1,16 @@
+{
+  "name": "@teslasynth/ui",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./components/*": "./src/components/*.jsx",
+    "./icons/*": "./src/icons/*.jsx",
+    "./styles/*": "./src/styles/*.scss"
+  },
+  "dependencies": {
+    "@picocss/pico": "^2.1.1",
+    "preact": "^10.19.0"
+  }
+}

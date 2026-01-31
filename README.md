@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="website/images/logo.jpg" height="100px" alt="Teslasynth icon" />
+  <img src="web/assets/logo.jpg" height="100px" alt="Teslasynth icon" />
   <br/>
   <strong>Teslasynth</strong>
   <i>(MIDI synthesizer for interrupted devices)</i>
