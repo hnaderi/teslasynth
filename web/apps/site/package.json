@@ -11,8 +11,12 @@
   },
   "dependencies": {
     "@teslasynth/ui": "workspace:*",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
+    "esptool-js": "^0.5.7",
     "preact": "^10.28.0",
-    "preact-router": "^4.1.2"
+    "preact-router": "^4.1.2",
+    "web-serial-polyfill": "^1.0.15"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.2",
