@@ -1,6 +1,14 @@
-name: PlatformIO CI
+name: CI
 
-on: [push]
+on:
+  pull_request:
+    branches: ["**", "!update/**", "!pr/**"]
+  push:
+    branches: ["**", "!update/**", "!pr/**"]
+    tags: [v*]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -10,13 +18,18 @@ jobs:
       fail-fast: true
       matrix:
         board:
-          - esp32dev
+          - esp32
           - s2-mini
           - s3
     steps:
       - run: gcc --version
         name: Show gcc version
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Show version
+        run: git describe
       - uses: actions/cache@v4
         with:
           path: |
@@ -40,12 +53,21 @@ jobs:
       - name: Build PlatformIO Project
         run: pio run -e ${{ matrix.board }}
 
+      - name: Upload build artifacts
+        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.board }}
+          path: |
+            .pio/build/${{ matrix.board }}/*.bin
+            .pio/build/${{ matrix.board }}/flasher_args.json
+
   test:
     runs-on: ubuntu-latest
     steps:
       - run: gcc --version
         name: Show gcc version
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/cache@v4
         with:
           path: |
@@ -64,12 +86,11 @@ jobs:
       - name: Run tests
         run: pio test -e native --verbose
 
-    
   website:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
@@ -84,3 +105,28 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: web/apps/site/dist
+
+  publish:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
+    needs: [build, test]
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: actions/download-artifact@v7
+        with:
+          path: build
+      - name: Display structure of downloaded files
+        run: ls -R build
+      - name: Show version
+        run: git describe
+      - name: Generate assets
+        run: ./generate_manifest.py build
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: "dist/*"
