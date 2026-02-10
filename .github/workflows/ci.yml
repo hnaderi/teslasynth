@@ -130,3 +130,25 @@ jobs:
         with:
           draft: true
           files: "dist/*"
+
+      - name: Generate version catalog
+        run: git tag --list 'v*' --sort=-version:refname |  jq -R . | jq -s . > _catalog.json
+
+      - name: Checkout firmware branch
+        uses: actions/checkout@v6
+        with:
+          ref: firmware
+          clean: false
+
+      - name: Copy firmware files
+        run: |
+          mv dist ${{ github.ref_name }}
+          mv _catalog.json catalog.json
+
+      - name: Commit and push firmware
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add catalog.json ${{ github.ref_name }}
+          git commit -m "Add firmware ${{ github.ref_name }}"
+          git push origin firmware
