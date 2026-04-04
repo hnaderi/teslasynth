@@ -146,8 +146,21 @@ void pulse_write(const midisynth::Pulse *pulse, size_t len, uint8_t ch) {
 
   if (len == 0 || channels[ch] == nullptr)
     return;
-  ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_transmit(channels[ch], encoders[ch], pulse,
-                                             len * sizeof(Pulse), &tx_config));
+
+  esp_err_t err = rmt_transmit(channels[ch], encoders[ch], pulse,
+                               len * sizeof(Pulse), &tx_config);
+  // ESP_ERR_INVALID_STATE means the TX queue is full in non-blocking mode.
+  // Drop the batch gracefully — the synthesizer clock keeps running and
+  // playback resumes on the next iteration. Any other error is a real fault.
+  if (err == ESP_ERR_INVALID_STATE) {
+#if CONFIG_TESLASYNTH_DEBUG
+    static uint32_t drops = 0;
+    ESP_LOGW(TAG, "RMT queue full, dropping batch (ch=%u, total=%lu)", ch,
+             ++drops);
+#endif
+  } else {
+    ESP_ERROR_CHECK(err);
+  }
 }
 } // namespace teslasynth::app::devices::rmt
 
