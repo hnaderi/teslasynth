@@ -71,7 +71,7 @@ void test_should_sequence_empty_when_no_notes_are_playing(void) {
   Teslasynth<> tsynth;
   auto &track = tsynth.track();
 
-  tsynth.note_on(0, 69, 0, Duration::zero());
+  tsynth.note_on(0, 69, 127, Duration::zero());
   tsynth.note_off(0, 69, Duration::zero());
   while (track.played_time(0) < 1_s) {
     auto pulse = tsynth.sample(0, 50_ms);

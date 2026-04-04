@@ -270,7 +270,9 @@ public:
 
   inline void note_on(MidiChannelNumber ch, uint8_t number, uint8_t velocity,
                       Duration time) {
-    if (auto output_id = config_.routing().mapping[ch].value()) {
+    if (velocity == 0)
+      note_off(ch, number, time);
+    else if (auto output_id = config_.routing().mapping[ch].value()) {
       Duration delta = _track.on_receive(*output_id, time);
       auto amplitude = EnvelopeLevel::logscale(velocity * 2 + 1);
 

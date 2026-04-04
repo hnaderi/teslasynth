@@ -113,14 +113,15 @@ void test_should_handle_note_on(void) {
   auto &notes = tsynth.voice();
   for (auto i = 0; i < 10; i++) {
     const Duration now = 10_ms * i;
-    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), now);
+    const auto velocity = 10 * (i + 1);
+    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, velocity), now);
 
     TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, notes.started().size());
     assert_duration_equal(notes.started().back().time, now);
     TEST_ASSERT_EQUAL(69 + i, notes.started().back().number);
     assert_level_equal(notes.started().back().amplitude,
-                       EnvelopeLevel::logscale(2 * (10 * i) + 1));
+                       EnvelopeLevel::logscale(2 * velocity + 1));
     notes.started().back().assert_instrument(default_instrument());
   }
 }
@@ -131,8 +132,26 @@ void test_should_handle_note_off(void) {
   auto &voice = tsynth.voice();
   for (auto i = 0; i < 10; i++) {
     const auto now = 10_ms * i;
-    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), now);
-    tsynth.handle(MidiChannelMessage::note_off(0, 69 + i, 10 * i), now);
+    const auto velocity = 10 * (i + 1);
+    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, velocity), now);
+    tsynth.handle(MidiChannelMessage::note_off(0, 69 + i, velocity), now);
+
+    TEST_ASSERT_TRUE(track.is_playing());
+    TEST_ASSERT_EQUAL(i + 1, voice.released().size());
+    assert_duration_equal(voice.released().back().time, now);
+    TEST_ASSERT_EQUAL(69 + i, voice.released().back().number);
+  }
+}
+
+void test_should_handle_note_on_velocity_zero(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &track = tsynth.track();
+  auto &voice = tsynth.voice();
+  for (auto i = 0; i < 10; i++) {
+    const auto now = 10_ms * i;
+    const auto velocity = 10 * (i + 1);
+    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, velocity), now);
+    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 0), now);
 
     TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, voice.released().size());
@@ -172,7 +191,7 @@ void test_should_handle_instrument_change(void) {
   for (auto i = 0; i < N; i++) {
     tsynth.handle(MidiChannelMessage::program_change(0, i), 10_ms);
     TEST_ASSERT_EQUAL(i, tsynth.instrument_number(0));
-    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), 0_ms);
+    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * (i + 1)), 0_ms);
 
     TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, voice.started().size());
@@ -194,9 +213,10 @@ void test_should_ignore_instrument_change_when_config_has_instrument(void) {
   auto &voice = tsynth.voice();
 
   for (auto i = 0; i < N; i++) {
+    const auto velocity = 10 * (i + 1);
     tsynth.handle(MidiChannelMessage::program_change(0, i), 10_ms);
     TEST_ASSERT_EQUAL(2, tsynth.instrument_number(0));
-    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, 10 * i), 0_ms);
+    tsynth.handle(MidiChannelMessage::note_on(0, 69 + i, velocity), 0_ms);
 
     TEST_ASSERT_TRUE(track.is_playing());
     TEST_ASSERT_EQUAL(i + 1, voice.started().size());
@@ -334,6 +354,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_boundaries);
   RUN_TEST(test_should_handle_note_on);
   RUN_TEST(test_should_handle_note_off);
+  RUN_TEST(test_should_handle_note_on_velocity_zero);
   RUN_TEST(test_should_ignore_note_off_when_not_playing);
   RUN_TEST(test_should_handle_instrument_change);
   RUN_TEST(test_should_ignore_instrument_change_when_config_has_instrument);
