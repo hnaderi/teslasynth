@@ -95,7 +95,7 @@ void output(void *pvParams) {
 
 StreamBufferHandle_t init(PlaybackHandle handle) {
   ESP_LOGD(TAG, "init");
-  stream = xStreamBufferCreate(256, 1);
+  stream = xStreamBufferCreate(1024, 1);
   if (stream == nullptr) {
     ESP_LOGE(TAG, "Couldn't allocate BLE stream buffer!");
     return nullptr;
