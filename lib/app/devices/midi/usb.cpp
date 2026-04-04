@@ -6,9 +6,11 @@
 
 #include "../midi.hpp"
 #include "esp_log.h"
+#include "esp_mac.h"
 #include "freertos/task.h"
 #include "tinyusb.h"
 #include "tinyusb_default_config.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 namespace teslasynth::app::devices::midi::usb {
@@ -41,12 +43,14 @@ enum usb_endpoints {
 /**
  * @brief String descriptor
  */
+static char s_serial[13]; // "AABBCCDDEEFF\0", populated in init()
+
 const char *s_str_desc[5] = {
     // array of pointer to string descriptors
-    (char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
-    "hnaderi",            // 1: Manufacturer
-    "Teslasynth dongle",  // 2: Product
-    "123456",             // 3: Serials, should use chip ID
+    (char[]){0x09, 0x04},          // 0: supported language: English (0x0409)
+    "hnaderi",                     // 1: Manufacturer
+    "Teslasynth dongle",           // 2: Product
+    s_serial,                      // 3: Serial (chip MAC address)
     CONFIG_TESLASYNTH_DEVICE_NAME, // 4: MIDI
 };
 
@@ -118,6 +122,11 @@ void init(StreamBufferHandle_t sbuf) {
   midi_buffer = sbuf;
 
   ESP_LOGI(TAG, "USB initialization");
+
+  uint8_t mac[6];
+  ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_BASE));
+  snprintf(s_serial, sizeof(s_serial), "%02X%02X%02X%02X%02X%02X", mac[0],
+           mac[1], mac[2], mac[3], mac[4], mac[5]);
 
   tinyusb_config_t tusb_cfg = TINYUSB_DEFAULT_CONFIG();
 
