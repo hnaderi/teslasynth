@@ -333,9 +333,9 @@ public:
       output.clean();
       return;
     }
-    int16_t now = max.micros();
+    uint16_t now = max.micros();
     for (uint8_t ch = 0; ch < OUTPUTS; ch++) {
-      int16_t processed = 0;
+      uint16_t processed = 0;
       uint8_t i = 0, start = ch * BUFSIZE;
       for (; processed < now && i < BUFSIZE; i++) {
         auto left = Duration16::micros(now - processed);
