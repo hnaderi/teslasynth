@@ -10,6 +10,12 @@ CONFIG_BT_NIMBLE_ENABLED=y
 # Kernel
 CONFIG_FREERTOS_HZ=1000
 
+# Task watchdog — output task subscribes to this; panic resets the MCU on hang
+CONFIG_ESP_TASK_WDT_EN=y
+CONFIG_ESP_TASK_WDT_INIT=y
+CONFIG_ESP_TASK_WDT_PANIC=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=1
+
 # partitions, this is overridden by PIO, but let's keep it for later
 CONFIG_PARTITION_TABLE_CUSTOM=y
 CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"

@@ -1,6 +1,7 @@
 #include "application.hpp"
 #include "configuration/hardware.hpp"
 #include "esp_log.h"
+#include "esp_task_wdt.h"
 #include "esp_timer.h"
 #include "freertos/idf_additions.h"
 #include "midi_core.hpp"
@@ -43,6 +44,9 @@ void input(void *) {
 }
 
 void output(void *pvParams) {
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
+  ESP_ERROR_CHECK(esp_task_wdt_status(NULL));
+
   constexpr TickType_t loopTime = pdMS_TO_TICKS(10);
   TickType_t lastTime = xTaskGetTickCount();
 
@@ -51,6 +55,7 @@ void output(void *pvParams) {
 
   while (true) {
     vTaskDelayUntil(&lastTime, loopTime);
+    esp_task_wdt_reset();
 
     playback.acquire();
     auto now = esp_timer_get_time();
@@ -100,10 +105,16 @@ StreamBufferHandle_t init(PlaybackHandle handle) {
   constexpr BaseType_t app_core =
       CONFIG_FREERTOS_NUMBER_OF_CORES > 1 ? 1 : tskNO_AFFINITY;
   constexpr size_t stack_size = 8 * 1024;
-  xTaskCreatePinnedToCore(input, "Input", stack_size, nullptr, 10, nullptr,
-                          app_core);
-  xTaskCreatePinnedToCore(output, "Output", stack_size, nullptr, 10, nullptr,
-                          app_core);
+  if (xTaskCreatePinnedToCore(input, "Input", stack_size, nullptr, 10, nullptr,
+                              app_core) != pdPASS) {
+    ESP_LOGE(TAG, "Couldn't create Input task!");
+    return nullptr;
+  }
+  if (xTaskCreatePinnedToCore(output, "Output", stack_size, nullptr, 10,
+                              nullptr, app_core) != pdPASS) {
+    ESP_LOGE(TAG, "Couldn't create Output task!");
+    return nullptr;
+  }
 
   return stream;
 }
