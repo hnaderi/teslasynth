@@ -38,6 +38,7 @@ public:
     number_ = number;
     amplitude_ = amplitude;
     pulse.start = time;
+    pulse.volume = amplitude;
     active = true;
     _channel = channel;
   }
@@ -130,8 +131,20 @@ void test_should_steal_voices_that_are_the_most_quiet(void) {
         &voice.start(mnotef(i), EnvelopeLevel(1 - 0.1 * i), 0_s, preset);
   }
   TEST_ASSERT_EQUAL(4, voice.active());
-  auto &last = voice.start(mnotef(4), EnvelopeLevel(0.5), 0_s, preset);
-  TEST_ASSERT_EQUAL(&last, events[3]);
+  auto &stolen = voice.start(mnotef(4), EnvelopeLevel(0.5), 0_s, preset);
+  TEST_ASSERT_EQUAL(&stolen, events[3]);
+}
+
+void test_should_steal_voices_that_are_the_most_quiet2(void) {
+  FakeEvent *events[4];
+  TestVoice voice(4);
+  for (int i = 0; i < 4; i++) {
+    events[i] =
+        &voice.start(mnotef(i), EnvelopeLevel(0.1 * (i + 1)), 0_s, preset);
+  }
+  TEST_ASSERT_EQUAL(4, voice.active());
+  auto &stolen = voice.start(mnotef(4), EnvelopeLevel(0.5), 0_s, preset);
+  TEST_ASSERT_EQUAL(&stolen, events[0]);
 }
 
 void test_should_restart_the_same_note(void) {
@@ -290,6 +303,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_start);
   RUN_TEST(test_should_limit_concurrent_voice);
   RUN_TEST(test_should_steal_voices_that_are_the_most_quiet);
+  RUN_TEST(test_should_steal_voices_that_are_the_most_quiet2);
   RUN_TEST(test_should_restart_the_same_note);
   RUN_TEST(test_should_return_the_note_with_least_time);
   RUN_TEST(test_should_return_the_note_with_least_time_after_tick);

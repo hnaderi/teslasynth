@@ -30,10 +30,9 @@ class Voice final {
       return i;
     }
 
-    EnvelopeLevel quietest = EnvelopeLevel::max();
     uint8_t quietest_idx = 0;
-    for (uint8_t i = 0; i < _size; i++) {
-      if (_notes[i].current().volume < quietest)
+    for (uint8_t i = 1; i < _size; i++) {
+      if (_notes[i].current().volume < _notes[quietest_idx].current().volume)
         quietest_idx = i;
     }
     return quietest_idx;
