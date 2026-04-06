@@ -17,7 +17,7 @@ static Application app;
 extern "C" void app_main(void) {
   devices::storage::init();
   ESP_ERROR_CHECK(esp_event_loop_create_default());
-  if (app.reload_config())
+  if (!app.reload_config())
     ESP_LOGW(TAG, "Synth config fallbacks to factory settings.");
 
   const bool is_provisioned = configuration::hardware::read(hconfig);
