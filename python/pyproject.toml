@@ -17,7 +17,7 @@ plot = ["plotly>=5.0"]
 wav  = ["scipy>=1.7"]
 
 [dependency-groups]
-dev = ["plotly>=5.0", "scipy>=1.7", "jupyter"]
+dev = ["plotly>=5.0", "scipy>=1.7", "jupyter", "pytest>=8.0"]
 
 [project.scripts]
 teslasynth = "teslasynth.__main__:main"
@@ -25,3 +25,29 @@ teslasynth = "teslasynth.__main__:main"
 [tool.scikit-build]
 cmake.build-type = "Release"
 wheel.packages = ["teslasynth"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# ── cibuildwheel ──────────────────────────────────────────────────────────────
+# Run from repo root with: cibuildwheel --package-dir python
+# The full checkout is available so CMakeLists.txt can reach ../lib naturally.
+[tool.cibuildwheel]
+build = ["cp39-*", "cp310-*", "cp311-*", "cp312-*", "cp313-*"]
+# 32-bit and musl targets are not worth the effort for this library
+skip  = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
+# After installing the wheel, run the test suite
+test-requires = ["pytest>=8.0", "mido>=1.3"]
+test-command  = "pytest {package}/tests -v --tb=short"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
+# manylinux_2_28 ships GCC 11 → full C++17 support required by nanobind
+manylinux-x86_64-image  = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
