@@ -178,8 +178,8 @@ struct MidiChannelMessage {
     return {
         .type = MidiMessageType::PitchBend,
         .channel = ch,
-        .data0 = value & 0x7F,
-        .data1 = (value >> 7) & 0x7F,
+        .data0 = static_cast<uint8_t>(value & 0x7F),
+        .data1 = static_cast<uint8_t>((value >> 7) & 0x7F),
     };
   }
 

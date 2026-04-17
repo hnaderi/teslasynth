@@ -55,7 +55,8 @@ public:
     return _value > b._value;
   }
   constexpr bool operator==(const Probability &b) const {
-    return std::fabs(_value - b._value) < 1e-3f;
+    float d = _value - b._value;
+    return (d < 0 ? -d : d) < 1e-3f;
   }
   constexpr bool operator!=(const Probability &b) const {
     return _value != b._value;

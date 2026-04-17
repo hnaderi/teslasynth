@@ -29,6 +29,6 @@ target_include_directories(_teslasynth PRIVATE
     ${LIB_DIR}/synthesizer
 )
 
-target_compile_features(_teslasynth PRIVATE cxx_std_23)
+target_compile_features(_teslasynth PRIVATE cxx_std_20)
 
 install(TARGETS _teslasynth LIBRARY DESTINATION teslasynth)

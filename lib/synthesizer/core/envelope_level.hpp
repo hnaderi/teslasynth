@@ -22,7 +22,7 @@ public:
 
   constexpr static EnvelopeLevel zero() { return EnvelopeLevel(); }
   constexpr static EnvelopeLevel max() { return EnvelopeLevel(1); }
-  constexpr static EnvelopeLevel logscale(uint8_t value) {
+  static EnvelopeLevel logscale(uint8_t value) {
     return EnvelopeLevel(log2f(1.f + value) / 8.f);
   }
 
@@ -64,7 +64,8 @@ public:
     return _value > b._value;
   }
   constexpr bool operator==(const EnvelopeLevel &b) const {
-    return std::fabs(_value - b._value) < 1e-3f;
+    float d = _value - b._value;
+    return (d < 0 ? -d : d) < 1e-3f;
   }
   constexpr bool operator!=(const EnvelopeLevel &b) const {
     return _value != b._value;

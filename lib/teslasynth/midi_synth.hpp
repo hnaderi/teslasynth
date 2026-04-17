@@ -158,7 +158,7 @@ public:
 template <std::uint8_t OUTPUTS = 1, class N = Voice<>> class Teslasynth final {
   Configuration<OUTPUTS> config_;
   TrackState<OUTPUTS> _track;
-  Instrument const *_instruments = instruments.begin();
+  Instrument const *_instruments = instruments.data();
   size_t _instruments_size = instruments.size();
   std::array<N, OUTPUTS> _voices;
   std::array<DutyLimiter, OUTPUTS> _limiters;
@@ -180,7 +180,7 @@ public:
 
   template <std::size_t INSTRUMENTS>
   void use_instruments(const std::array<Instrument, INSTRUMENTS> &instruments) {
-    _instruments = instruments.begin();
+    _instruments = instruments.data();
     _instruments_size = instruments.size();
   }
 

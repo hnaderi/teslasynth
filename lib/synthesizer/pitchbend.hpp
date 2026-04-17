@@ -34,12 +34,12 @@ public:
 
   constexpr bool is_zero() const { return normalized == 0; }
 
-  constexpr float multiplier() const {
+  float multiplier() const {
     float semitones = normalized * range;
     return exp2f(semitones / 12.0f);
   }
 
-  constexpr Hertz operator*(const Hertz &f) const { return f * multiplier(); }
+  Hertz operator*(const Hertz &f) const { return f * multiplier(); }
 
   inline operator std::string() const {
     return std::string("Bend: ") + std::to_string(multiplier());

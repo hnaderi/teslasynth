@@ -35,10 +35,12 @@ public:
   constexpr bool operator<(const Hertz &b) const { return _value < b._value; }
   constexpr bool operator>(const Hertz &b) const { return _value > b._value; }
   constexpr bool operator==(const Hertz &b) const {
-    return fabsf(_value - b._value) < 0.001;
+    float d = _value - b._value;
+    return (d < 0 ? -d : d) < 0.001f;
   }
   constexpr bool operator!=(const Hertz &b) const {
-    return fabsf(_value - b._value) > 0.001;
+    float d = _value - b._value;
+    return (d < 0 ? -d : d) > 0.001f;
   }
   constexpr bool operator<=(const Hertz &b) const { return _value <= b._value; }
   constexpr bool operator>=(const Hertz &b) const { return _value >= b._value; }
