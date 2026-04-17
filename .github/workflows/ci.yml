@@ -71,9 +71,15 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - uses: astral-sh/setup-uv@v5
       - name: Install and build
-        run: uv sync --group dev
+        run: |
+          uv venv
+          uv pip install scikit-build-core nanobind
+          uv sync --group dev --no-build-isolation
         working-directory: python
       - name: Run Python tests
         run: uv run pytest tests -v --tb=short
