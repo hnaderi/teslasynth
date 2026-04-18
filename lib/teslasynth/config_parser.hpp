@@ -28,6 +28,18 @@ template <typename T> std::optional<T> parse_number(std::string_view s) {
   else
     return std::nullopt;
 }
+
+// std::from_chars for float is not available on Apple libc++ < macOS 13.3.
+// Use strtof which is universally available.
+template <> inline std::optional<float> parse_number<float>(std::string_view s) {
+  if (s.empty()) return std::nullopt;
+  char *end;
+  errno = 0;
+  float v = std::strtof(s.data(), &end);
+  if (errno != 0 || end != s.data() + s.size())
+    return std::nullopt;
+  return v;
+}
 std::optional<Duration16> parse_duration16(std::string_view s);
 std::optional<Hertz> parse_hertz(std::string_view s);
 std::optional<Parsed> parse_config_value(std::string_view s);
