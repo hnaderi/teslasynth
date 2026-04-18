@@ -103,7 +103,7 @@ void init(const OutputConfig &config) {
       .gpio_num = gpio_num_t::GPIO_NUM_NC,
       .clk_src = RMT_CLK_SRC_DEFAULT,
       .resolution_hz = rmt_resolution_hz,
-      .mem_block_symbols = 64,
+      .mem_block_symbols = CONFIG_SOC_RMT_MEM_WORDS_PER_CHANNEL,
       .trans_queue_depth = 10,
       .flags =
           {
