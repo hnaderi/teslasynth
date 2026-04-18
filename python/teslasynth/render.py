@@ -151,16 +151,16 @@ def signal_stream(
             yield np.zeros(int(step_us * spus), dtype=np.uint8)
             continue
 
-        total_us = sum(p[0] + p[1] for p in pulses)
+        total_us = sum(p.on_us + p.off_us for p in pulses)
         n     = int(total_us * spus) + 1
         chunk = np.zeros(n, dtype=np.uint8)
         pos   = 0
-        for on_us, off_us in pulses:
-            if on_us > 0:
+        for p in pulses:
+            if p.on_us > 0:
                 s = int(pos * spus)
-                e = min(int((pos + on_us) * spus), n)
+                e = min(int((pos + p.on_us) * spus), n)
                 chunk[s:e] = 1
-            pos += on_us + off_us
+            pos += p.on_us + p.off_us
         yield chunk
 
 

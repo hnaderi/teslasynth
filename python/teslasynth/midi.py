@@ -9,6 +9,7 @@ from typing import Generator
 import mido
 
 from ._teslasynth import MidiChannelMessage, Teslasynth
+from ._types import NoteEvent
 
 
 def from_mido(msg: mido.Message) -> MidiChannelMessage | None:
@@ -138,21 +139,16 @@ def pulse_stream(
     """
     abs_us = 0
     for _, pulses in render_file(synth, path, step_us=step_us, channel=channel):
-        for on_us, off_us in pulses:
-            yield abs_us, on_us, off_us
-            abs_us += on_us + off_us
+        for p in pulses:
+            yield abs_us, p.on_us, p.off_us
+            abs_us += p.on_us + p.off_us
 
 
-def notes_from_midi(path: str) -> list[dict]:
+def notes_from_midi(path: str) -> list[NoteEvent]:
     """Extract note events from a MIDI file.
 
-    Returns a list of dicts sorted by start time, each with keys:
-
-    - ``channel`` — MIDI channel (0-based)
-    - ``note`` — MIDI note number (0–127)
-    - ``velocity`` — note-on velocity
-    - ``start_us`` — absolute start time in microseconds
-    - ``end_us`` — absolute end time in microseconds
+    Returns a list of :class:`~teslasynth._types.NoteEvent` sorted by start
+    time.
     """
     mid = mido.MidiFile(path)
     tempo_map = _build_tempo_map(mid)
@@ -167,7 +163,7 @@ def notes_from_midi(path: str) -> list[dict]:
     events.sort(key=lambda x: x[0])
 
     pending: dict[tuple[int, int], tuple[int, int]] = {}  # (ch, note) -> (start_us, vel)
-    notes: list[dict] = []
+    notes: list[NoteEvent] = []
 
     for abs_ticks, msg in events:
         time_us = _ticks_to_us(abs_ticks, mid.ticks_per_beat, tempo_map)
@@ -177,22 +173,22 @@ def notes_from_midi(path: str) -> list[dict]:
         else:
             if key in pending:
                 start_us, velocity = pending.pop(key)
-                notes.append({
-                    "channel":  msg.channel,
-                    "note":     msg.note,
-                    "velocity": velocity,
-                    "start_us": start_us,
-                    "end_us":   time_us,
-                })
+                notes.append(NoteEvent(
+                    channel=msg.channel,
+                    note=msg.note,
+                    velocity=velocity,
+                    start_us=start_us,
+                    end_us=time_us,
+                ))
 
     # Close any notes still open at end of file
     if events:
         tail_us = _ticks_to_us(events[-1][0], mid.ticks_per_beat, tempo_map)
         for (ch, note), (start_us, velocity) in pending.items():
-            notes.append({
-                "channel": ch, "note": note, "velocity": velocity,
-                "start_us": start_us, "end_us": tail_us,
-            })
+            notes.append(NoteEvent(
+                channel=ch, note=note, velocity=velocity,
+                start_us=start_us, end_us=tail_us,
+            ))
 
-    notes.sort(key=lambda n: n["start_us"])
+    notes.sort(key=lambda n: n.start_us)
     return notes

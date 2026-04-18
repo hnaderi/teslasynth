@@ -42,13 +42,13 @@ def _find_instrument(name_or_id: str):
     try:
         idx = int(name_or_id)
         if 0 <= idx < len(all_info):
-            return all_info[idx]["id"]
+            return all_info[idx].id
         _die(f"instrument index {idx} out of range (0–{len(all_info) - 1})")
     except ValueError:
         for info in all_info:
-            if info["name"].lower() == name_or_id.lower():
-                return info["id"]
-        names = "\n  ".join(f"{i['index']:2d}  {i['name']}" for i in all_info)
+            if info.name.lower() == name_or_id.lower():
+                return info.id
+        names = "\n  ".join(f"{i.index:2d}  {i.name}" for i in all_info)
         _die(f"unknown instrument '{name_or_id}'. Valid names:\n  {names}")
 
 
@@ -63,17 +63,17 @@ def _find_instrument_or_percussion(name_or_id: str):
     try:
         idx = int(name_or_id)
         if 0 <= idx < len(instruments):
-            return instruments[idx]["id"]
+            return instruments[idx].id
         _die(f"instrument index {idx} out of range (0–{len(instruments) - 1})")
     except ValueError:
         for info in instruments:
-            if info["name"].lower() == name_or_id.lower():
-                return info["id"]
+            if info.name.lower() == name_or_id.lower():
+                return info.id
         for info in percussions:
-            if info["name"].lower() == name_or_id.lower():
-                return info["id"]
-        inst_names = "\n  ".join(f"{i['index']:2d}  {i['name']}" for i in instruments)
-        perc_names = "\n  ".join(f"{i['index']:2d}  {i['name']}" for i in percussions)
+            if info.name.lower() == name_or_id.lower():
+                return info.id
+        inst_names = "\n  ".join(f"{i.index:2d}  {i.name}" for i in instruments)
+        perc_names = "\n  ".join(f"{i.index:2d}  {i.name}" for i in percussions)
         _die(f"unknown instrument or percussion '{name_or_id}'.\n"
              f"Instruments:\n  {inst_names}\nPercussions:\n  {perc_names}")
 
@@ -173,9 +173,9 @@ def _cmd_config(args: argparse.Namespace) -> None:
 def _cmd_instruments(args: argparse.Namespace) -> None:
     from teslasynth import get_all_instruments
     all_info = get_all_instruments()
-    name_w = max(len(i["name"]) for i in all_info)
+    name_w = max(len(i.name) for i in all_info)
     for info in all_info:
-        env = info["envelope"]
+        env = info.envelope
         if env.type == "const":
             detail = f"level={env.sustain:.2f}"
         elif env.type == "adsr":
@@ -185,22 +185,22 @@ def _cmd_instruments(args: argparse.Namespace) -> None:
         else:  # ad
             detail = (f"A={env.attack_ms:.0f}ms  D={env.decay_ms:.0f}ms"
                       f"  curve={env.curve}")
-        print(f"  {info['index']:2d}  {info['name']:{name_w}}  {env.type:5}  {detail}")
+        print(f"  {info.index:2d}  {info.name:{name_w}}  {env.type:5}  {detail}")
 
 
 def _cmd_percussions(args: argparse.Namespace) -> None:
     from teslasynth import get_all_percussions
     all_info = get_all_percussions()
-    name_w = max(len(i["name"]) for i in all_info)
+    name_w = max(len(i.name) for i in all_info)
     for info in all_info:
-        env = info["envelope"]
-        prf = f"{info['prf_hz']:.0f}Hz" if info["prf_hz"] > 0 else "noise"
+        env = info.envelope
+        prf = f"{info.prf_hz:.0f}Hz" if info.prf_hz > 0 else "noise"
         env_detail = (f"A={env.attack_ms:.0f}ms  D={env.decay_ms:.0f}ms"
                       f"  curve={env.curve}")
-        print(f"  {info['index']:2d}  {info['name']:{name_w}}"
-              f"  burst={info['burst_ms']:.0f}ms"
+        print(f"  {info.index:2d}  {info.name:{name_w}}"
+              f"  burst={info.burst_ms:.0f}ms"
               f"  prf={prf:8}"
-              f"  noise={info['noise']*100:.0f}%"
+              f"  noise={info.noise*100:.0f}%"
               f"  {env_detail}")
 
 

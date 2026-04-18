@@ -14,8 +14,9 @@ from typing import Iterable
 
 import numpy as np
 
-from ._teslasynth import (Envelope, EnvelopeEngine, InstrumentId, PercussionId,
-                          get_all_instruments, get_instrument, get_percussion)
+from ._teslasynth import Envelope, EnvelopeEngine, InstrumentId, PercussionId
+from ._types import (InstrumentInfo, NoteEvent, PercussionInfo,
+                     get_all_instruments, get_instrument, get_percussion)
 from .render import Recording
 
 
@@ -158,13 +159,13 @@ def plot_envelope(
     fig.add_trace(go.Scatter(
         x=t, y=amp,
         mode="lines",
-        name=info["name"],
+        name=info.name,
         line=dict(width=2),
     ))
-    _add_envelope_markers(fig, info["envelope"], hold_ms)
+    _add_envelope_markers(fig, info.envelope, hold_ms)
     _time_axis(fig)
     fig.update_layout(
-        title=f"Envelope — {info['name']}",
+        title=f"Envelope — {info.name}",
         yaxis_title="Amplitude",
         yaxis=dict(range=[0, 1.1]),
     )
@@ -192,8 +193,8 @@ def plot_envelope_comparison(
 
     fig = go.Figure()
     for info in all_info:
-        t, amp = _compute_envelope(info["id"], note_duration_ms)
-        fig.add_trace(go.Scatter(x=t, y=amp, mode="lines", name=info["name"]))
+        t, amp = _compute_envelope(info.id, note_duration_ms)
+        fig.add_trace(go.Scatter(x=t, y=amp, mode="lines", name=info.name))
 
     _time_axis(fig)
     fig.update_layout(
@@ -228,7 +229,7 @@ def _add_envelope_markers(fig, env: Envelope, note_duration_ms: float) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def plot_piano_roll(
-    notes: list[dict],
+    notes: list[NoteEvent],
     start_ms: float | None = None,
     end_ms: float | None = None,
 ):
@@ -237,7 +238,8 @@ def plot_piano_roll(
     Parameters
     ----------
     notes:
-        List of note dicts from :func:`~teslasynth.midi.notes_from_midi`.
+        List of :class:`~teslasynth._types.NoteEvent` from
+        :func:`~teslasynth.midi.notes_from_midi`.
     start_ms / end_ms:
         Optional time window (milliseconds).
     """
@@ -247,23 +249,23 @@ def plot_piano_roll(
     if start_ms is not None or end_ms is not None:
         s_us = (start_ms or 0.0) * 1000
         e_us = (end_ms or float("inf")) * 1000
-        visible = [n for n in notes if n["end_us"] >= s_us and n["start_us"] <= e_us]
+        visible = [n for n in notes if n.end_us >= s_us and n.start_us <= e_us]
 
     fig = go.Figure()
-    for ch in sorted(set(n["channel"] for n in visible)):
-        ch_notes = [n for n in visible if n["channel"] == ch]
+    for ch in sorted(set(n.channel for n in visible)):
+        ch_notes = [n for n in visible if n.channel == ch]
         xs: list = []
         ys: list = []
         for n in ch_notes:
-            xs += [n["start_us"], n["end_us"], None]
-            ys += [n["note"], n["note"], None]
+            xs += [n.start_us, n.end_us, None]
+            ys += [n.note, n.note, None]
         fig.add_trace(go.Scatter(
             x=xs, y=ys, mode="lines",
             line=dict(width=4, color=_channel_color(ch)),
             name=f"Ch {ch}",
         ))
 
-    note_nums = [n["note"] for n in visible] or [0, 127]
+    note_nums = [n.note for n in visible] or [0, 127]
     _time_axis(fig)
     fig.update_layout(
         title="Piano Roll",
@@ -426,7 +428,7 @@ def plot_duty_cycle(recording: Recording):
 
 def plot_overview(
     recording: Recording,
-    notes: list[dict] | None = None,
+    notes: list[NoteEvent] | None = None,
     start_ms: float = 0.0,
     end_ms: float | None = None,
 ):
@@ -474,22 +476,22 @@ def plot_overview(
         end_us_win   = end_ms   * 1000
         visible = [
             n for n in notes
-            if n["end_us"] >= start_us_win and n["start_us"] <= end_us_win
+            if n.end_us >= start_us_win and n.start_us <= end_us_win
         ]
-        for ch in sorted(set(n["channel"] for n in visible)):
-            ch_notes = [n for n in visible if n["channel"] == ch]
+        for ch in sorted(set(n.channel for n in visible)):
+            ch_notes = [n for n in visible if n.channel == ch]
             xs: list = []
             ys: list = []
             for n in ch_notes:
-                xs += [n["start_us"], n["end_us"], None]
-                ys += [n["note"], n["note"], None]
+                xs += [n.start_us, n.end_us, None]
+                ys += [n.note, n.note, None]
             fig.add_trace(go.Scatter(
                 x=xs, y=ys, mode="lines",
                 line=dict(width=4, color=_channel_color(ch)),
                 name=f"Ch {ch}",
             ), row=1, col=1)
         if visible:
-            note_nums = [n["note"] for n in visible]
+            note_nums = [n.note for n in visible]
             fig.update_yaxes(
                 range=[min(note_nums) - 2, max(note_nums) + 2],
                 title_text="MIDI Note", row=1, col=1,

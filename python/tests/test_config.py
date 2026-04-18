@@ -20,9 +20,11 @@ class TestRoundTrip:
         from teslasynth import Configuration
         from teslasynth.config import to_dict
         d = to_dict(Configuration())
-        assert set(d.keys()) == {"synth", "channel", "routing"}
+        assert set(d.keys()) == {"synth", "channels", "routing"}
         assert "tuning_hz" in d["synth"]
-        assert "max_on_time_us" in d["channel"]
+        assert isinstance(d["channels"], list)
+        assert len(d["channels"]) == 8
+        assert "max_on_time_us" in d["channels"][0]
         assert "mapping" in d["routing"]
 
     def test_routing_mapping_length(self):
@@ -49,9 +51,8 @@ class TestRoundTrip:
 
     def test_unknown_keys_are_ignored(self):
         from teslasynth.config import from_dict, to_dict
-        d = {"synth": {"tuning_hz": 440.0, "unknown_field": 99}, "channel": {}, "routing": {}}
+        d = {"synth": {"tuning_hz": 440.0, "unknown_field": 99}, "channels": [], "routing": {}}
         cfg = from_dict(d)
-        # Should not raise; unknown key is silently ignored
         assert to_dict(cfg)["synth"]["tuning_hz"] == pytest.approx(440.0)
 
     def test_missing_keys_use_defaults(self):
@@ -60,6 +61,23 @@ class TestRoundTrip:
         defaults = to_dict(Configuration())
         cfg = from_dict({})
         assert to_dict(cfg) == defaults
+
+    def test_legacy_channel_key_is_accepted(self):
+        """Single 'channel' key (legacy) is applied to output 0."""
+        from teslasynth.config import from_dict
+        cfg = from_dict({"channel": {"max_on_time_us": 200}})
+        assert cfg.channel(0).max_on_time_us == 200
+
+    def test_channels_list_applied_per_output(self):
+        from teslasynth.config import from_dict
+        cfg = from_dict({"channels": [
+            {"max_on_time_us": 111},
+            {"max_on_time_us": 222},
+        ]})
+        assert cfg.channel(0).max_on_time_us == 111
+        assert cfg.channel(1).max_on_time_us == 222
+        # Remaining outputs keep defaults
+        assert cfg.channel(2).max_on_time_us == 100  # firmware default
 
 
 @requires_extension
@@ -77,12 +95,12 @@ class TestValidation:
     def test_invalid_max_on_time(self):
         from teslasynth.config import from_dict
         with pytest.raises(ValueError, match="max_on_time_us"):
-            from_dict({"channel": {"max_on_time_us": 0}})
+            from_dict({"channels": [{"max_on_time_us": 0}]})
 
     def test_invalid_duty_percent(self):
         from teslasynth.config import from_dict
         with pytest.raises(ValueError, match="max_duty_percent"):
-            from_dict({"channel": {"max_duty_percent": 101.0}})
+            from_dict({"channels": [{"max_duty_percent": 101.0}]})
 
     def test_invalid_routing_mapping_length(self):
         from teslasynth.config import from_dict
@@ -92,9 +110,15 @@ class TestValidation:
     def test_invalid_routing_output_index(self):
         from teslasynth.config import from_dict
         mapping = [0] * 16
-        mapping[3] = 1   # only output 0 is valid for a 1-output device
+        mapping[3] = 8   # 8 is out of range for 8 outputs (valid: 0–7)
         with pytest.raises(ValueError):
             from_dict({"routing": {"mapping": mapping}})
+
+    def test_valid_routing_output_indices(self):
+        from teslasynth.config import from_dict, to_dict
+        mapping = list(range(8)) + [None] * 8  # outputs 0–7 then unrouted
+        cfg = from_dict({"routing": {"mapping": mapping}})
+        assert to_dict(cfg)["routing"]["mapping"][:8] == list(range(8))
 
     def test_instrument_out_of_range(self):
         from teslasynth.config import from_dict

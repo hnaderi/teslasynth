@@ -73,6 +73,12 @@ class TestTicksToUs:
 
 @requires_extension
 class TestNotesFromMidi:
+    def test_returns_note_events(self, simple_midi):
+        from teslasynth.midi import notes_from_midi
+        from teslasynth import NoteEvent
+        notes = notes_from_midi(simple_midi)
+        assert all(isinstance(n, NoteEvent) for n in notes)
+
     def test_single_note_extracted(self, simple_midi):
         from teslasynth.midi import notes_from_midi
         notes = notes_from_midi(simple_midi)
@@ -81,29 +87,31 @@ class TestNotesFromMidi:
     def test_note_number(self, simple_midi):
         from teslasynth.midi import notes_from_midi
         note = notes_from_midi(simple_midi)[0]
-        assert note["note"] == 60
+        assert note.note == 60
 
     def test_note_channel(self, simple_midi):
         from teslasynth.midi import notes_from_midi
         note = notes_from_midi(simple_midi)[0]
-        assert note["channel"] == 0
+        assert note.channel == 0
 
     def test_note_timing(self, simple_midi):
         from teslasynth.midi import notes_from_midi
         # 480 ticks at 120 BPM (500 000 µs/beat) → 500 000 µs duration
         note = notes_from_midi(simple_midi)[0]
-        assert note["start_us"] == 0
-        assert note["end_us"] == pytest.approx(500_000, rel=0.01)
+        assert note.start_us == 0
+        assert note.end_us == pytest.approx(500_000, rel=0.01)
 
     def test_note_velocity(self, simple_midi):
         from teslasynth.midi import notes_from_midi
         note = notes_from_midi(simple_midi)[0]
-        assert note["velocity"] == 100
+        assert note.velocity == 100
 
-    def test_required_keys_present(self, simple_midi):
+    def test_required_fields_present(self, simple_midi):
+        import dataclasses
         from teslasynth.midi import notes_from_midi
         note = notes_from_midi(simple_midi)[0]
-        assert {"channel", "note", "velocity", "start_us", "end_us"} <= note.keys()
+        field_names = {f.name for f in dataclasses.fields(note)}
+        assert {"channel", "note", "velocity", "start_us", "end_us"} <= field_names
 
     def test_sorted_by_start(self, tmp_path):
         """Multiple notes are returned sorted by start_us."""
@@ -122,5 +130,5 @@ class TestNotesFromMidi:
         path = tmp_path / "two.mid"
         mid.save(str(path))
         notes = notes_from_midi(str(path))
-        starts = [n["start_us"] for n in notes]
+        starts = [n.start_us for n in notes]
         assert starts == sorted(starts)

@@ -387,6 +387,27 @@ NB_MODULE(_teslasynth, m) {
             "'routing.percussion=y'");
 
     // -------------------------------------------------------------------------
+    // Pulse — a single coil drive pulse returned by sample_all()
+    // -------------------------------------------------------------------------
+
+    nb::class_<Pulse>(m, "Pulse")
+        .def("__init__", [](Pulse *self, uint16_t on_us, uint16_t off_us) {
+            new (self) Pulse{Duration16::micros(on_us), Duration16::micros(off_us)};
+        }, "on_us"_a, "off_us"_a, "Construct a Pulse from on/off durations in microseconds.")
+        .def_prop_ro("on_us",  [](const Pulse &p) -> uint16_t { return p.on.micros(); },
+                     "Pulse-on duration in microseconds.")
+        .def_prop_ro("off_us", [](const Pulse &p) -> uint16_t { return p.off.micros(); },
+                     "Pulse-off duration in microseconds.")
+        .def("__repr__", [](const Pulse &p) {
+            return "Pulse(on_us=" + std::to_string(p.on.micros()) +
+                   ", off_us=" + std::to_string(p.off.micros()) + ")";
+        })
+        .def("__eq__", [](const Pulse &a, const Pulse &b) {
+            return a.on.micros() == b.on.micros() &&
+                   a.off.micros() == b.off.micros();
+        });
+
+    // -------------------------------------------------------------------------
     // EnvelopeEngine — exact C++ Envelope implementation
     // -------------------------------------------------------------------------
 
@@ -438,12 +459,12 @@ NB_MODULE(_teslasynth, m) {
                         PyErr_WarnEx(PyExc_RuntimeWarning,
                             "sample_all: pulse buffer full — pulses may have been dropped. "
                             "Reduce step_us or the synthesis frequency.", 1);
-                    std::vector<std::array<uint16_t, 2>> ch_pulses(n);
+                    nb::list ch_pulses;
                     for (uint8_t i = 0; i < n; i++) {
-                        const auto &p = buf.at(ch, i);
-                        ch_pulses[i] = {p.on.micros(), p.off.micros()};
+                        Pulse p = buf.at(ch, i);
+                        ch_pulses.append(nb::cast(std::move(p)));
                     }
-                    result.append(nb::cast(std::move(ch_pulses)));
+                    result.append(ch_pulses);
                 }
                 return result;
             },
