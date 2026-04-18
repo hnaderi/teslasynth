@@ -10,24 +10,30 @@ Schema
         "tuning_hz": 440.0,
         "instrument": null          // or 0–27
       },
-      "channel": {
-        "max_on_time_us":  100,
-        "min_deadtime_us": 100,
-        "duty_window_us":  10000,
-        "notes":           4,
-        "max_duty_percent": 100.0,
-        "instrument":      null     // or 0–27
-      },
+      "channels": [
+        {
+          "max_on_time_us":  100,
+          "min_deadtime_us": 100,
+          "duty_window_us":  10000,
+          "notes":           4,
+          "max_duty_percent": 100.0,
+          "instrument":      null   // or 0–27
+        },
+        ...                         // up to 8 entries (one per output channel)
+      ],
       "routing": {
-        "mapping":    [0, null, null, null, null, null, null, null,
+        "mapping":    [0, 1, null, null, null, null, null, null,
                        null, null, null, null, null, null, null, null],
         "percussion": false
       }
     }
 
 ``routing.mapping`` is a 16-element list, one entry per MIDI channel (0–15).
-Each entry is either ``0`` (route to the single output) or ``null`` (ignore
-that channel).  ``routing.percussion`` enables percussion handling on channel 9.
+Each entry is an output index (0–7) or ``null`` (ignore that channel).
+``routing.percussion`` enables percussion handling on channel 9.
+
+Omitted ``channels`` entries keep firmware defaults.  A single ``"channel"``
+key (legacy) is accepted and applied to output channel 0.
 """
 from __future__ import annotations
 
@@ -40,21 +46,23 @@ from ._teslasynth import Configuration
 
 def to_dict(cfg: Configuration) -> dict:
     """Serialize a :class:`Configuration` to a plain Python dict."""
-    ch = cfg.channel(0)
-    r  = cfg.routing
+    r = cfg.routing
     return {
         "synth": {
             "tuning_hz":  cfg.synth.tuning_hz,
             "instrument": cfg.synth.instrument,
         },
-        "channel": {
-            "max_on_time_us":   ch.max_on_time_us,
-            "min_deadtime_us":  ch.min_deadtime_us,
-            "duty_window_us":   ch.duty_window_us,
-            "notes":            ch.notes,
-            "max_duty_percent": ch.max_duty_percent,
-            "instrument":       ch.instrument,
-        },
+        "channels": [
+            {
+                "max_on_time_us":   cfg.channel(i).max_on_time_us,
+                "min_deadtime_us":  cfg.channel(i).min_deadtime_us,
+                "duty_window_us":   cfg.channel(i).duty_window_us,
+                "notes":            cfg.channel(i).notes,
+                "max_duty_percent": cfg.channel(i).max_duty_percent,
+                "instrument":       cfg.channel(i).instrument,
+            }
+            for i in range(cfg.channels_size)
+        ],
         "routing": {
             "mapping":    r.mapping,
             "percussion": r.percussion,
@@ -69,7 +77,14 @@ def from_dict(d: dict) -> Configuration:
     """
     cfg = Configuration()
     _load_synth(cfg, d.get("synth", {}))
-    _load_channel(cfg.channel(0), d.get("channel", {}))
+    # Support both "channels" list and legacy "channel" single-entry key.
+    if "channels" in d:
+        for i, ch_dict in enumerate(d["channels"]):
+            if i >= cfg.channels_size:
+                break
+            _load_channel(cfg.channel(i), ch_dict)
+    elif "channel" in d:
+        _load_channel(cfg.channel(0), d["channel"])
     _load_routing(cfg.routing, d.get("routing", {}))
     return cfg
 
@@ -116,10 +131,9 @@ def _load_routing(r, d: dict) -> None:
                 validated.append(None)
             else:
                 v = int(v)
-                if v != 0:
+                if not (0 <= v <= 7):
                     raise ValueError(
-                        f"routing.mapping[{i}]: output index must be 0 "
-                        f"for a 1-output configuration, got {v}")
+                        f"routing.mapping[{i}]: output index must be 0–7, got {v}")
                 validated.append(v)
         r.mapping = validated
     if "percussion" in d:

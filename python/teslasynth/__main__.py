@@ -114,7 +114,8 @@ def _cmd_render(args: argparse.Namespace) -> None:
         wav.write(args.midi, args.wav,
                   synth=synth,
                   sample_rate=args.sample_rate,
-                  step_us=args.step_us)
+                  step_us=args.step_us,
+                  channel=args.channel)
         print(f"Written: {args.wav}")
     except FileNotFoundError as exc:
         _die(str(exc))
@@ -128,7 +129,7 @@ def _cmd_plot(args: argparse.Namespace) -> None:
         notes = tsm.notes_from_midi(args.midi)
         synth = _load_synth(args.config)
         print(f"Synthesising {args.midi} …", file=sys.stderr)
-        rec = render.from_file(args.midi, synth=synth)
+        rec = render.from_file(args.midi, synth=synth, channel=args.channel)
     except FileNotFoundError as exc:
         _die(str(exc))
 
@@ -142,7 +143,7 @@ def _cmd_signal(args: argparse.Namespace) -> None:
     try:
         synth = _load_synth(args.config)
         print(f"Synthesising {args.midi} …", file=sys.stderr)
-        rec = render.from_file(args.midi, synth=synth)
+        rec = render.from_file(args.midi, synth=synth, channel=args.channel)
     except FileNotFoundError as exc:
         _die(str(exc))
 
@@ -216,6 +217,11 @@ def _add_config_arg(p: argparse.ArgumentParser) -> None:
                         "(see 'teslasynth config' for the format)")
 
 
+def _add_channel_arg(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--channel", type=int, default=0, metavar="N",
+                   help="Output channel index to use (0–7, default: 0)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="teslasynth",
@@ -232,6 +238,7 @@ def main() -> None:
                    help="Sample rate in Hz (default: 192000)")
     r.add_argument("--step-us", type=int, default=10_000, metavar="US",
                    help="Synthesis window size in µs (default: 10000)")
+    _add_channel_arg(r)
 
     # ── plot ──────────────────────────────────────────────────────────────────
     p = sub.add_parser("plot", help="Full overview: piano roll + signal + frequency + duty")
@@ -241,6 +248,7 @@ def main() -> None:
                    help="Save to HTML instead of opening the browser")
     p.add_argument("--start-ms", type=float, default=None, metavar="MS")
     p.add_argument("--end-ms",   type=float, default=None, metavar="MS")
+    _add_channel_arg(p)
 
     # ── signal ────────────────────────────────────────────────────────────────
     sg = sub.add_parser("signal", help="Zoomed coil signal view")
@@ -252,6 +260,7 @@ def main() -> None:
                     help="Window start in ms (default: 0)")
     sg.add_argument("--end-ms",   type=float, default=None, metavar="MS",
                     help="Window end in ms (default: start + 10 ms)")
+    _add_channel_arg(sg)
 
     # ── config ────────────────────────────────────────────────────────────────
     c = sub.add_parser("config",

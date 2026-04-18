@@ -21,13 +21,14 @@ using namespace teslasynth::synth::envelopes;
 using namespace teslasynth::synth::bank;
 using namespace teslasynth::midisynth::config;
 
-using Synth1   = Teslasynth<1>;
-using Config1  = Configuration<1>;
-using Routing1 = MidiRoutingConfig<1>;
+// The Python library always uses 8 outputs — no MCU memory constraints here.
+using Synth   = Teslasynth<8>;
+using Config  = Configuration<8>;
+using Routing = MidiRoutingConfig<8>;
 
 // 200 pulses covers up to ~20 kHz at the default 10 ms step.
 // written[] is uint8_t so the hard ceiling is 255.
-using Buffer1 = PulseBuffer<1, 200>;
+using Buffer = PulseBuffer<8, 200>;
 
 // Flat Python-visible envelope, avoiding std::variant exposure
 struct PyEnvelope {
@@ -291,10 +292,10 @@ NB_MODULE(_teslasynth, m) {
     // RoutingConfig — must be bound before Configuration references it
     // -------------------------------------------------------------------------
 
-    nb::class_<Routing1>(m, "RoutingConfig")
+    nb::class_<Routing>(m, "RoutingConfig")
         .def(nb::init<>())
         .def_prop_rw("mapping",
-            [](const Routing1 &r) -> nb::list {
+            [](const Routing &r) -> nb::list {
                 nb::list result;
                 for (const auto &opt : r.mapping) {
                     auto v = opt.value();
@@ -305,7 +306,7 @@ NB_MODULE(_teslasynth, m) {
                 }
                 return result;
             },
-            [](Routing1 &r, nb::list lst) {
+            [](Routing &r, nb::list lst) {
                 if (lst.size() != 16)
                     throw nb::value_error(
                         "mapping must have exactly 16 entries (one per MIDI channel 0–15)");
@@ -313,20 +314,20 @@ NB_MODULE(_teslasynth, m) {
                 for (auto &slot : r.mapping) {
                     nb::object item = lst[i++];
                     if (item.is_none()) {
-                        slot = OutputNumberOpt<1>();          // -1 = no route
+                        slot = OutputNumberOpt<8>();
                     } else {
                         int v = nb::cast<int>(item);
-                        if (v != 0)
+                        if (v < 0 || v >= 8)
                             throw nb::value_error(
-                                "output index must be 0 for a 1-output configuration");
-                        slot = OutputNumberOpt<1>(static_cast<int8_t>(v));
+                                "output index must be in [0, 7]");
+                        slot = OutputNumberOpt<8>(static_cast<int8_t>(v));
                     }
                 }
             },
-            "16-entry list mapping MIDI channels 0–15 to an output index (int) or None.")
-        .def_rw("percussion", &Routing1::percussion,
+            "16-entry list mapping MIDI channels 0–15 to an output index (0–7) or None.")
+        .def_rw("percussion", &Routing::percussion,
             "When True, MIDI channel 9 is treated as a percussion channel.")
-        .def("__repr__", [](const Routing1 &r) {
+        .def("__repr__", [](const Routing &r) {
             std::string s = "[";
             size_t i = 0;
             for (const auto &opt : r.mapping) {
@@ -352,31 +353,30 @@ NB_MODULE(_teslasynth, m) {
             "Global default instrument (None = use per-channel selection)")
         .def("__repr__", [](const SynthConfig &s) { return std::string(s); });
 
-    // Configuration<1>: always one output channel.
-    nb::class_<Config1>(m, "Configuration")
+    nb::class_<Config>(m, "Configuration")
         .def(nb::init<>())
         .def_prop_rw("synth",
-            [](Config1 &c) -> SynthConfig & { return c.synth(); },
-            [](Config1 &c, const SynthConfig &s) { c.synth() = s; },
+            [](Config &c) -> SynthConfig & { return c.synth(); },
+            [](Config &c, const SynthConfig &s) { c.synth() = s; },
             nb::rv_policy::reference_internal)
-        .def_prop_ro("channels_size", &Config1::channels_size,
-            "Number of output channels (always 1 for this binding).")
-        .def("channel", [](Config1 &c, uint8_t ch) -> ChannelConfig & {
+        .def_prop_ro("channels_size", &Config::channels_size,
+            "Number of output channels (8).")
+        .def("channel", [](Config &c, uint8_t ch) -> ChannelConfig & {
             if (ch >= c.channels_size())
                 throw nb::index_error(
                     ("channel index " + std::to_string(ch) +
-                     " out of range (this Configuration has 1 output)").c_str());
+                     " out of range (0–7)").c_str());
             return c.channel(ch);
         }, nb::rv_policy::reference_internal, "ch"_a,
-           "Return the ChannelConfig for channel *ch* (only ch=0 is valid).")
+           "Return the ChannelConfig for output channel *ch* (0–7).")
         .def_prop_rw("routing",
-            [](Config1 &c) -> Routing1 & { return c.routing(); },
-            [](Config1 &c, const Routing1 &r) { c.routing() = r; },
+            [](Config &c) -> Routing & { return c.routing(); },
+            [](Config &c, const Routing &r) { c.routing() = r; },
             nb::rv_policy::reference_internal,
             "MIDI-to-output routing configuration.")
-        .def("__repr__", [](const Config1 &c) { return std::string(c); })
+        .def("__repr__", [](const Config &c) { return std::string(c); })
         .def("set",
-            [](Config1 &cfg, std::string expr) {
+            [](Config &cfg, std::string expr) {
                 auto res = config::patch::update(std::string_view(expr), cfg);
                 if (!res)
                     throw nb::value_error(res.error().c_str());
@@ -411,12 +411,12 @@ NB_MODULE(_teslasynth, m) {
     // Teslasynth engine
     // -------------------------------------------------------------------------
 
-    nb::class_<Synth1>(m, "Teslasynth")
-        .def(nb::init<>(), "Create a synth with default configuration (1 output channel).")
-        .def(nb::init<const Config1 &>(), "cfg"_a,
+    nb::class_<Synth>(m, "Teslasynth")
+        .def(nb::init<>(), "Create a synth with default configuration (8 output channels).")
+        .def(nb::init<const Config &>(), "cfg"_a,
              "Create a synth with the given configuration.")
         .def("handle",
-            [](Synth1 &s, const MidiChannelMessage &msg, int64_t time_us) {
+            [](Synth &s, const MidiChannelMessage &msg, int64_t time_us) {
                 if (time_us < 0)
                     throw nb::value_error("time_us must be non-negative");
                 s.handle(msg, Duration::micros(static_cast<uint64_t>(time_us)));
@@ -424,33 +424,40 @@ NB_MODULE(_teslasynth, m) {
             "msg"_a, "time_us"_a,
             "Feed a MIDI message at the given absolute time (microseconds).")
         .def("sample_all",
-            [](Synth1 &s, uint32_t budget_us) -> std::vector<std::array<uint16_t, 2>> {
+            [](Synth &s, uint32_t budget_us) -> nb::list {
                 if (budget_us > 65535)
                     throw nb::value_error(
                         "budget_us must be ≤ 65535 (Duration16 limit ~65 ms). "
                         "Use a smaller step_us.");
-                Buffer1 buf;
+                Buffer buf;
                 s.sample_all(Duration16::micros(static_cast<uint16_t>(budget_us)), buf);
-                const uint8_t n = buf.written[0];
-                if (n >= Buffer1::output_bufsize)
-                    PyErr_WarnEx(PyExc_RuntimeWarning,
-                        "sample_all: pulse buffer full — pulses may have been dropped. "
-                        "Reduce step_us or the synthesis frequency.", 1);
-                std::vector<std::array<uint16_t, 2>> result(n);
-                for (uint8_t i = 0; i < n; i++)
-                    result[i] = {buf.pulses[i].on.micros(), buf.pulses[i].off.micros()};
+                nb::list result;
+                for (uint8_t ch = 0; ch < 8; ch++) {
+                    const uint8_t n = buf.written[ch];
+                    if (n >= Buffer::output_bufsize)
+                        PyErr_WarnEx(PyExc_RuntimeWarning,
+                            "sample_all: pulse buffer full — pulses may have been dropped. "
+                            "Reduce step_us or the synthesis frequency.", 1);
+                    std::vector<std::array<uint16_t, 2>> ch_pulses(n);
+                    for (uint8_t i = 0; i < n; i++) {
+                        const auto &p = buf.at(ch, i);
+                        ch_pulses[i] = {p.on.micros(), p.off.micros()};
+                    }
+                    result.append(nb::cast(std::move(ch_pulses)));
+                }
                 return result;
             },
             "budget_us"_a,
             "Synthesise up to budget_us µs (max 65535). "
-            "Returns a list of [on_us, off_us] pairs.")
-        .def("off",           &Synth1::off,
+            "Returns a list of 8 lists (one per output channel), "
+            "each containing [on_us, off_us] pairs.")
+        .def("off",           &Synth::off,
              "Silence all voices immediately.")
-        .def("reload_config", &Synth1::reload_config,
+        .def("reload_config", &Synth::reload_config,
              "Apply configuration changes (also calls off()).")
         .def_prop_rw("configuration",
-            [](Synth1 &s) -> Config1 & { return s.configuration(); },
-            [](Synth1 &s, const Config1 &c) {
+            [](Synth &s) -> Config & { return s.configuration(); },
+            [](Synth &s, const Config &c) {
                 s.configuration() = c;
                 s.reload_config();
             });

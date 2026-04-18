@@ -17,6 +17,7 @@ def write(
     synth: Teslasynth | None = None,
     sample_rate: int = 192_000,
     step_us: int = 10_000,
+    channel: int = 0,
 ) -> None:
     """Stream a MIDI file to a WAV file without holding the full signal in RAM.
 
@@ -37,6 +38,8 @@ def write(
         widths; 44100 Hz is fine for casual listening.
     step_us:
         Synthesis window size in microseconds.
+    channel:
+        Output channel index to render (default 0).
     """
     from .render import signal_stream
 
@@ -47,7 +50,8 @@ def write(
         wf.setnchannels(1)
         wf.setsampwidth(2)      # 16-bit PCM
         wf.setframerate(sample_rate)
-        for chunk in signal_stream(synth, path_mid, sample_rate=sample_rate, step_us=step_us):
+        for chunk in signal_stream(synth, path_mid, sample_rate=sample_rate,
+                                   step_us=step_us, channel=channel):
             wf.writeframes((chunk.astype(np.int16) * 32767).tobytes())
 
 

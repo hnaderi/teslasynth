@@ -124,6 +124,7 @@ def signal_stream(
     path: str,
     sample_rate: int = 192_000,
     step_us: int = 10_000,
+    channel: int = 0,
 ) -> Generator[np.ndarray, None, None]:
     """Yield signal chunks (uint8 0/1), one per synthesis step.
 
@@ -140,10 +141,12 @@ def signal_stream(
         Samples per second.
     step_us:
         Synthesis window size in microseconds.
+    channel:
+        Output channel index to render (default 0).
     """
     spus = sample_rate / 1_000_000  # samples per microsecond
 
-    for _, pulses in render_file(synth, path, step_us=step_us):
+    for _, pulses in render_file(synth, path, step_us=step_us, channel=channel):
         if not pulses:
             yield np.zeros(int(step_us * spus), dtype=np.uint8)
             continue
@@ -169,14 +172,20 @@ def from_file(
     path: str,
     synth: Teslasynth | None = None,
     step_us: int = 10_000,
+    channel: int = 0,
 ) -> Recording:
     """Render a MIDI file and return a :class:`Recording`.
 
     Convenience wrapper around :meth:`Recording.from_stream`.
+
+    Parameters
+    ----------
+    channel:
+        Output channel index to record (default 0).
     """
     if synth is None:
         synth = Teslasynth()
     return Recording.from_stream(
-        pulse_stream(synth, path, step_us=step_us),
+        pulse_stream(synth, path, step_us=step_us, channel=channel),
         step_us=step_us,
     )

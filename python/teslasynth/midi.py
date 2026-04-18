@@ -64,12 +64,13 @@ def render_file(
     synth: Teslasynth,
     path: str,
     step_us: int = 10_000,
+    channel: int = 0,
 ) -> Generator[tuple[int, list], None, None]:
     """Drive *synth* with the events in a Standard MIDI File.
 
     Yields ``(time_us, pulses)`` where *time_us* is the absolute position of
     the synthesis window start and *pulses* is the list of ``[on_us, off_us]``
-    pairs returned by ``synth.sample_all()``.
+    pairs for the requested output *channel*.
 
     Parameters
     ----------
@@ -79,6 +80,8 @@ def render_file(
         Path to the ``.mid`` file.
     step_us:
         Synthesis window size in microseconds (default 10 ms).
+    channel:
+        Output channel index to extract from the 8-channel result (default 0).
     """
     synth.off()
     mid = mido.MidiFile(path)
@@ -112,7 +115,7 @@ def render_file(
             synth.handle(msg, t)
             event_idx += 1
 
-        pulses = synth.sample_all(step_us)
+        pulses = synth.sample_all(step_us)[channel]
         yield time_us, pulses
         time_us += step_us
 
@@ -121,14 +124,20 @@ def pulse_stream(
     synth: Teslasynth,
     path: str,
     step_us: int = 10_000,
+    channel: int = 0,
 ) -> Generator[tuple[int, int, int], None, None]:
     """Flatten :func:`render_file` into individual ``(time_us, on_us, off_us)`` tuples.
 
     *time_us* is the absolute start time of each pulse from the first played
     pulse, derived from the cumulative pulse lengths — not from the wall clock.
+
+    Parameters
+    ----------
+    channel:
+        Output channel index to extract (default 0).
     """
     abs_us = 0
-    for _, pulses in render_file(synth, path, step_us=step_us):
+    for _, pulses in render_file(synth, path, step_us=step_us, channel=channel):
         for on_us, off_us in pulses:
             yield abs_us, on_us, off_us
             abs_us += on_us + off_us
