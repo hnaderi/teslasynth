@@ -45,14 +45,18 @@
             # uses whatever is already in the shell instead.
             python.pkgs.scikit-build-core
             python.pkgs.nanobind
+            python.pkgs.setuptools-scm
           ];
 
-          # Tell uv which Python to use so the .venv matches the nix one.
-          env.UV_PYTHON = python.interpreter;
+          env = {
+            # Tell uv which Python to use so the .venv matches the nix one.
+            UV_PYTHON = python.interpreter;
+            UV_NO_BUILD_ISOLATION = "1";
+          };
 
           shellHook = ''
             echo "teslasynth dev environment"
-            uv sync --group dev --no-build-isolation
+            uv sync --group dev 
             . .venv/bin/activate
             export PATH="${pkgs.ruff}/bin:$PATH"
           '';

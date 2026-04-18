@@ -71,6 +71,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -78,7 +81,7 @@ jobs:
       - name: Install and build
         run: |
           uv venv
-          uv pip install scikit-build-core nanobind
+          uv pip install scikit-build-core nanobind setuptools_scm
           uv sync --group dev --no-build-isolation
         working-directory: python
       - name: Run Python tests
@@ -167,6 +170,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
     needs: [build, test, python-test, python-wheels]
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Checkout current branch (full)
         uses: actions/checkout@v6
@@ -185,6 +191,20 @@ jobs:
           pattern: wheels-*
           merge-multiple: true
           path: wheelhouse
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build sdist
+        run: |
+          pip install build
+          python -m build --sdist --outdir wheelhouse python/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: wheelhouse/
 
       - name: Display structure of downloaded files
         run: ls -R build wheelhouse
