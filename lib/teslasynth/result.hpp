@@ -56,4 +56,23 @@ public:
 };
 
 
+#ifndef _MSC_VER
+// GCC/Clang statement-expression shortcuts — used in firmware-only code.
+// Do not use in files compiled for the Python bindings (MSVC incompatible).
+#define TRY(expr)                                                              \
+  ({                                                                           \
+    auto _r = (expr);                                                          \
+    if (!_r)                                                                   \
+      return _r.error();                                                       \
+    _r.value();                                                                \
+  })
+
+#define RUN(expr)                                                              \
+  ({                                                                           \
+    auto _r = (expr);                                                          \
+    if (!_r)                                                                   \
+      return _r.error();                                                       \
+  })
+#endif
+
 } // namespace teslasynth::helpers
