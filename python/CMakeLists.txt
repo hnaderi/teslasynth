@@ -22,11 +22,14 @@ nanobind_add_module(
     ${LIB_DIR}/synthesizer/voice_event.cpp
     ${LIB_DIR}/synthesizer/voices/note.cpp
     ${LIB_DIR}/synthesizer/voices/hit.cpp
+    ${LIB_DIR}/teslasynth/config_parser.cpp
+    ${LIB_DIR}/teslasynth/config_patch_update.cpp
 )
 
 target_include_directories(_teslasynth PRIVATE
     ${LIB_DIR}
     ${LIB_DIR}/synthesizer
+    ${LIB_DIR}/teslasynth
 )
 
 target_compile_features(_teslasynth PRIVATE cxx_std_20)

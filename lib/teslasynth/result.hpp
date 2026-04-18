@@ -55,19 +55,5 @@ public:
   }
 };
 
-#define TRY(expr)                                                              \
-  ({                                                                           \
-    auto _r = (expr);                                                          \
-    if (!_r)                                                                   \
-      return _r.error();                                                       \
-    _r.value();                                                                \
-  })
-
-#define RUN(expr)                                                              \
-  ({                                                                           \
-    auto _r = (expr);                                                          \
-    if (!_r)                                                                   \
-      return _r.error();                                                       \
-  })
 
 } // namespace teslasynth::helpers

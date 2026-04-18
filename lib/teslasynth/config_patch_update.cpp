@@ -104,15 +104,20 @@ Parser<Unit> update(const ConfigPath &path, const ConfigValue value,
 
   const auto &key = path[1];
   if (key == "tuning") {
-    config.tuning = TRY(hertz(path, value));
+    auto _r = hertz(path, value);
+    if (!_r) return _r.error();
+    config.tuning = _r.value();
   } else if (key == "instrument") {
-    config.instrument = TRY(instrument(path, value));
+    auto _r = instrument(path, value);
+    if (!_r) return _r.error();
+    config.instrument = _r.value();
   } else {
     return invalid_key(path, 1);
   }
 
   return unit;
 }
+
 Parser<uint8_t> notes(const ConfigPath &path, const ConfigValue value) {
   auto n = parser::parse_number<uint8_t>(value);
   if (n && *n < ChannelConfig::max_notes && *n >= 1) {
@@ -129,17 +134,23 @@ Parser<Unit> update(const ConfigPath &path, const ConfigValue value,
   const auto &key = path[2];
 
   if (key == "max-on-time") {
-    config.max_on_time = TRY(duration16(path, value));
+    auto _r = duration16(path, value); if (!_r) return _r.error();
+    config.max_on_time = _r.value();
   } else if (key == "min-deadtime") {
-    config.min_deadtime = TRY(duration16(path, value));
+    auto _r = duration16(path, value); if (!_r) return _r.error();
+    config.min_deadtime = _r.value();
   } else if (key == "instrument") {
-    config.instrument = TRY(instrument(path, value));
+    auto _r = instrument(path, value); if (!_r) return _r.error();
+    config.instrument = _r.value();
   } else if (key == "notes") {
-    config.notes = TRY(notes(path, value));
+    auto _r = notes(path, value); if (!_r) return _r.error();
+    config.notes = _r.value();
   } else if (key == "duty-window") {
-    config.duty_window = TRY(duration16(path, value));
+    auto _r = duration16(path, value); if (!_r) return _r.error();
+    config.duty_window = _r.value();
   } else if (key == "max-duty") {
-    config.max_duty = TRY(duty(path, value));
+    auto _r = duty(path, value); if (!_r) return _r.error();
+    config.max_duty = _r.value();
   } else {
     return invalid_key(path, 2);
   }

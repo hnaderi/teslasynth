@@ -60,14 +60,18 @@ Parser<Unit> update(const ConfigPath &path, const ConfigValue value,
   } else if (key == "channel" && path.size() == 3) {
     const auto selector = path[2];
     if (selector == "*") {
+      auto _r = output_number<OUTPUT>(path, value);
+      if (!_r) return _r.error();
       for (auto &m : config.mapping)
-        m = TRY(output_number<OUTPUT>(path, value));
+        m = _r.value();
       return unit;
     }
 
     const auto idx = parser::parse_number<uint8_t>(selector);
     if (idx && *idx > 0 && *idx <= config.mapping.size()) {
-      config.mapping[*idx - 1] = TRY(output_number<OUTPUT>(path, value));
+      auto _r = output_number<OUTPUT>(path, value);
+      if (!_r) return _r.error();
+      config.mapping[*idx - 1] = _r.value();
       return unit;
     }
   }
@@ -83,14 +87,17 @@ Parser<Unit> update_output(const ConfigPath &path, const ConfigValue value,
 
   const auto selector = path[1];
   if (selector == "*") {
-    for (auto i = 0; i < config.channels_size(); i++)
-      RUN(update(path, value, config.channel(i)));
+    for (auto i = 0; i < config.channels_size(); i++) {
+      auto _r = update(path, value, config.channel(i));
+      if (!_r) return _r.error();
+    }
     return unit;
   }
 
   const auto idx = parser::parse_number<uint8_t>(selector);
   if (idx && *idx <= config.channels_size()) {
-    RUN(update(path, value, config.channel(*idx - 1)));
+    auto _r = update(path, value, config.channel(*idx - 1));
+    if (!_r) return _r.error();
     return unit;
   }
   return invalid_key(path, 1);
@@ -103,11 +110,14 @@ Parser<Unit> update(const ConfigPath &path, const ConfigValue value,
     return std::string("No config path!");
   const auto &key = path[0];
   if (key == "synth") {
-    RUN(update(path, value, config.synth()));
+    auto _r = update(path, value, config.synth());
+    if (!_r) return _r.error();
   } else if (key == "output") {
-    RUN(update_output(path, value, config));
+    auto _r = update_output(path, value, config);
+    if (!_r) return _r.error();
   } else if (key == "routing") {
-    RUN(update(path, value, config.routing()));
+    auto _r = update(path, value, config.routing());
+    if (!_r) return _r.error();
   } else {
     return invalid_key(path, 1);
   }
@@ -127,7 +137,8 @@ Parser<Unit> update(const std::string_view args,
     auto value = exp[exp.size() - 1];
     for (int i = 0; i < exp.size() - 1; i++) {
       const auto path = split(exp[i], '.');
-      RUN(update(path, value, config));
+      auto _r = update(path, value, config);
+      if (!_r) return _r.error();
     }
   }
 

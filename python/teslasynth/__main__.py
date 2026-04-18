@@ -6,7 +6,7 @@ Usage
     teslasynth render      <midi> <wav>  [--config FILE] [--sample-rate HZ] [--step-us US]
     teslasynth plot        <midi>        [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS]
     teslasynth signal      <midi>        [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS]
-    teslasynth config      [--config FILE]
+    teslasynth config      [--config FILE] [key=value ...]
     teslasynth instruments
     teslasynth envelope    <instrument|percussion>  [--out FILE.html] [--duration-ms MS]
 """
@@ -132,16 +132,20 @@ def _cmd_signal(args: argparse.Namespace) -> None:
 
 
 def _cmd_config(args: argparse.Namespace) -> None:
-    from teslasynth import config as tscfg
+    from teslasynth import config as tscfg, Configuration
     if args.config:
         try:
             cfg = tscfg.load(args.config)
         except (OSError, ValueError) as exc:
             _die(str(exc))
-        print(tscfg.dumps(cfg))
     else:
-        from teslasynth import Configuration
-        print(tscfg.dumps(Configuration()))
+        cfg = Configuration()
+    for expr in args.set:
+        try:
+            cfg.set(expr)
+        except ValueError as exc:
+            _die(str(exc))
+    print(tscfg.dumps(cfg))
 
 
 def _cmd_instruments(args: argparse.Namespace) -> None:
@@ -230,9 +234,12 @@ def main() -> None:
 
     # ── config ────────────────────────────────────────────────────────────────
     c = sub.add_parser("config",
-                       help="Print configuration as JSON (default config if no --config given)")
+                       help="Print configuration as JSON, optionally applying key=value overrides")
     c.add_argument("--config", metavar="FILE.json",
-                   help="Validate and pretty-print an existing config file")
+                   help="Start from an existing config file instead of defaults")
+    c.add_argument("set", nargs="*", metavar="key=value",
+                   help="Apply firmware-style settings, e.g. 'synth.tuning=440hz' "
+                        "'output.1.max-duty=5' 'routing.percussion=y'")
 
     # ── instruments ───────────────────────────────────────────────────────────
     sub.add_parser("instruments", help="List all built-in instruments")

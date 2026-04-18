@@ -5,6 +5,7 @@
 #include <nanobind/stl/vector.h>
 
 #include "teslasynth/midi_synth.hpp"
+#include "teslasynth/config_patch_update.hpp"
 #include "synthesizer/envelope.hpp"
 #include "synthesizer/instruments.hpp"
 #include "synthesizer/bank/percussions.hpp"
@@ -18,6 +19,7 @@ using namespace teslasynth::synth;
 using namespace teslasynth::core;
 using namespace teslasynth::synth::envelopes;
 using namespace teslasynth::synth::bank;
+using namespace teslasynth::midisynth::config;
 
 using Synth1   = Teslasynth<1>;
 using Config1  = Configuration<1>;
@@ -362,7 +364,17 @@ NB_MODULE(_teslasynth, m) {
             [](Config1 &c, const Routing1 &r) { c.routing() = r; },
             nb::rv_policy::reference_internal,
             "MIDI-to-output routing configuration.")
-        .def("__repr__", [](const Config1 &c) { return std::string(c); });
+        .def("__repr__", [](const Config1 &c) { return std::string(c); })
+        .def("set",
+            [](Config1 &cfg, std::string expr) {
+                auto res = config::patch::update(std::string_view(expr), cfg);
+                if (!res)
+                    throw nb::value_error(res.error().c_str());
+            },
+            "expr"_a,
+            "Apply a key=value expression using the firmware CLI syntax.\n"
+            "Examples: 'synth.tuning=440hz', 'output.1.max-duty=5', "
+            "'routing.percussion=y'");
 
     // -------------------------------------------------------------------------
     // EnvelopeEngine — exact C++ Envelope implementation
