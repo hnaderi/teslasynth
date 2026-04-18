@@ -94,8 +94,8 @@ def _cmd_version(_args: argparse.Namespace) -> None:
     from teslasynth import build_info
     info = build_info()
     print(_BANNER)
-    print(f"version:{info['version']}")
-    print(f"compiled at:{info['date']} {info['time']}")
+    print(f"version:{info.version}")
+    print(f"compiled at:{info.date} {info.time}")
 
 
 def _save_or_show(fig, out: str | None) -> None:
