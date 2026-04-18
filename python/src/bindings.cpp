@@ -84,6 +84,16 @@ static nb::dict percussion_to_dict(PercussionId id) {
 NB_MODULE(_teslasynth, m) {
     m.doc() = "Teslasynth C++ synthesis engine bindings";
 
+    m.def("version", []() -> std::string { return TESLASYNTH_VERSION; },
+          "Return the engine version string (git describe at build time).");
+    m.def("build_info", []() -> nb::dict {
+        nb::dict d;
+        d["version"] = std::string(TESLASYNTH_VERSION);
+        d["date"]    = std::string(TESLASYNTH_BUILD_DATE);
+        d["time"]    = std::string(TESLASYNTH_BUILD_TIME);
+        return d;
+    }, "Return a dict with version, date and time of the build.");
+
     // -------------------------------------------------------------------------
     // Enums
     // -------------------------------------------------------------------------

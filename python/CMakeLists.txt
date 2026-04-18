@@ -3,6 +3,20 @@ project(teslasynth)
 
 find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
 
+find_package(Git QUIET)
+if(Git_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} describe --tags --always --dirty
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE TESLASYNTH_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+  )
+endif()
+if(NOT TESLASYNTH_VERSION OR TESLASYNTH_VERSION STREQUAL "")
+  set(TESLASYNTH_VERSION "unknown")
+endif()
+
 # Ask the active Python where nanobind installed its cmake files.
 # This works regardless of whether nanobind is in a venv, nix store, or site-packages.
 execute_process(
@@ -33,5 +47,10 @@ target_include_directories(_teslasynth PRIVATE
 )
 
 target_compile_features(_teslasynth PRIVATE cxx_std_20)
+target_compile_definitions(_teslasynth PRIVATE
+    TESLASYNTH_VERSION="${TESLASYNTH_VERSION}"
+    TESLASYNTH_BUILD_DATE=__DATE__
+    TESLASYNTH_BUILD_TIME=__TIME__
+)
 
 install(TARGETS _teslasynth LIBRARY DESTINATION teslasynth)

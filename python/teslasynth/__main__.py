@@ -6,6 +6,7 @@ Usage
     teslasynth render      <midi> <wav>  [--config FILE] [--sample-rate HZ] [--step-us US]
     teslasynth plot        <midi>        [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS]
     teslasynth signal      <midi>        [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS]
+    teslasynth version
     teslasynth config      [--config FILE] [key=value ...]
     teslasynth instruments
     teslasynth envelope    <instrument|percussion>  [--out FILE.html] [--duration-ms MS]
@@ -75,6 +76,26 @@ def _find_instrument_or_percussion(name_or_id: str):
         perc_names = "\n  ".join(f"{i['index']:2d}  {i['name']}" for i in percussions)
         _die(f"unknown instrument or percussion '{name_or_id}'.\n"
              f"Instruments:\n  {inst_names}\nPercussions:\n  {perc_names}")
+
+
+_BANNER = """\
+ _____         _                       _   _
+|_   _|       | |                     | | | |
+  | | ___  ___| | __ _ ___ _   _ _ __ | |_| |__
+  | |/ _ \\/ __| |/ _` / __| | | | '_ \\| __| '_ \\
+  | |  __/\\__ \\ | (_| \\__ \\ |_| | | | | |_| | | |
+  \\_/\\___||___/_|\\__,_|___/\\__, |_| |_|\\__|_| |_|
+                            __/ |
+                           |___/\
+"""
+
+
+def _cmd_version(_args: argparse.Namespace) -> None:
+    from teslasynth import build_info
+    info = build_info()
+    print(_BANNER)
+    print(f"version:{info['version']}")
+    print(f"compiled at:{info['date']} {info['time']}")
 
 
 def _save_or_show(fig, out: str | None) -> None:
@@ -241,6 +262,9 @@ def main() -> None:
                    help="Apply firmware-style settings, e.g. 'synth.tuning=440hz' "
                         "'output.1.max-duty=5' 'routing.percussion=y'")
 
+    # ── version ───────────────────────────────────────────────────────────────
+    sub.add_parser("version", help="Print engine version and build info")
+
     # ── instruments ───────────────────────────────────────────────────────────
     sub.add_parser("instruments", help="List all built-in instruments")
 
@@ -259,7 +283,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.command == "render":
+    if args.command == "version":
+        _cmd_version(args)
+    elif args.command == "render":
         _cmd_render(args)
     elif args.command == "plot":
         _cmd_plot(args)
