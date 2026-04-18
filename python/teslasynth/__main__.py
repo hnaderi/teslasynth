@@ -8,7 +8,7 @@ Usage
     teslasynth signal      <midi>        [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS]
     teslasynth config      [--config FILE]
     teslasynth instruments
-    teslasynth envelope    <instrument>  [--out FILE.html] [--duration-ms MS]
+    teslasynth envelope    <instrument|percussion>  [--out FILE.html] [--duration-ms MS]
 """
 from __future__ import annotations
 
@@ -49,6 +49,32 @@ def _find_instrument(name_or_id: str):
                 return info["id"]
         names = "\n  ".join(f"{i['index']:2d}  {i['name']}" for i in all_info)
         _die(f"unknown instrument '{name_or_id}'. Valid names:\n  {names}")
+
+
+def _find_instrument_or_percussion(name_or_id: str):
+    """Resolve a name or index to an InstrumentId or PercussionId.
+
+    Instruments are tried first; percussion names are matched case-insensitively.
+    """
+    from teslasynth import get_all_instruments, get_all_percussions
+    instruments = get_all_instruments()
+    percussions = get_all_percussions()
+    try:
+        idx = int(name_or_id)
+        if 0 <= idx < len(instruments):
+            return instruments[idx]["id"]
+        _die(f"instrument index {idx} out of range (0–{len(instruments) - 1})")
+    except ValueError:
+        for info in instruments:
+            if info["name"].lower() == name_or_id.lower():
+                return info["id"]
+        for info in percussions:
+            if info["name"].lower() == name_or_id.lower():
+                return info["id"]
+        inst_names = "\n  ".join(f"{i['index']:2d}  {i['name']}" for i in instruments)
+        perc_names = "\n  ".join(f"{i['index']:2d}  {i['name']}" for i in percussions)
+        _die(f"unknown instrument or percussion '{name_or_id}'.\n"
+             f"Instruments:\n  {inst_names}\nPercussions:\n  {perc_names}")
 
 
 def _save_or_show(fig, out: str | None) -> None:
@@ -136,10 +162,26 @@ def _cmd_instruments(args: argparse.Namespace) -> None:
         print(f"  {info['index']:2d}  {info['name']:{name_w}}  {env.type:5}  {detail}")
 
 
+def _cmd_percussions(args: argparse.Namespace) -> None:
+    from teslasynth import get_all_percussions
+    all_info = get_all_percussions()
+    name_w = max(len(i["name"]) for i in all_info)
+    for info in all_info:
+        env = info["envelope"]
+        prf = f"{info['prf_hz']:.0f}Hz" if info["prf_hz"] > 0 else "noise"
+        env_detail = (f"A={env.attack_ms:.0f}ms  D={env.decay_ms:.0f}ms"
+                      f"  curve={env.curve}")
+        print(f"  {info['index']:2d}  {info['name']:{name_w}}"
+              f"  burst={info['burst_ms']:.0f}ms"
+              f"  prf={prf:8}"
+              f"  noise={info['noise']*100:.0f}%"
+              f"  {env_detail}")
+
+
 def _cmd_envelope(args: argparse.Namespace) -> None:
     from teslasynth import plot
-    instrument_id = _find_instrument(args.instrument)
-    fig = plot.plot_envelope(instrument_id, note_duration_ms=args.duration_ms)
+    preset_id = _find_instrument_or_percussion(args.instrument)
+    fig = plot.plot_envelope(preset_id, note_duration_ms=args.duration_ms)
     _save_or_show(fig, args.out)
 
 
@@ -195,9 +237,14 @@ def main() -> None:
     # ── instruments ───────────────────────────────────────────────────────────
     sub.add_parser("instruments", help="List all built-in instruments")
 
+    # ── percussions ───────────────────────────────────────────────────────────
+    sub.add_parser("percussions", help="List all built-in percussion presets")
+
     # ── envelope ──────────────────────────────────────────────────────────────
     e = sub.add_parser("envelope", help="Plot envelope for an instrument")
-    e.add_argument("instrument", help="Instrument name or index (see 'instruments')")
+    e.add_argument("instrument",
+                   help="Instrument name or index (see 'instruments'), "
+                        "or percussion name (see 'percussions')")
     e.add_argument("--out", metavar="FILE.html",
                    help="Save to HTML instead of opening the browser")
     e.add_argument("--duration-ms", type=float, default=2000.0, metavar="MS",
@@ -215,6 +262,8 @@ def main() -> None:
         _cmd_config(args)
     elif args.command == "instruments":
         _cmd_instruments(args)
+    elif args.command == "percussions":
+        _cmd_percussions(args)
     elif args.command == "envelope":
         _cmd_envelope(args)
 

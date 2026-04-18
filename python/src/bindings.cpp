@@ -7,6 +7,7 @@
 #include "teslasynth/midi_synth.hpp"
 #include "synthesizer/envelope.hpp"
 #include "synthesizer/instruments.hpp"
+#include "synthesizer/bank/percussions.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -16,6 +17,7 @@ using namespace teslasynth::midi;
 using namespace teslasynth::synth;
 using namespace teslasynth::core;
 using namespace teslasynth::synth::envelopes;
+using namespace teslasynth::synth::bank;
 
 using Synth1   = Teslasynth<1>;
 using Config1  = Configuration<1>;
@@ -60,6 +62,21 @@ static PyEnvelope to_py_envelope(const EnvelopeConfig &cfg) {
             return {"const", 0.0f, 0.0f, static_cast<float>(e), 0.0f, "linear"};
         }
     }, cfg);
+}
+
+static nb::dict percussion_to_dict(PercussionId id) {
+    const size_t idx = static_cast<size_t>(id);
+    const Percussion &p = percussion_kit[idx];
+    nb::dict d;
+    d["index"]    = static_cast<int>(idx);
+    d["id"]       = id;
+    d["name"]     = std::string(percussion_names[idx]);
+    d["burst_ms"] = p.burst.micros() / 1000.0f;
+    d["prf_hz"]   = static_cast<float>(p.prf);
+    d["noise"]    = static_cast<float>(p.noise);
+    d["skip"]     = static_cast<float>(p.skip);
+    d["envelope"] = to_py_envelope(p.envelope);
+    return d;
 }
 
 NB_MODULE(_teslasynth, m) {
@@ -108,6 +125,21 @@ NB_MODULE(_teslasynth, m) {
         .value("NoiseHit",         InstrumentId::NoiseHit)
         .value("RiseFX",           InstrumentId::RiseFX)
         .value("FallFX",           InstrumentId::FallFX);
+
+    nb::enum_<PercussionId>(m, "PercussionId")
+        .value("Kick",       PercussionId::Kick)
+        .value("Snare",      PercussionId::Snare)
+        .value("Clap",       PercussionId::Clap)
+        .value("ClosedHat",  PercussionId::ClosedHat)
+        .value("OpenHat",    PercussionId::OpenHat)
+        .value("LowTom",     PercussionId::LowTom)
+        .value("MidTom",     PercussionId::MidTom)
+        .value("HighTom",    PercussionId::HighTom)
+        .value("Rimshot",    PercussionId::Rimshot)
+        .value("Cowbell",    PercussionId::Cowbell)
+        .value("Shaker",     PercussionId::Shaker)
+        .value("Crash",      PercussionId::Crash)
+        .value("Ride",       PercussionId::Ride);
 
     // -------------------------------------------------------------------------
     // Envelope (flattened static config)
@@ -161,6 +193,22 @@ NB_MODULE(_teslasynth, m) {
         }
         return result;
     }, "Return a list of dicts for all built-in instruments.");
+
+    m.def("get_percussion", [](PercussionId id) -> nb::dict {
+        return percussion_to_dict(id);
+    }, "id"_a, "Return a dict describing one percussion preset.");
+
+    m.def("get_all_percussions", []() -> nb::list {
+        nb::list result;
+        for (size_t i = 0; i < percussion_size; i++)
+            result.append(percussion_to_dict(static_cast<PercussionId>(i)));
+        return result;
+    }, "Return a list of dicts for all built-in percussion presets.");
+
+    m.def("percussion_for_note", [](uint8_t note) -> nb::dict {
+        return percussion_to_dict(midi_to_percussion(note));
+    }, "note"_a,
+       "Return the percussion preset dict for a given MIDI drum note (0–127).");
 
     // -------------------------------------------------------------------------
     // MidiChannelMessage
@@ -324,6 +372,9 @@ NB_MODULE(_teslasynth, m) {
         .def("__init__", [](Envelope *self, InstrumentId id) {
             new (self) Envelope(instruments[static_cast<size_t>(id)].envelope);
         }, "id"_a, "Create an envelope engine for the given instrument.")
+        .def("__init__", [](Envelope *self, PercussionId id) {
+            new (self) Envelope(percussion_kit[static_cast<size_t>(id)].envelope);
+        }, "id"_a, "Create an envelope engine for the given percussion preset.")
         .def("update",
             [](Envelope &e, uint32_t delta_us, bool note_held) -> float {
                 return static_cast<float>(e.update(Duration32::micros(delta_us), note_held));

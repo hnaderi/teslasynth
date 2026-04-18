@@ -24,11 +24,15 @@ from ._teslasynth import (  # noqa: F401 — re-export C++ types
     InstrumentId,
     MidiChannelMessage,
     MidiMessageType,
+    PercussionId,
     RoutingConfig,
     SynthConfig,
     Teslasynth,
     get_all_instruments,
+    get_all_percussions,
     get_instrument,
+    get_percussion,
+    percussion_for_note,
 )
 
 from . import config  # noqa: F401

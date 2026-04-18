@@ -14,7 +14,8 @@ from typing import Iterable
 
 import numpy as np
 
-from ._teslasynth import Envelope, EnvelopeEngine, InstrumentId, get_all_instruments, get_instrument
+from ._teslasynth import (Envelope, EnvelopeEngine, InstrumentId, PercussionId,
+                          get_all_instruments, get_instrument, get_percussion)
 from .render import Recording
 
 
@@ -106,7 +107,7 @@ def _build_signal_trace(
 
 
 def _compute_envelope(
-    instrument_id: InstrumentId,
+    instrument_id: InstrumentId | PercussionId,
     note_duration_ms: float,
     dt_ms: float = 0.2,
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -133,21 +134,25 @@ def _compute_envelope(
 # ─────────────────────────────────────────────────────────────────────────────
 
 def plot_envelope(
-    instrument_id: InstrumentId,
+    instrument_id: InstrumentId | PercussionId,
     note_duration_ms: float = 400.0,
 ):
-    """Plot the amplitude envelope for a single instrument.
+    """Plot the amplitude envelope for an instrument or percussion preset.
 
     Parameters
     ----------
     instrument_id:
-        One of the :class:`~teslasynth._teslasynth.InstrumentId` values.
+        An :class:`~teslasynth._teslasynth.InstrumentId` or
+        :class:`~teslasynth._teslasynth.PercussionId` value.
     note_duration_ms:
-        How long to hold the note before release (for ADSR envelopes).
+        How long to hold the note before release.  Ignored for percussion
+        (AD envelopes are self-terminating).
     """
     go, _ = _plotly()
-    info = get_instrument(instrument_id)
-    t, amp = _compute_envelope(instrument_id, note_duration_ms)
+    is_perc = isinstance(instrument_id, PercussionId)
+    info = get_percussion(instrument_id) if is_perc else get_instrument(instrument_id)
+    hold_ms = 0.0 if is_perc else note_duration_ms
+    t, amp = _compute_envelope(instrument_id, hold_ms)
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
@@ -156,7 +161,7 @@ def plot_envelope(
         name=info["name"],
         line=dict(width=2),
     ))
-    _add_envelope_markers(fig, info["envelope"], note_duration_ms)
+    _add_envelope_markers(fig, info["envelope"], hold_ms)
     _time_axis(fig)
     fig.update_layout(
         title=f"Envelope — {info['name']}",
