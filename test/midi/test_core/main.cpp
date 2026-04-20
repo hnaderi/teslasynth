@@ -7,8 +7,7 @@ using namespace teslasynth::midi;
 
 void print_sizes_midi(void) {
   std::cout << "MidiByte: " << sizeof(MidiData) << std::endl
-            << "MidiChannelMessage: " << sizeof(MidiChannelMessage)
-            << std::endl;
+            << "MidiChannelMessage: " << sizeof(MidiChannelMessage) << std::endl;
 }
 
 void midi_data(void) {
@@ -107,4 +106,6 @@ extern "C" void app_main(void) {
   UNITY_END();
 }
 
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

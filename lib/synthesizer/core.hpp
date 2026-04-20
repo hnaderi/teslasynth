@@ -8,7 +8,6 @@
 #include <ostream>
 
 template <typename T = uint64_t>
-std::ostream &operator<<(std::ostream &out,
-                         const teslasynth::core::SimpleDuration<T> &d) {
+std::ostream &operator<<(std::ostream &out, const teslasynth::core::SimpleDuration<T> &d) {
   return out << std::string(d);
 }

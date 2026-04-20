@@ -18,9 +18,7 @@ class MidiParser {
 public:
   MidiParser(ChannelMessageCallback on_channel_message);
   void feed(const uint8_t *input, size_t len);
-  MidiStatus status() const {
-    return MidiStatus(_current_status_type, _current_status_channel);
-  }
+  MidiStatus status() const { return MidiStatus(_current_status_type, _current_status_channel); }
   bool has_status() const { return _has_status; }
 };
 

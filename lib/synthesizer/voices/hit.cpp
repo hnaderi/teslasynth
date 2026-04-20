@@ -18,7 +18,9 @@ float frand(uint32_t &x) {
 constexpr Hertz min_prf = 20_hz, max_prf = 4_khz;
 } // namespace
 
-float Hit::random() { return frand(rng_state); }
+float Hit::random() {
+  return frand(rng_state);
+}
 
 bool Hit::next() {
   if (envelope_.is_off())
@@ -27,9 +29,8 @@ bool Hit::next() {
   if (active) {
     float jitter = (2.0f * random() - 1.0f) * float(noise_) * volume_;
 
-    Duration32 period =
-        prf.is_zero() ? Duration32::micros(50 + random() * 2000)
-                      : clip(prf * (1 + jitter), min_prf, max_prf).period();
+    Duration32 period = prf.is_zero() ? Duration32::micros(50 + random() * 2000)
+                                      : clip(prf * (1 + jitter), min_prf, max_prf).period();
 
     current_.start = now;
     current_.period = period;
@@ -37,17 +38,16 @@ bool Hit::next() {
     if (skip_ > 0 && random() < skip_)
       current_.volume = EnvelopeLevel(0);
     else
-      current_.volume =
-          volume_ * level * EnvelopeLevel(0.75 + 0.25 * random()) *
-          (_channel != nullptr ? _channel->amplitude : EnvelopeLevel::max());
+      current_.volume = volume_ * level * EnvelopeLevel(0.75 + 0.25 * random()) *
+                        (_channel != nullptr ? _channel->amplitude : EnvelopeLevel::max());
 
     now += period;
   }
   return active;
 }
 
-void Hit::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                const Percussion &params, const ChannelState *channel) {
+void Hit::start(uint8_t number, EnvelopeLevel amplitude, Duration time, const Percussion &params,
+                const ChannelState *channel) {
   // Xorshift relies on rng_state not be zero
   // Reset it if zero, otherwise use whatever value in memory (possibly some
   // garbage from other colocated data)

@@ -54,14 +54,12 @@ void VoiceEvent::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
   std::visit(Overload{
                  [&](const PitchPreset &arg) {
                    state = Note{};
-                   std::get<Note>(state).start(number, amplitude, time,
-                                               *arg.instrument, arg.tuning,
+                   std::get<Note>(state).start(number, amplitude, time, *arg.instrument, arg.tuning,
                                                channel);
                  },
                  [&](const PercussivePreset &arg) {
                    state = Hit{};
-                   std::get<Hit>(state).start(number, amplitude, time,
-                                              *arg.percussion, channel);
+                   std::get<Hit>(state).start(number, amplitude, time, *arg.percussion, channel);
                  },
              },
              preset);
@@ -72,18 +70,16 @@ void VoiceEvent::release(Duration time) {
     std::get<Note>(state).release(time);
   }
 }
-void VoiceEvent::off() { state = std::monostate{}; }
+void VoiceEvent::off() {
+  state = std::monostate{};
+}
 
 struct TypeVisitor {
   constexpr VoiceEvent::Type operator()(const std::monostate &) const {
     return VoiceEvent::Type::None;
   }
-  constexpr VoiceEvent::Type operator()(const Note &n) const {
-    return VoiceEvent::Type::Tone;
-  }
-  constexpr VoiceEvent::Type operator()(const Hit &h) const {
-    return VoiceEvent::Type::Hit;
-  }
+  constexpr VoiceEvent::Type operator()(const Note &n) const { return VoiceEvent::Type::Tone; }
+  constexpr VoiceEvent::Type operator()(const Hit &h) const { return VoiceEvent::Type::Hit; }
 };
 
 VoiceEvent::Type VoiceEvent::type() const {

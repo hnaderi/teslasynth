@@ -88,13 +88,11 @@ struct Pulse {
   constexpr Duration32 length() const { return on + off; }
 
   inline operator std::string() const {
-    return std::string("Pulse[on:") + std::string(on) +
-           ", off:" + std::string(off) + "]";
+    return std::string("Pulse[on:") + std::string(on) + ", off:" + std::string(off) + "]";
   }
 };
 
-template <std::uint8_t OUTPUTS = 1, std::size_t OUTPUT_BUFSIZE = 64>
-struct PulseBuffer {
+template <std::uint8_t OUTPUTS = 1, std::size_t OUTPUT_BUFSIZE = 64> struct PulseBuffer {
   constexpr static uint8_t outputs = OUTPUTS;
   constexpr static size_t output_bufsize = OUTPUT_BUFSIZE;
   constexpr static size_t size = OUTPUTS * OUTPUT_BUFSIZE;
@@ -128,8 +126,7 @@ class DutyLimiter final {
 public:
   DutyLimiter() : duty_(DutyCycle::max()) {}
   DutyLimiter(const DutyCycle &duty, const Duration16 window = 10_ms)
-      : max_budget_(window.micros() * duty), budget_(max_budget_), duty_(duty) {
-  }
+      : max_budget_(window.micros() * duty), budget_(max_budget_), duty_(duty) {}
   DutyLimiter(const ChannelConfig &config) : DutyLimiter(config.max_duty) {}
 
   bool can_use(const Duration16 &on) {
@@ -167,8 +164,7 @@ template <std::uint8_t OUTPUTS = 1, class N = Voice<>> class Teslasynth final {
 
 public:
   Teslasynth(
-      const Configuration<OUTPUTS> &config,
-      TrackStateCallback onPlaybackChanged = [](bool) {})
+      const Configuration<OUTPUTS> &config, TrackStateCallback onPlaybackChanged = [](bool) {})
       : config_(config), _track(onPlaybackChanged) {
     reload_config();
   }
@@ -231,8 +227,7 @@ public:
       off();
     for (auto i = 0; i < OUTPUTS; i++) {
       _voices[i].adjust_size(config_.channel(i).notes);
-      _limiters[i] = DutyLimiter(config_.channel(i).max_duty,
-                                 config_.channel(i).duty_window);
+      _limiters[i] = DutyLimiter(config_.channel(i).max_duty, config_.channel(i).duty_window);
     }
   }
 
@@ -245,8 +240,7 @@ public:
   }
 
   inline void change_instrument(MidiChannelNumber ch, uint8_t n) {
-    current_instrument_[ch] =
-        std::min<uint8_t>(_instruments_size, std::max<uint8_t>(0, n));
+    current_instrument_[ch] = std::min<uint8_t>(_instruments_size, std::max<uint8_t>(0, n));
   }
 
   inline constexpr uint8_t instrument_number(MidiChannelNumber ch) const {
@@ -268,8 +262,7 @@ public:
     }
   }
 
-  inline void note_on(MidiChannelNumber ch, uint8_t number, uint8_t velocity,
-                      Duration time) {
+  inline void note_on(MidiChannelNumber ch, uint8_t number, uint8_t velocity, Duration time) {
     if (velocity == 0)
       note_off(ch, number, time);
     else if (auto output_id = config_.routing().mapping[ch].value()) {
@@ -278,12 +271,10 @@ public:
 
       if (ch == 9 && config_.routing().percussion) {
         PercussivePreset preset{&bank::percussion_from_midi_note(number)};
-        _voices[*output_id].start(number, amplitude, delta, preset,
-                                  &channels_[ch]);
+        _voices[*output_id].start(number, amplitude, delta, preset, &channels_[ch]);
       } else {
         PitchPreset preset{&instrument(ch), config_.synth().tuning};
-        _voices[*output_id].start(number, amplitude, delta, preset,
-                                  &channels_[ch]);
+        _voices[*output_id].start(number, amplitude, delta, preset, &channels_[ch]);
       }
     }
   }
@@ -312,8 +303,7 @@ public:
       res.off = config_.channel(ch).min_deadtime;
       note->next();
     } else if (next_edge <= target && next_edge >= _track.played_time(ch)) {
-      res.off = Duration16::micros(next_edge.micros() -
-                                   _track.played_time(ch).micros());
+      res.off = Duration16::micros(next_edge.micros() - _track.played_time(ch).micros());
     }
 
     if (!_limiters[ch].can_use(res.on)) {
@@ -327,8 +317,7 @@ public:
     return res;
   }
 
-  template <size_t BUFSIZE>
-  void sample_all(Duration16 max, PulseBuffer<OUTPUTS, BUFSIZE> &output) {
+  template <size_t BUFSIZE> void sample_all(Duration16 max, PulseBuffer<OUTPUTS, BUFSIZE> &output) {
     if (!_track.is_playing()) {
       output.clean();
       return;

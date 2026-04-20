@@ -5,10 +5,8 @@
 
 using namespace teslasynth::synth;
 
-const envelopes::ADSR lin_adsr{10_ms, 20_ms, EnvelopeLevel(0.5), 30_ms,
-                               CurveType::Lin};
-const envelopes::ADSR exp_adsr{10_ms, 20_ms, EnvelopeLevel(0.5), 30_ms,
-                               CurveType::Exp};
+const envelopes::ADSR lin_adsr{10_ms, 20_ms, EnvelopeLevel(0.5), 30_ms, CurveType::Lin};
+const envelopes::ADSR exp_adsr{10_ms, 20_ms, EnvelopeLevel(0.5), 30_ms, CurveType::Exp};
 
 void test_envelope_lin_full(void) {
   Envelope env(lin_adsr);
@@ -106,4 +104,6 @@ extern "C" void app_main(void) {
   UNITY_END();
 }
 
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

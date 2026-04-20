@@ -13,9 +13,8 @@
 
 namespace teslasynth::synth {
 
-void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time,
-                 const Envelope &env, const Vibrato &vibrato,
-                 const ChannelState *channel) {
+void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time, const Envelope &env,
+                 const Vibrato &vibrato, const ChannelState *channel) {
   if (_active && amplitude.is_zero())
     return release(time);
   _current_freq = _freq = prf;
@@ -30,22 +29,18 @@ void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time,
   next();
 }
 
-void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                 const Envelope &env, const Vibrato &vibrato, Hertz tuning,
-                 const ChannelState *channel) {
+void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time, const Envelope &env,
+                 const Vibrato &vibrato, Hertz tuning, const ChannelState *channel) {
   start(frequency_for(number, tuning), amplitude, time, env, vibrato, channel);
 }
 
 void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                 const Instrument &instrument, Hertz tuning,
-                 const ChannelState *channel) {
-  start(number, amplitude, time, instrument.envelope, instrument.vibrato,
-        tuning, channel);
+                 const Instrument &instrument, Hertz tuning, const ChannelState *channel) {
+  start(number, amplitude, time, instrument.envelope, instrument.vibrato, tuning, channel);
 }
 
-void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-                 const Envelope &env, Hertz tuning,
-                 const ChannelState *channel) {
+void Note::start(uint8_t number, EnvelopeLevel amplitude, Duration time, const Envelope &env,
+                 Hertz tuning, const ChannelState *channel) {
   start(number, amplitude, time, env, Vibrato::none(), tuning, channel);
 }
 
@@ -54,7 +49,9 @@ void Note::release(Duration time) {
   _release = time;
 }
 
-void Note::off() { _active = false; }
+void Note::off() {
+  _active = false;
+}
 
 bool Note::next() {
   if (_envelope.is_off())
@@ -63,8 +60,7 @@ bool Note::next() {
     Duration32 period = (_current_freq + _vibrato.offset(now())).period();
     _pulse.start = _now;
     _pulse.volume =
-        _level * _volume *
-        (_channel != nullptr ? _channel->amplitude : EnvelopeLevel::max());
+        _level * _volume * (_channel != nullptr ? _channel->amplitude : EnvelopeLevel::max());
     _pulse.period = period;
 
     Duration next_tick = _now + period;
@@ -82,8 +78,7 @@ bool Note::next() {
     _now = next_tick;
     if (_channel != nullptr) {
       if (!_channel->pitch_bend.is_zero()) {
-        _current_freq = lerp(_current_freq, _channel->pitch_bend * _freq,
-                             _channel->smoothing);
+        _current_freq = lerp(_current_freq, _channel->pitch_bend * _freq, _channel->smoothing);
       }
     }
   }

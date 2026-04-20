@@ -21,8 +21,7 @@ constexpr char percussion[] = "percussion";
 constexpr char mapping[] = "mapping";
 }; // namespace keys
 
-template <typename T>
-using Decoder = teslasynth::helpers::Result<T, const char *>;
+template <typename T> using Decoder = teslasynth::helpers::Result<T, const char *>;
 
 Decoder<AppConfig> parse_appconfig(helpers::JSONParser &parser);
 helpers::JSONEncoder encode(const AppConfig &config);

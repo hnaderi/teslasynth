@@ -32,7 +32,8 @@ template <typename T> std::optional<T> parse_number(std::string_view s) {
 // std::from_chars for float is not available on Apple libc++ < macOS 13.3.
 // Use strtof which is universally available.
 template <> inline std::optional<float> parse_number<float>(std::string_view s) {
-  if (s.empty()) return std::nullopt;
+  if (s.empty())
+    return std::nullopt;
   char *end;
   errno = 0;
   float v = std::strtof(s.data(), &end);

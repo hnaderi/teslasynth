@@ -21,12 +21,8 @@ public:
   static constexpr Hertz kilohertz(uint32_t v) { return Hertz(v * 1000); }
   static constexpr Hertz megahertz(uint32_t v) { return Hertz(v * 1'000'000); }
 
-  constexpr Hertz operator+(const Hertz b) const {
-    return Hertz(_value + b._value);
-  }
-  constexpr Hertz operator-(const Hertz b) const {
-    return Hertz(_value - b._value);
-  }
+  constexpr Hertz operator+(const Hertz b) const { return Hertz(_value + b._value); }
+  constexpr Hertz operator-(const Hertz b) const { return Hertz(_value - b._value); }
   constexpr Hertz operator-() const { return Hertz(-_value); }
   constexpr Hertz operator*(const int b) const { return Hertz(_value * b); }
   constexpr Hertz operator*(const float b) const { return Hertz(_value * b); }
@@ -45,9 +41,7 @@ public:
   constexpr bool operator<=(const Hertz &b) const { return _value <= b._value; }
   constexpr bool operator>=(const Hertz &b) const { return _value >= b._value; }
   constexpr bool is_zero() const { return _value == 0; }
-  constexpr Duration32 period() const {
-    return Duration32::micros(1e6 / _value);
-  }
+  constexpr Duration32 period() const { return Duration32::micros(1e6 / _value); }
 
   inline operator std::string() const {
     if (_value > _coef_mega) {

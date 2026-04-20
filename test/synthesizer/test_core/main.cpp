@@ -62,11 +62,9 @@ void test_duration32_constants() {
 
   assert_duration_equal(max, max64);
 
-  TEST_ASSERT_TRUE_MESSAGE(max > Duration32::seconds(3600),
-                           "Must be more than one hour");
+  TEST_ASSERT_TRUE_MESSAGE(max > Duration32::seconds(3600), "Must be more than one hour");
   TEST_ASSERT_TRUE_MESSAGE(max > Duration32::seconds(71 * 60) &&
-                               Duration32::seconds(71 * 60) >
-                                   Duration32::seconds(72 * 60),
+                               Duration32::seconds(71 * 60) > Duration32::seconds(72 * 60),
                            "Must be more than 71 minutes");
   TEST_ASSERT_EQUAL(sizeof(uint32_t), sizeof(Duration32));
 
@@ -168,11 +166,9 @@ void test_level_comparison(void) {
 }
 void test_level_arithmetic(void) {
   assert_level_equal(EnvelopeLevel(0) + EnvelopeLevel(1), EnvelopeLevel(1));
-  assert_level_equal(EnvelopeLevel(0.1) + EnvelopeLevel(0.1),
-                     EnvelopeLevel(0.2));
+  assert_level_equal(EnvelopeLevel(0.1) + EnvelopeLevel(0.1), EnvelopeLevel(0.2));
   assert_level_equal(EnvelopeLevel(1) + EnvelopeLevel(0.01), EnvelopeLevel(1));
-  assert_level_equal((EnvelopeLevel(1) += EnvelopeLevel(0.01)),
-                     EnvelopeLevel(1));
+  assert_level_equal((EnvelopeLevel(1) += EnvelopeLevel(0.01)), EnvelopeLevel(1));
   assert_level_equal((EnvelopeLevel(1) += EnvelopeLevel(1)), EnvelopeLevel(1));
   TEST_ASSERT_EQUAL(EnvelopeLevel(1) - EnvelopeLevel(0.4f), 0.6f);
 
@@ -180,8 +176,7 @@ void test_level_arithmetic(void) {
   assert_level_equal((EnvelopeLevel(1) += -0.5f), EnvelopeLevel(0.5));
   assert_level_equal((EnvelopeLevel(1) += -2.f), EnvelopeLevel(0));
 
-  assert_level_equal(EnvelopeLevel(0.5) * EnvelopeLevel(0.5),
-                     EnvelopeLevel(0.25));
+  assert_level_equal(EnvelopeLevel(0.5) * EnvelopeLevel(0.5), EnvelopeLevel(0.25));
   assert_level_equal(EnvelopeLevel(0.5) * EnvelopeLevel(1), EnvelopeLevel(0.5));
   assert_level_equal(EnvelopeLevel(0.5) * EnvelopeLevel(0), EnvelopeLevel(0));
 }
@@ -236,11 +231,9 @@ void test_probability_comparison(void) {
 }
 void test_probability_arithmetic(void) {
   assert_probability_equal(Probability(0) + Probability(1), Probability(1));
-  assert_probability_equal(Probability(0.1) + Probability(0.1),
-                           Probability(0.2));
+  assert_probability_equal(Probability(0.1) + Probability(0.1), Probability(0.2));
   assert_probability_equal(Probability(1) + Probability(0.01), Probability(1));
-  assert_probability_equal((Probability(1) += Probability(0.01)),
-                           Probability(1));
+  assert_probability_equal((Probability(1) += Probability(0.01)), Probability(1));
   assert_probability_equal((Probability(1) += Probability(1)), Probability(1));
   TEST_ASSERT_EQUAL(Probability(1) - Probability(0.4f), 0.6f);
 
@@ -248,8 +241,7 @@ void test_probability_arithmetic(void) {
   assert_probability_equal((Probability(1) += -0.5f), Probability(0.5));
   assert_probability_equal((Probability(1) += -2.f), Probability(0));
 
-  assert_probability_equal(Probability(0.5) * Probability(0.5),
-                           Probability(0.25));
+  assert_probability_equal(Probability(0.5) * Probability(0.5), Probability(0.25));
   assert_probability_equal(Probability(0.5) * Probability(1), Probability(0.5));
   assert_probability_equal(Probability(0.5) * Probability(0), Probability(0));
 }
@@ -279,4 +271,6 @@ extern "C" void app_main(void) {
   RUN_TEST(test_probability_arithmetic);
   UNITY_END();
 }
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

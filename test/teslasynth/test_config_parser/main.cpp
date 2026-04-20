@@ -104,4 +104,6 @@ extern "C" void app_main(void) {
   RUN_TEST(test_split_path);
   UNITY_END();
 }
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

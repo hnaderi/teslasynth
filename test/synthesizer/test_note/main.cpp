@@ -22,7 +22,9 @@ constexpr uint8_t mnote1 = 69, mnote2 = 69 + 12, mnote3 = 69 + 2 * 12;
 constexpr EnvelopeLevel amplitude(1);
 const Envelope envelope(amplitude);
 
-void setUp(void) { note.start(mnote1, amplitude, 100_us, envelope, tuning); }
+void setUp(void) {
+  note.start(mnote1, amplitude, 100_us, envelope, tuning);
+}
 
 void tearDown(void) {}
 
@@ -157,8 +159,7 @@ void test_note_start_after_release(void) {
 }
 
 void test_note_envelope(void) {
-  Envelope envelope(
-      envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
+  Envelope envelope(envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
   note.start(mnote1, amplitude, 0_us, envelope, tuning);
   assert_duration_equal(note.current().start, 0_ms);
   assert_level_equal(note.current().volume, EnvelopeLevel::zero());
@@ -201,8 +202,7 @@ void test_note_envelope(void) {
 }
 
 void test_note_envelope2(void) {
-  Envelope envelope(
-      envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
+  Envelope envelope(envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
   note.start(mnote1, amplitude, 0_us, envelope, tuning);
   assert_duration_equal(note.current().start, 0_ms);
   assert_level_equal(note.current().volume, EnvelopeLevel::zero());
@@ -245,8 +245,7 @@ void test_note_envelope2(void) {
 }
 
 void test_note_volume(void) {
-  Envelope envelope(
-      envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
+  Envelope envelope(envelopes::ADSR::linear(200_ms, 200_ms, EnvelopeLevel(0.5), 20_ms));
 
   auto volume = EnvelopeLevel(7.f / 8);
   note.start(mnote1, volume, 0_us, envelope, tuning);
@@ -296,8 +295,8 @@ void test_note_volume(void) {
 void test_note_volume_channel(void) {
   ChannelState state;
 
-  note.start(100_hz, EnvelopeLevel::max(), 0_us, Envelope(EnvelopeLevel::max()),
-             Vibrato::none(), &state);
+  note.start(100_hz, EnvelopeLevel::max(), 0_us, Envelope(EnvelopeLevel::max()), Vibrato::none(),
+             &state);
 
   assert_level_equal(note.current().volume, EnvelopeLevel::max());
   state.amplitude = EnvelopeLevel(0.5);
@@ -356,8 +355,7 @@ void test_note_pitchbend(void) {
   state.pitch_bend = PitchBend(0.5);
 
   Hertz base_freq = 100_hz;
-  note.start(base_freq, amplitude, 0_us, Envelope(EnvelopeLevel::max()),
-             Vibrato::none(), &state);
+  note.start(base_freq, amplitude, 0_us, Envelope(EnvelopeLevel::max()), Vibrato::none(), &state);
 
   assert_duration_equal(note.now(), 10_ms);
   Hertz freq = base_freq;
@@ -392,4 +390,6 @@ extern "C" void app_main(void) {
   UNITY_END();
 }
 
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

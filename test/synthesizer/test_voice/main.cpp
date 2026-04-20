@@ -20,7 +20,9 @@ constexpr Hertz tuning = 100_hz;
 Instrument instrument{.envelope = EnvelopeLevel(1), .vibrato = Vibrato::none()};
 PitchPreset preset{&instrument, tuning};
 
-constexpr uint8_t mnotef(int i) { return static_cast<uint8_t>(69 + i); }
+constexpr uint8_t mnotef(int i) {
+  return static_cast<uint8_t>(69 + i);
+}
 class FakeEvent {
   uint8_t number_;
   EnvelopeLevel amplitude_;
@@ -31,8 +33,8 @@ class FakeEvent {
   ChannelState const *_channel;
 
 public:
-  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const SoundPreset &preset, const ChannelState *channel = nullptr) {
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time, const SoundPreset &preset,
+             const ChannelState *channel = nullptr) {
     started_ = time;
     preset_ = preset;
     number_ = number;
@@ -127,8 +129,7 @@ void test_should_steal_voices_that_are_the_most_quiet(void) {
   FakeEvent *events[4];
   TestVoice voice(4);
   for (int i = 0; i < 4; i++) {
-    events[i] =
-        &voice.start(mnotef(i), EnvelopeLevel(1 - 0.1 * i), 0_s, preset);
+    events[i] = &voice.start(mnotef(i), EnvelopeLevel(1 - 0.1 * i), 0_s, preset);
   }
   TEST_ASSERT_EQUAL(4, voice.active());
   auto &stolen = voice.start(mnotef(4), EnvelopeLevel(0.5), 0_s, preset);
@@ -139,8 +140,7 @@ void test_should_steal_voices_that_are_the_most_quiet2(void) {
   FakeEvent *events[4];
   TestVoice voice(4);
   for (int i = 0; i < 4; i++) {
-    events[i] =
-        &voice.start(mnotef(i), EnvelopeLevel(0.1 * (i + 1)), 0_s, preset);
+    events[i] = &voice.start(mnotef(i), EnvelopeLevel(0.1 * (i + 1)), 0_s, preset);
   }
   TEST_ASSERT_EQUAL(4, voice.active());
   auto &stolen = voice.start(mnotef(4), EnvelopeLevel(0.5), 0_s, preset);
@@ -291,8 +291,7 @@ void test_should_pass_channel_state(void) {
   TestVoice voice;
   ChannelState state;
 
-  auto &evt =
-      voice.start(mnotef(1), EnvelopeLevel::max(), 200_us, preset, &state);
+  auto &evt = voice.start(mnotef(1), EnvelopeLevel::max(), 200_us, preset, &state);
 
   evt.assert_started_with_channel_state(&state);
 }
@@ -317,4 +316,6 @@ extern "C" void app_main(void) {
 
   UNITY_END();
 }
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

@@ -27,8 +27,7 @@ constexpr auto default_led_logic =
     LogicType::active_high;
 #endif
 
-LEDConfig::LEDConfig()
-    : pin(GPIO_CONFIG(OUTPUT_GPIO_LED)), logic(default_led_logic) {}
+LEDConfig::LEDConfig() : pin(GPIO_CONFIG(OUTPUT_GPIO_LED)), logic(default_led_logic) {}
 
 HardwareConfig::HardwareConfig() : output(default_channels) {}
 

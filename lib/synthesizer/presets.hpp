@@ -20,12 +20,8 @@ struct PitchPreset {
 struct PercussivePreset {
   const Percussion *percussion;
 
-  constexpr bool operator==(const PercussivePreset &b) const {
-    return percussion == b.percussion;
-  }
-  constexpr bool operator!=(const PercussivePreset &b) const {
-    return percussion != b.percussion;
-  }
+  constexpr bool operator==(const PercussivePreset &b) const { return percussion == b.percussion; }
+  constexpr bool operator!=(const PercussivePreset &b) const { return percussion != b.percussion; }
 };
 
 typedef std::variant<PitchPreset, PercussivePreset> SoundPreset;

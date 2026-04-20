@@ -12,28 +12,23 @@ using namespace teslasynth::midi;
 using Messages = std::vector<MidiChannelMessage>;
 
 template <typename T> inline std::string __msg_for(T a, T b) {
-  return std::string("Obtained: " + std::string(a) +
-                     " Expected: " + std::string(b));
+  return std::string("Obtained: " + std::string(a) + " Expected: " + std::string(b));
 }
 
-inline void __assert_midi_message_equal(MidiChannelMessage a,
-                                        MidiChannelMessage b, int line) {
+inline void __assert_midi_message_equal(MidiChannelMessage a, MidiChannelMessage b, int line) {
   UNITY_TEST_ASSERT(a == b, line, __msg_for(a, b).c_str());
 }
-inline void __assert_midi_message_not_equal(MidiChannelMessage a,
-                                            MidiChannelMessage b, int line) {
+inline void __assert_midi_message_not_equal(MidiChannelMessage a, MidiChannelMessage b, int line) {
   UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
 }
 
-#define assert_midi_message_equal(a, b)                                        \
-  __assert_midi_message_equal(a, b, __LINE__);
+#define assert_midi_message_equal(a, b) __assert_midi_message_equal(a, b, __LINE__);
 
 namespace message_types {
 namespace channel {
 std::vector<MidiMessageType> two{
-    MidiMessageType::NoteOff,        MidiMessageType::NoteOn,
-    MidiMessageType::AfterTouchPoly, MidiMessageType::ControlChange,
-    MidiMessageType::PitchBend,
+    MidiMessageType::NoteOff,       MidiMessageType::NoteOn,    MidiMessageType::AfterTouchPoly,
+    MidiMessageType::ControlChange, MidiMessageType::PitchBend,
 };
 std::vector<MidiMessageType> one{
     MidiMessageType::ProgramChange,
@@ -63,14 +58,12 @@ struct Random {
     }
   }
 
-  size_t fill_data_for_type(std::vector<uint8_t> &input, MidiMessageType type,
-                            size_t size) {
+  size_t fill_data_for_type(std::vector<uint8_t> &input, MidiMessageType type, size_t size) {
     MidiStatus status(type, channel());
     input.push_back(status);
-    auto coeff = (type == MidiMessageType::AfterTouchChannel ||
-                  type == MidiMessageType::ProgramChange)
-                     ? 1
-                     : 2;
+    auto coeff =
+        (type == MidiMessageType::AfterTouchChannel || type == MidiMessageType::ProgramChange) ? 1
+                                                                                               : 2;
 
     fill_data(input, coeff * size);
     return size;
@@ -102,8 +95,7 @@ void parser_feed_note_on(void) {
   TEST_ASSERT_TRUE(parser.has_status());
   TEST_ASSERT_EQUAL(status, parser.status());
   TEST_ASSERT_EQUAL(1, msgs.size());
-  assert_midi_message_equal(msgs.back(),
-                            MidiChannelMessage::note_on(0, 69, 127));
+  assert_midi_message_equal(msgs.back(), MidiChannelMessage::note_on(0, 69, 127));
 }
 
 void parser_feed_note_off(void) {
@@ -115,8 +107,7 @@ void parser_feed_note_off(void) {
   TEST_ASSERT_TRUE(parser.has_status());
   TEST_ASSERT_EQUAL(status, parser.status());
   TEST_ASSERT_EQUAL(1, msgs.size());
-  assert_midi_message_equal(msgs.back(),
-                            MidiChannelMessage::note_off(5, 80, 100));
+  assert_midi_message_equal(msgs.back(), MidiChannelMessage::note_off(5, 80, 100));
 }
 
 void parser_feed_program_change(void) {
@@ -128,8 +119,7 @@ void parser_feed_program_change(void) {
   TEST_ASSERT_TRUE(parser.has_status());
   TEST_ASSERT_EQUAL(status, parser.status());
   TEST_ASSERT_EQUAL(1, msgs.size());
-  assert_midi_message_equal(msgs.back(),
-                            MidiChannelMessage::program_change(5, 20));
+  assert_midi_message_equal(msgs.back(), MidiChannelMessage::program_change(5, 20));
 }
 
 void parser_feed_after_touch(void) {
@@ -141,8 +131,7 @@ void parser_feed_after_touch(void) {
   TEST_ASSERT_TRUE(parser.has_status());
   TEST_ASSERT_EQUAL(status, parser.status());
   TEST_ASSERT_EQUAL(1, msgs.size());
-  assert_midi_message_equal(msgs.back(),
-                            MidiChannelMessage::after_touch(10, 70, 100));
+  assert_midi_message_equal(msgs.back(), MidiChannelMessage::after_touch(10, 70, 100));
 }
 
 void parser_feed_after_touch_channel(void) {
@@ -154,8 +143,7 @@ void parser_feed_after_touch_channel(void) {
   TEST_ASSERT_TRUE(parser.has_status());
   TEST_ASSERT_EQUAL(status, parser.status());
   TEST_ASSERT_EQUAL(1, msgs.size());
-  assert_midi_message_equal(msgs.back(),
-                            MidiChannelMessage::after_touch_channel(11, 90));
+  assert_midi_message_equal(msgs.back(), MidiChannelMessage::after_touch_channel(11, 90));
 }
 
 void parser_feed_pitchbend_channel(void) {
@@ -167,8 +155,7 @@ void parser_feed_pitchbend_channel(void) {
   TEST_ASSERT_TRUE(parser.has_status());
   TEST_ASSERT_EQUAL(status, parser.status());
   TEST_ASSERT_EQUAL(1, msgs.size());
-  assert_midi_message_equal(msgs.back(),
-                            MidiChannelMessage::pitchbend(12, 8192));
+  assert_midi_message_equal(msgs.back(), MidiChannelMessage::pitchbend(12, 8192));
 }
 
 void parser_feed_bytes_with_status(void) {
@@ -387,4 +374,6 @@ extern "C" void app_main(void) {
   UNITY_END();
 }
 
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

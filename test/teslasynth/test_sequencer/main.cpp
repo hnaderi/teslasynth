@@ -18,9 +18,10 @@ constexpr ChannelConfig config_(uint8_t notes) {
 }
 constexpr ChannelConfig config = config_(4);
 constexpr SynthConfig sconf = {.tuning = 100_hz};
-constexpr uint8_t mnotef(int i) { return static_cast<uint8_t>(69 + i); }
-constexpr Instrument instrument{.envelope = EnvelopeLevel(1),
-                                .vibrato = Vibrato::none()};
+constexpr uint8_t mnotef(int i) {
+  return static_cast<uint8_t>(69 + i);
+}
+constexpr Instrument instrument{.envelope = EnvelopeLevel(1), .vibrato = Vibrato::none()};
 
 struct PulseBufferOverview {
   Duration on, off;
@@ -28,8 +29,7 @@ struct PulseBufferOverview {
   constexpr Duration total() const { return on + off; }
 
   template <std::uint8_t outputs, std::size_t size>
-  constexpr static PulseBufferOverview from(PulseBuffer<outputs, size> pb,
-                                            uint8_t ch) {
+  constexpr static PulseBufferOverview from(PulseBuffer<outputs, size> pb, uint8_t ch) {
     Duration32 on, off;
     for (auto i = 0; i < pb.data_size(ch); i++) {
       on += pb.at(ch, i).on;
@@ -106,11 +106,9 @@ void test_should_sequence_single(void) {
 
     Pulse pulse3 = tsynth.sample(0, 10_ms);
     assert_duration_equal(pulse3.on, 0_us);
-    assert_duration_equal(pulse3.off,
-                          track.played_time(0) < 1_s ? 9800_us : 10_ms);
+    assert_duration_equal(pulse3.off, track.played_time(0) < 1_s ? 9800_us : 10_ms);
     assert_duration_equal(track.played_time(0),
-                          time + 10_ms +
-                              (track.played_time(0) < 1_s ? 0_us : 200_us));
+                          time + 10_ms + (track.played_time(0) < 1_s ? 0_us : 200_us));
   }
   assert_duration_equal(track.played_time(0), 1_s + 200_us);
   TEST_ASSERT_EQUAL(0, voice.active());
@@ -183,8 +181,7 @@ void test_should_sequence_polyphonic_out_of_phase_multichannel(void) {
       {0_s, 4800_us},   {100_us, 100_us}, {0_s, 3800_us},
   };
   std::vector<Pulse> ch1 = {
-      {0_s, 2_ms},      {100_us, 100_us}, {0_s, 4800_us},
-      {100_us, 100_us}, {0_s, 2800_us},
+      {0_s, 2_ms}, {100_us, 100_us}, {0_s, 4800_us}, {100_us, 100_us}, {0_s, 2800_us},
   };
 
   for (auto i = 0; i < 6; i++) {
@@ -265,8 +262,7 @@ void test_must_not_be_limited_when_no_duty_limit(void) {
 }
 
 void test_must_not_exceed_duty_limit(void) {
-  Configuration<> conf(SynthConfig{.tuning = 2_khz},
-                       {ChannelConfig{.max_duty = DutyCycle(10)}});
+  Configuration<> conf(SynthConfig{.tuning = 2_khz}, {ChannelConfig{.max_duty = DutyCycle(10)}});
   Teslasynth<> tsynth(conf);
 
   PulseBuffer<1, 64> buffer;
@@ -301,4 +297,6 @@ extern "C" void app_main(void) {
   RUN_TEST(test_must_not_exceed_duty_limit);
   UNITY_END();
 }
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

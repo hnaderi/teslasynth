@@ -24,23 +24,23 @@ struct ADSR {
   Duration32 release;
   enum CurveType type = CurveType::Exp;
 
-  constexpr static ADSR linear(Duration32 attack, Duration32 decay,
-                               EnvelopeLevel sustain, Duration32 release) {
+  constexpr static ADSR linear(Duration32 attack, Duration32 decay, EnvelopeLevel sustain,
+                               Duration32 release) {
     return {attack, decay, sustain, release, CurveType::Lin};
   }
-  constexpr static ADSR exponential(Duration32 attack, Duration32 decay,
-                                    EnvelopeLevel sustain, Duration32 release) {
+  constexpr static ADSR exponential(Duration32 attack, Duration32 decay, EnvelopeLevel sustain,
+                                    Duration32 release) {
     return {attack, decay, sustain, release, CurveType::Exp};
   }
 
   constexpr bool operator==(const ADSR &b) const {
-    return attack == b.attack && decay == b.decay && sustain == b.sustain &&
-           release == b.release && type == b.type;
+    return attack == b.attack && decay == b.decay && sustain == b.sustain && release == b.release &&
+           type == b.type;
   }
 
   constexpr bool operator!=(const ADSR &b) const {
-    return attack != b.attack || decay != b.decay || sustain != b.sustain ||
-           release != b.release || type != b.type;
+    return attack != b.attack || decay != b.decay || sustain != b.sustain || release != b.release ||
+           type != b.type;
   }
 
   inline operator std::string() const {
@@ -76,8 +76,8 @@ struct ADSRConfig {
   static Curve release_fn(const ADSR &cfg) {
     return Curve(cfg.sustain, EnvelopeLevel(0), cfg.release, cfg.type);
   }
-  static constexpr std::array<StageFn<Config>, 4> stages = {
-      attack_fn, decay_fn, sustain_fn, release_fn};
+  static constexpr std::array<StageFn<Config>, 4> stages = {attack_fn, decay_fn, sustain_fn,
+                                                            release_fn};
 };
 
 using Const = EnvelopeLevel;
@@ -133,8 +133,7 @@ struct ADConfig {
   static Curve decay_fn(const AD &cfg) {
     return Curve(EnvelopeLevel(1), EnvelopeLevel(0), cfg.decay, cfg.type);
   }
-  static constexpr std::array<StageFn<Config>, 2> stages = {attack_fn,
-                                                            decay_fn};
+  static constexpr std::array<StageFn<Config>, 2> stages = {attack_fn, decay_fn};
 };
 
 using EnvelopeConfig = std::variant<ADSR, AD, Const>;
@@ -171,8 +170,7 @@ template <typename Traits> class EnvelopeEngine {
 public:
   using Config = typename Traits::Config;
 
-  EnvelopeEngine(const Config &config)
-      : _config(config), _current(Traits::stages[0](config)) {}
+  EnvelopeEngine(const Config &config) : _config(config), _current(Traits::stages[0](config)) {}
   EnvelopeLevel update(Duration32 delta, bool on) {
     if (is_off())
       return EnvelopeLevel(0);
@@ -184,15 +182,13 @@ public:
 };
 
 class Envelope {
-  using EnvelopeVariant = std::variant<EnvelopeEngine<envelopes::ADSRConfig>,
-                                       EnvelopeEngine<envelopes::ADConfig>,
-                                       EnvelopeEngine<envelopes::ConstConfig>>;
+  using EnvelopeVariant =
+      std::variant<EnvelopeEngine<envelopes::ADSRConfig>, EnvelopeEngine<envelopes::ADConfig>,
+                   EnvelopeEngine<envelopes::ConstConfig>>;
 
-  EnvelopeVariant _state =
-      EnvelopeEngine<envelopes::ConstConfig>(EnvelopeLevel(0));
+  EnvelopeVariant _state = EnvelopeEngine<envelopes::ConstConfig>(EnvelopeLevel(0));
 
-  static constexpr EnvelopeVariant
-  make_state(const envelopes::EnvelopeConfig &cfg) {
+  static constexpr EnvelopeVariant make_state(const envelopes::EnvelopeConfig &cfg) {
     return std::visit(
         [](auto const &c) -> EnvelopeVariant {
           using C = std::decay_t<decltype(c)>;

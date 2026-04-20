@@ -65,8 +65,7 @@ bool check_boot_hold_for_maintenance(void) {
     if (level == 0) {
       t0 = now;
       state = MaintState::HOLDING;
-      ESP_LOGI(TAG, "hold button for %d seconds to enter maintenance",
-               MAINT_HOLD_MS / 1000);
+      ESP_LOGI(TAG, "hold button for %d seconds to enter maintenance", MAINT_HOLD_MS / 1000);
       esp_event_post(MAINT_EVENT_BASE, MAINT_EVT_HOLD_STARTED, nullptr, 0, 0);
     }
     break;
@@ -77,8 +76,7 @@ bool check_boot_hold_for_maintenance(void) {
         t0 = now;
         state = MaintState::WAIT_RELEASE;
         ESP_LOGI(TAG, "release button to confirm maintenance reboot");
-        esp_event_post(MAINT_EVENT_BASE, MAINT_EVT_RELEASE_PHASE, nullptr, 0,
-                       0);
+        esp_event_post(MAINT_EVENT_BASE, MAINT_EVT_RELEASE_PHASE, nullptr, 0, 0);
       }
     } else {
       state = MaintState::IDLE;

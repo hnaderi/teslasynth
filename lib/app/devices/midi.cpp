@@ -10,7 +10,6 @@ void init(StreamBufferHandle_t buf) {
   else if (ble_support)
     ble::init(buf);
   else
-    static_assert(ble_support || usb_support,
-                  "Must support at least one midi driver");
+    static_assert(ble_support || usb_support, "Must support at least one midi driver");
 }
 } // namespace teslasynth::app::devices::midi

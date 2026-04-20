@@ -44,15 +44,13 @@ inline void symbol_for_idx(Pulse const *current, rmt_symbol_word_t *symbol) {
   }
 }
 
-size_t callback(const void *data, size_t data_size, size_t symbols_written,
-                size_t symbols_free, rmt_symbol_word_t *symbols, bool *done,
-                void *arg) {
+size_t callback(const void *data, size_t data_size, size_t symbols_written, size_t symbols_free,
+                rmt_symbol_word_t *symbols, bool *done, void *arg) {
   const Pulse *input = static_cast<const Pulse *>(data);
   const size_t data_length = data_size / sizeof(Pulse);
 
   size_t written = 0;
-  for (; written < symbols_free && symbols_written + written < data_length;
-       written++) {
+  for (; written < symbols_free && symbols_written + written < data_length; written++) {
     Pulse const *current = &input[symbols_written + written];
     symbol_for_idx(current, &symbols[written]);
   }
@@ -131,30 +129,27 @@ void init(const OutputConfig &config) {
 
 void pulse_write(const midisynth::Pulse *pulse, size_t len, uint8_t ch) {
 #if CONFIG_TESLASYNTH_DEBUG
-  static size_t counter = 0, min_i = std::numeric_limits<size_t>::max(),
-                max_i = 0, total = 0;
+  static size_t counter = 0, min_i = std::numeric_limits<size_t>::max(), max_i = 0, total = 0;
   min_i = std::min(len, min_i);
   max_i = std::max(len, max_i);
   total += len;
   if (counter++ % 100 == 0) {
-    ESP_LOGI(TAG, "RMT items stats, min: %u, max: %u, total: %u, avg: %u",
-             min_i, max_i, total, total / counter);
+    ESP_LOGI(TAG, "RMT items stats, min: %u, max: %u, total: %u, avg: %u", min_i, max_i, total,
+             total / counter);
   }
 #endif
 
   if (len == 0 || channels[ch] == nullptr)
     return;
 
-  esp_err_t err = rmt_transmit(channels[ch], encoders[ch], pulse,
-                               len * sizeof(Pulse), &tx_config);
+  esp_err_t err = rmt_transmit(channels[ch], encoders[ch], pulse, len * sizeof(Pulse), &tx_config);
   // ESP_ERR_INVALID_STATE means the TX queue is full in non-blocking mode.
   // Drop the batch gracefully — the synthesizer clock keeps running and
   // playback resumes on the next iteration. Any other error is a real fault.
   if (err == ESP_ERR_INVALID_STATE) {
 #if CONFIG_TESLASYNTH_DEBUG
     static uint32_t drops = 0;
-    ESP_LOGW(TAG, "RMT queue full, dropping batch (ch=%u, total=%lu)", ch,
-             ++drops);
+    ESP_LOGW(TAG, "RMT queue full, dropping batch (ch=%u, total=%lu)", ch, ++drops);
 #endif
   } else {
     ESP_ERROR_CHECK(err);

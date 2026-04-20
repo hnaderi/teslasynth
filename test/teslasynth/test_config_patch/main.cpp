@@ -10,15 +10,15 @@
 using namespace teslasynth::midisynth;
 using namespace teslasynth::midisynth::config::parser;
 
-#define ASSERT_UPDATES(key, config)                                            \
-  {                                                                            \
-    auto res = config::patch::update(key, config);                             \
-    TEST_ASSERT_TRUE_MESSAGE(res, res.error().c_str());                        \
+#define ASSERT_UPDATES(key, config)                                                                \
+  {                                                                                                \
+    auto res = config::patch::update(key, config);                                                 \
+    TEST_ASSERT_TRUE_MESSAGE(res, res.error().c_str());                                            \
   }
 
-#define ASSERT_NO_UPDATES(key, config)                                         \
-  {                                                                            \
-    TEST_ASSERT_FALSE(config::patch::update(key, config));                     \
+#define ASSERT_NO_UPDATES(key, config)                                                             \
+  {                                                                                                \
+    TEST_ASSERT_FALSE(config::patch::update(key, config));                                         \
   }
 
 void test_empty(void) {
@@ -134,4 +134,6 @@ extern "C" void app_main(void) {
   RUN_TEST(test_routing_wildcard);
   UNITY_END();
 }
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

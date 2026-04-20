@@ -40,8 +40,7 @@ class DutyCycle final {
 public:
   constexpr DutyCycle() : value_(0) {}
 
-  template <typename T>
-  explicit constexpr DutyCycle(T value) : value_(validate(value)) {}
+  template <typename T> explicit constexpr DutyCycle(T value) : value_(validate(value)) {}
 
   constexpr bool is_max() const { return value_ == max_value; }
   constexpr bool is_zero() const { return value_ == 0; }
@@ -49,13 +48,10 @@ public:
   constexpr static DutyCycle min() { return DutyCycle(0); }
   constexpr uint8_t value() const { return value_; }
   constexpr uint8_t inverse() const { return max_value - value_; }
-  constexpr operator float() const {
-    return value_ / static_cast<float>(max_value);
-  }
+  constexpr operator float() const { return value_ / static_cast<float>(max_value); }
   constexpr float percent() const { return 100 * static_cast<float>(*this); }
   inline operator std::string() const {
-    return std::to_string(static_cast<float>(value_) / max_value * max_duty) +
-           "%";
+    return std::to_string(static_cast<float>(value_) / max_value * max_duty) + "%";
   }
 };
 
@@ -69,17 +65,15 @@ struct ChannelConfig {
   std::optional<uint8_t> instrument = {};
 
   constexpr bool operator==(const ChannelConfig &other) const {
-    return max_on_time == other.max_on_time &&
-           min_deadtime == other.min_deadtime &&
-           duty_window == other.duty_window && notes == other.notes &&
-           max_duty == other.max_duty && instrument == other.instrument;
+    return max_on_time == other.max_on_time && min_deadtime == other.min_deadtime &&
+           duty_window == other.duty_window && notes == other.notes && max_duty == other.max_duty &&
+           instrument == other.instrument;
   }
 
   inline operator std::string() const {
     return std::string("Concurrent notes: ") + std::to_string(notes) +
            "\nMax on time: " + std::string(max_on_time) +
-           "\nMin deadtime: " + std::string(min_deadtime) +
-           "\nMax duty: " + std::string(max_duty) +
+           "\nMin deadtime: " + std::string(min_deadtime) + "\nMax duty: " + std::string(max_duty) +
            "\nDuty window: " + std::string(duty_window) +
            "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
   }
@@ -111,21 +105,17 @@ template <std::uint8_t OUTPUTS = 1> class Configuration {
 
 public:
   constexpr Configuration() {}
-  constexpr Configuration(
-      const SynthConfig &synth_config,
-      const std::array<ChannelConfig, OUTPUTS> &channel_configs)
+  constexpr Configuration(const SynthConfig &synth_config,
+                          const std::array<ChannelConfig, OUTPUTS> &channel_configs)
       : synth_(synth_config), channels_(channel_configs) {}
-  constexpr Configuration(const SynthConfig &synth_config)
-      : synth_(synth_config) {}
-  constexpr Configuration(
-      const std::array<ChannelConfig, OUTPUTS> &channel_configs)
+  constexpr Configuration(const SynthConfig &synth_config) : synth_(synth_config) {}
+  constexpr Configuration(const std::array<ChannelConfig, OUTPUTS> &channel_configs)
       : channels_(channel_configs) {}
 
   constexpr Configuration<OUTPUTS> with(const SynthConfig &synth_config) {
     return Configuration<OUTPUTS>(synth_config, channels_);
   }
-  constexpr Configuration<OUTPUTS>
-  with(const std::array<ChannelConfig, OUTPUTS> &channel_configs) {
+  constexpr Configuration<OUTPUTS> with(const std::array<ChannelConfig, OUTPUTS> &channel_configs) {
     return Configuration<OUTPUTS>(synth_, channel_configs);
   }
 
@@ -134,9 +124,7 @@ public:
   ChannelConfig &channel(uint8_t ch) { return channels_[ch]; }
   const ChannelConfig &channel(uint8_t ch) const { return channels_[ch]; }
   std::array<ChannelConfig, OUTPUTS> &channels() { return channels_; }
-  const std::array<ChannelConfig, OUTPUTS> &channels() const {
-    return channels_;
-  }
+  const std::array<ChannelConfig, OUTPUTS> &channels() const { return channels_; }
 
   MidiRoutingConfig<OUTPUTS> &routing() { return routing_; }
   const MidiRoutingConfig<OUTPUTS> &routing() const { return routing_; }
@@ -144,13 +132,11 @@ public:
   constexpr uint8_t channels_size() const { return OUTPUTS; }
 
   constexpr bool operator==(const Configuration<OUTPUTS> &other) const {
-    return synth_ == other.synth_ && channels_ == other.channels_ &&
-           routing_ == other.routing_;
+    return synth_ == other.synth_ && channels_ == other.channels_ && routing_ == other.routing_;
   }
 
   inline operator std::string() const {
-    std::string res =
-        std::string("Synth: ") + std::string(synth_) + "\nChannels: ";
+    std::string res = std::string("Synth: ") + std::string(synth_) + "\nChannels: ";
     for (const auto &ch : channels()) {
       res += "\n" + std::string(ch);
     }

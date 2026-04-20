@@ -26,8 +26,7 @@ std::string invalid_value(const ConfigPath &path, const ConfigValue value,
   return msg;
 }
 
-std::string invalid_key(const ConfigPath &path, int idx,
-                        const char description[]) {
+std::string invalid_key(const ConfigPath &path, int idx, const char description[]) {
   const bool valid_idx = idx >= 0 && idx < path.size();
   std::string msg = "Invalid key: ";
 
@@ -54,10 +53,9 @@ Parser<Duration16> duration16(const ConfigPath &path, const ConfigValue value) {
   if (auto d = parse_duration16(value))
     return *d;
   else {
-    return invalid_value(
-        path, value,
-        "Valid values are unsigned integers "
-        "followed by an optional time unit [us (default), ms]");
+    return invalid_value(path, value,
+                         "Valid values are unsigned integers "
+                         "followed by an optional time unit [us (default), ms]");
   }
 }
 
@@ -65,10 +63,9 @@ Parser<Hertz> hertz(const ConfigPath &path, const ConfigValue value) {
   if (auto f = parse_hertz(value))
     return *f;
   else {
-    return invalid_value(
-        path, value,
-        "Valid values are floating point numbers followed by an "
-        "optional unit [Hz]\n");
+    return invalid_value(path, value,
+                         "Valid values are floating point numbers followed by an "
+                         "optional unit [Hz]\n");
   }
 }
 
@@ -77,39 +74,37 @@ Parser<DutyCycle> duty(const ConfigPath &path, const ConfigValue value) {
   if (*f && f > 0 && f <= 100)
     return DutyCycle(*f);
   else {
-    return invalid_value(
-        path, value, "Valid values are floating point numbers in (0, 100]\n");
+    return invalid_value(path, value, "Valid values are floating point numbers in (0, 100]\n");
   }
 }
 
-Parser<std::optional<uint8_t>> instrument(const ConfigPath &path,
-                                          const ConfigValue value) {
+Parser<std::optional<uint8_t>> instrument(const ConfigPath &path, const ConfigValue value) {
   auto d = parser::parse_number<int8_t>(value);
   if (value == "-" || *d < 1) {
     return std::optional<uint8_t>{};
   } else if (d && *d <= instruments_size) {
     return std::optional<uint8_t>{*d - 1};
   } else {
-    return invalid_value(
-        path, value,
-        "Valid values are optional instrument numbers, "
-        "values less than 1 and - are considered as no value.\n");
+    return invalid_value(path, value,
+                         "Valid values are optional instrument numbers, "
+                         "values less than 1 and - are considered as no value.\n");
   }
 }
 
-Parser<Unit> update(const ConfigPath &path, const ConfigValue value,
-                    SynthConfig &config) {
+Parser<Unit> update(const ConfigPath &path, const ConfigValue value, SynthConfig &config) {
   if (path.size() != 2)
     return invalid_key(path);
 
   const auto &key = path[1];
   if (key == "tuning") {
     auto _r = hertz(path, value);
-    if (!_r) return _r.error();
+    if (!_r)
+      return _r.error();
     config.tuning = _r.value();
   } else if (key == "instrument") {
     auto _r = instrument(path, value);
-    if (!_r) return _r.error();
+    if (!_r)
+      return _r.error();
     config.instrument = _r.value();
   } else {
     return invalid_key(path, 1);
@@ -123,33 +118,43 @@ Parser<uint8_t> notes(const ConfigPath &path, const ConfigValue value) {
   if (n && *n < ChannelConfig::max_notes && *n >= 1) {
     return *n;
   }
-  return invalid_value(path, value,
-                       "Must be an unsigned integer between 1 and max notes.");
+  return invalid_value(path, value, "Must be an unsigned integer between 1 and max notes.");
 }
 
-Parser<Unit> update(const ConfigPath &path, const ConfigValue value,
-                    ChannelConfig &config) {
+Parser<Unit> update(const ConfigPath &path, const ConfigValue value, ChannelConfig &config) {
   if (path.size() != 3)
     return invalid_key(path);
   const auto &key = path[2];
 
   if (key == "max-on-time") {
-    auto _r = duration16(path, value); if (!_r) return _r.error();
+    auto _r = duration16(path, value);
+    if (!_r)
+      return _r.error();
     config.max_on_time = _r.value();
   } else if (key == "min-deadtime") {
-    auto _r = duration16(path, value); if (!_r) return _r.error();
+    auto _r = duration16(path, value);
+    if (!_r)
+      return _r.error();
     config.min_deadtime = _r.value();
   } else if (key == "instrument") {
-    auto _r = instrument(path, value); if (!_r) return _r.error();
+    auto _r = instrument(path, value);
+    if (!_r)
+      return _r.error();
     config.instrument = _r.value();
   } else if (key == "notes") {
-    auto _r = notes(path, value); if (!_r) return _r.error();
+    auto _r = notes(path, value);
+    if (!_r)
+      return _r.error();
     config.notes = _r.value();
   } else if (key == "duty-window") {
-    auto _r = duration16(path, value); if (!_r) return _r.error();
+    auto _r = duration16(path, value);
+    if (!_r)
+      return _r.error();
     config.duty_window = _r.value();
   } else if (key == "max-duty") {
-    auto _r = duty(path, value); if (!_r) return _r.error();
+    auto _r = duty(path, value);
+    if (!_r)
+      return _r.error();
     config.max_duty = _r.value();
   } else {
     return invalid_key(path, 2);

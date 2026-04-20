@@ -11,8 +11,7 @@ using namespace teslasynth::synth;
 namespace synth {
 namespace assertions {
 template <typename A, typename B> inline std::string __msg_for(A a, B b) {
-  return std::string("Obtained: " + std::string(a) +
-                     " Expected: " + std::string(b));
+  return std::string("Obtained: " + std::string(a) + " Expected: " + std::string(b));
 }
 
 inline void assert_level_equal(EnvelopeLevel a, EnvelopeLevel b, int line) {
@@ -25,25 +24,22 @@ inline void assert_level_not_equal(EnvelopeLevel a, EnvelopeLevel b, int line) {
 inline void assert_probability_equal(Probability a, Probability b, int line) {
   UNITY_TEST_ASSERT(a == b, line, __msg_for(a, b).c_str());
 }
-inline void assert_probability_not_equal(Probability a, Probability b,
-                                         int line) {
+inline void assert_probability_not_equal(Probability a, Probability b, int line) {
   UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
 }
 
 template <typename A, typename B>
-inline void assert_duration_equal(SimpleDuration<A> a, SimpleDuration<B> b,
-                                  int line) {
+inline void assert_duration_equal(SimpleDuration<A> a, SimpleDuration<B> b, int line) {
   UNITY_TEST_ASSERT(a == b, line, __msg_for(a, b).c_str());
 }
 template <typename A, typename B>
-inline void assert_duration_equal(std::optional<SimpleDuration<A>> a,
-                                  SimpleDuration<B> b, int line) {
+inline void assert_duration_equal(std::optional<SimpleDuration<A>> a, SimpleDuration<B> b,
+                                  int line) {
   UNITY_TEST_ASSERT(a, line, "No duration!");
   UNITY_TEST_ASSERT(a == b, line, __msg_for(*a, b).c_str());
 }
 template <typename A, typename B>
-inline void assert_duration_not_equal(SimpleDuration<A> a, SimpleDuration<B> b,
-                                      int line) {
+inline void assert_duration_not_equal(SimpleDuration<A> a, SimpleDuration<B> b, int line) {
   UNITY_TEST_ASSERT(a != b, line, __msg_for(a, b).c_str());
 }
 inline void assert_hertz_equal(Hertz a, Hertz b, int line) {
@@ -67,38 +63,29 @@ inline void assert_instrument_not_equal(Instrument a, Instrument b, int line) {
 }; // namespace assertions
 }; // namespace synth
 
-#define assert_level_equal(a, b)                                               \
-  synth::assertions::assert_level_equal(a, b, __LINE__);
+#define assert_level_equal(a, b) synth::assertions::assert_level_equal(a, b, __LINE__);
 
-#define assert_level_not_equal(a, b)                                           \
-  synth::assertions::assert_level_not_equal(a, b, __LINE__);
+#define assert_level_not_equal(a, b) synth::assertions::assert_level_not_equal(a, b, __LINE__);
 
-#define assert_probability_equal(a, b)                                         \
-  synth::assertions::assert_probability_equal(a, b, __LINE__);
+#define assert_probability_equal(a, b) synth::assertions::assert_probability_equal(a, b, __LINE__);
 
-#define assert_probability_not_equal(a, b)                                     \
+#define assert_probability_not_equal(a, b)                                                         \
   synth::assertions::assert_probability_not_equal(a, b, __LINE__);
 
-#define assert_duration_equal(a, b)                                            \
-  synth::assertions::assert_duration_equal(a, b, __LINE__);
+#define assert_duration_equal(a, b) synth::assertions::assert_duration_equal(a, b, __LINE__);
 
-#define assert_duration_not_equal(a, b)                                        \
+#define assert_duration_not_equal(a, b)                                                            \
   synth::assertions::assert_duration_not_equal(a, b, __LINE__);
 
-#define assert_hertz_equal(a, b)                                               \
-  synth::assertions::assert_hertz_equal(a, b, __LINE__);
+#define assert_hertz_equal(a, b) synth::assertions::assert_hertz_equal(a, b, __LINE__);
 
-#define assert_hertz_not_equal(a, b)                                           \
-  synth::assertions::assert_hertz_not_equal(a, b, __LINE__);
+#define assert_hertz_not_equal(a, b) synth::assertions::assert_hertz_not_equal(a, b, __LINE__);
 
-#define assert_vibrato_equal(a, b)                                             \
-  synth::assertions::assert_vibrato_equal(a, b, __LINE__);
+#define assert_vibrato_equal(a, b) synth::assertions::assert_vibrato_equal(a, b, __LINE__);
 
-#define assert_vibrato_not_equal(a, b)                                         \
-  synth::assertions::assert_vibrato_not_equal(a, b, __LINE__);
+#define assert_vibrato_not_equal(a, b) synth::assertions::assert_vibrato_not_equal(a, b, __LINE__);
 
-#define assert_instrument_equal(a, b)                                          \
-  synth::assertions::assert_instrument_equal(a, b, __LINE__);
+#define assert_instrument_equal(a, b) synth::assertions::assert_instrument_equal(a, b, __LINE__);
 
-#define assert_instrument_not_equal(a, b)                                      \
+#define assert_instrument_not_equal(a, b)                                                          \
   synth::assertions::assert_instrument_not_equal(a, b, __LINE__);

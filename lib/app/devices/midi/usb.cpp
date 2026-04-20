@@ -37,8 +37,7 @@ enum usb_endpoints {
 
 /** TinyUSB descriptors **/
 
-#define TUSB_DESCRIPTOR_TOTAL_LEN                                              \
-  (TUD_CONFIG_DESC_LEN + CFG_TUD_MIDI * TUD_MIDI_DESC_LEN)
+#define TUSB_DESCRIPTOR_TOTAL_LEN (TUD_CONFIG_DESC_LEN + CFG_TUD_MIDI * TUD_MIDI_DESC_LEN)
 
 /**
  * @brief String descriptor
@@ -125,8 +124,8 @@ void init(StreamBufferHandle_t sbuf) {
 
   uint8_t mac[6];
   ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_BASE));
-  snprintf(s_serial, sizeof(s_serial), "%02X%02X%02X%02X%02X%02X", mac[0],
-           mac[1], mac[2], mac[3], mac[4], mac[5]);
+  snprintf(s_serial, sizeof(s_serial), "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3],
+           mac[4], mac[5]);
 
   tinyusb_config_t tusb_cfg = TINYUSB_DEFAULT_CONFIG();
 

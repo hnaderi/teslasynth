@@ -22,17 +22,13 @@ public:
 
   constexpr static EnvelopeLevel zero() { return EnvelopeLevel(); }
   constexpr static EnvelopeLevel max() { return EnvelopeLevel(1); }
-  static EnvelopeLevel logscale(uint8_t value) {
-    return EnvelopeLevel(log2f(1.f + value) / 8.f);
-  }
+  static EnvelopeLevel logscale(uint8_t value) { return EnvelopeLevel(log2f(1.f + value) / 8.f); }
 
   constexpr bool is_zero() const { return _value == 0; }
   constexpr EnvelopeLevel operator+(const EnvelopeLevel &b) const {
     return EnvelopeLevel(_value + b._value);
   }
-  constexpr EnvelopeLevel operator+(float b) const {
-    return EnvelopeLevel(_value + b);
-  }
+  constexpr EnvelopeLevel operator+(float b) const { return EnvelopeLevel(_value + b); }
   EnvelopeLevel &operator+=(const EnvelopeLevel &b) {
     if (1.f - _value < b._value)
       _value = 1.f;
@@ -50,32 +46,21 @@ public:
   }
   float operator-(const EnvelopeLevel &b) const { return _value - b._value; }
 
-  template <typename T>
-  constexpr SimpleDuration<T> operator*(const SimpleDuration<T> &b) const {
+  template <typename T> constexpr SimpleDuration<T> operator*(const SimpleDuration<T> &b) const {
     return b * _value;
   }
   constexpr EnvelopeLevel operator*(const EnvelopeLevel &b) const {
     return EnvelopeLevel(b._value * _value);
   }
-  constexpr bool operator<(const EnvelopeLevel &b) const {
-    return _value < b._value;
-  }
-  constexpr bool operator>(const EnvelopeLevel &b) const {
-    return _value > b._value;
-  }
+  constexpr bool operator<(const EnvelopeLevel &b) const { return _value < b._value; }
+  constexpr bool operator>(const EnvelopeLevel &b) const { return _value > b._value; }
   constexpr bool operator==(const EnvelopeLevel &b) const {
     float d = _value - b._value;
     return (d < 0 ? -d : d) < 1e-3f;
   }
-  constexpr bool operator!=(const EnvelopeLevel &b) const {
-    return _value != b._value;
-  }
-  constexpr bool operator<=(const EnvelopeLevel &b) const {
-    return _value <= b._value;
-  }
-  constexpr bool operator>=(const EnvelopeLevel &b) const {
-    return _value >= b._value;
-  }
+  constexpr bool operator!=(const EnvelopeLevel &b) const { return _value != b._value; }
+  constexpr bool operator<=(const EnvelopeLevel &b) const { return _value <= b._value; }
+  constexpr bool operator>=(const EnvelopeLevel &b) const { return _value >= b._value; }
 
   constexpr operator float() const { return _value; }
   inline operator std::string() const { return std::to_string(_value); }

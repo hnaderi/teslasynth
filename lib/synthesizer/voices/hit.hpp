@@ -26,8 +26,8 @@ class Hit {
   inline float random();
 
 public:
-  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const Percussion &params, const ChannelState *channel = nullptr);
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time, const Percussion &params,
+             const ChannelState *channel = nullptr);
   bool next();
   const NotePulse &current() const { return current_; }
   bool is_active() const { return now < end; }

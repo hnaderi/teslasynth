@@ -13,11 +13,11 @@ using namespace midisynth;
 namespace {
 void on_track_play(bool playing) {
   if (playing) {
-    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(
-        EVENT_SYNTHESIZER_BASE, SYNTHESIZER_PLAYING, NULL, 0, 0));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(
+        esp_event_post(EVENT_SYNTHESIZER_BASE, SYNTHESIZER_PLAYING, NULL, 0, 0));
   } else {
-    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_event_post(
-        EVENT_SYNTHESIZER_BASE, SYNTHESIZER_STOPPED, NULL, 0, 0));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(
+        esp_event_post(EVENT_SYNTHESIZER_BASE, SYNTHESIZER_STOPPED, NULL, 0, 0));
   }
 }
 }; // namespace
@@ -28,20 +28,16 @@ class PlaybackHandle {
 
 public:
   PlaybackHandle() {}
-  PlaybackHandle(AppSynth *impl, SemaphoreHandle_t lock)
-      : impl(impl), lock(lock) {}
+  PlaybackHandle(AppSynth *impl, SemaphoreHandle_t lock) : impl(impl), lock(lock) {}
 
   inline void acquire() { xSemaphoreTake(lock, portMAX_DELAY); }
   inline void release() { xSemaphoreGive(lock); }
 
-  inline void handle(MidiChannelMessage msg, Duration time) {
-    impl->handle(msg, time);
-  }
+  inline void handle(MidiChannelMessage msg, Duration time) { impl->handle(msg, time); }
   template <size_t BUFSIZE>
   inline void
   sample_all(Duration16 max,
-             PulseBuffer<configuration::hardware::OutputConfig::size, BUFSIZE>
-                 &output) {
+             PulseBuffer<configuration::hardware::OutputConfig::size, BUFSIZE> &output) {
     impl->sample_all(max, output);
   };
 };
@@ -62,8 +58,7 @@ public:
     return res;
   }
 
-  inline void config_set(const AppConfig &config, bool reload = false,
-                         bool persist = false) {
+  inline void config_set(const AppConfig &config, bool reload = false, bool persist = false) {
     xSemaphoreTake(read_lock, portMAX_DELAY);
 
     xSemaphoreTake(write_lock, portMAX_DELAY);
@@ -73,9 +68,8 @@ public:
     xSemaphoreGive(write_lock);
 
     xSemaphoreGive(read_lock);
-    ESP_ERROR_CHECK(esp_event_post(EVENT_SYNTHESIZER_BASE,
-                                   SYNTHESIZER_CONFIG_UPDATED, NULL, 0,
-                                   portMAX_DELAY));
+    ESP_ERROR_CHECK(
+        esp_event_post(EVENT_SYNTHESIZER_BASE, SYNTHESIZER_CONFIG_UPDATED, NULL, 0, portMAX_DELAY));
     if (persist)
       configuration::synth::persist(config);
   }
@@ -98,9 +92,7 @@ class Application {
   SemaphoreHandle_t write_lock, read_lock;
 
 public:
-  Application()
-      : write_lock(xSemaphoreCreateMutex()),
-        read_lock(xSemaphoreCreateMutex()) {}
+  Application() : write_lock(xSemaphoreCreateMutex()), read_lock(xSemaphoreCreateMutex()) {}
   Application(const AppConfig &config)
       : impl(config, on_track_play), write_lock(xSemaphoreCreateMutex()),
         read_lock(xSemaphoreCreateMutex()) {}

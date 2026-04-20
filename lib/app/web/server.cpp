@@ -66,7 +66,9 @@ esp_err_t sysinfo_handler(httpd_req_t *req) {
   return ESP_OK;
 }
 
-esp_err_t sys_reboot_handler(httpd_req_t *) { esp_restart(); }
+esp_err_t sys_reboot_handler(httpd_req_t *) {
+  esp_restart();
+}
 
 esp_err_t synth_config_get_handler(httpd_req_t *req) {
   AppConfig config = ui.config_read();
@@ -77,8 +79,7 @@ esp_err_t synth_config_get_handler(httpd_req_t *req) {
   return ESP_OK;
 }
 
-esp_err_t parseBody(httpd_req_t *req, std::vector<char> &body,
-                    JSONParser &parser) {
+esp_err_t parseBody(httpd_req_t *req, std::vector<char> &body, JSONParser &parser) {
   size_t content_len = req->content_len;
   if (content_len > max_body_length || content_len < 1) {
     httpd_resp_send_err(req, HTTPD_413_CONTENT_TOO_LARGE, "Invalid content");
@@ -88,8 +89,7 @@ esp_err_t parseBody(httpd_req_t *req, std::vector<char> &body,
   body.resize(content_len + 1);
   size_t received = httpd_req_recv(req, body.data(), content_len);
   if (received != content_len) {
-    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                        "Incomplete body");
+    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Incomplete body");
     return ESP_FAIL;
   }
   body[content_len] = '\0';
@@ -197,8 +197,7 @@ esp_err_t hardware_config_del_handler(httpd_req_t *req) {
     auto json = configuration::codec::encode(config).print();
     httpd_resp_sendstr(req, json.value);
   } else {
-    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                        "Error while setting configuration");
+    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error while setting configuration");
   }
   return res;
 }

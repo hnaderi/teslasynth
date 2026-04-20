@@ -19,52 +19,40 @@ template <typename T = uint64_t> class SimpleDuration {
 public:
   constexpr SimpleDuration() : _value(0) {}
 
-  template <typename U,
-            typename = std::enable_if_t<std::is_convertible<U, T>::value>>
+  template <typename U, typename = std::enable_if_t<std::is_convertible<U, T>::value>>
   constexpr SimpleDuration(const SimpleDuration<U> &other)
       : _value(static_cast<T>(other.micros())) {
-    static_assert(sizeof(U) <= sizeof(T),
-                  "Cannot convert SimpleDuration<U> to smaller "
-                  "SimpleDuration<T>: potential overflow");
+    static_assert(sizeof(U) <= sizeof(T), "Cannot convert SimpleDuration<U> to smaller "
+                                          "SimpleDuration<T>: potential overflow");
   }
 
   static constexpr SimpleDuration micros(T v) { return SimpleDuration(v); }
-  static constexpr SimpleDuration millis(T v) {
-    return SimpleDuration(v * _coef_milli);
-  }
-  static constexpr SimpleDuration seconds(T v) {
-    return SimpleDuration(v * _coef_sec);
-  }
+  static constexpr SimpleDuration millis(T v) { return SimpleDuration(v * _coef_milli); }
+  static constexpr SimpleDuration seconds(T v) { return SimpleDuration(v * _coef_sec); }
 
   constexpr T micros() const { return _value; }
   constexpr T millis() const { return _value / _coef_milli; }
   constexpr T seconds() const { return _value / _coef_sec; }
 
-  inline static constexpr SimpleDuration zero() {
-    return SimpleDuration(static_cast<T>(0));
-  }
+  inline static constexpr SimpleDuration zero() { return SimpleDuration(static_cast<T>(0)); }
   inline static constexpr SimpleDuration max() {
     return SimpleDuration(std::numeric_limits<T>::max());
   }
 
-  template <typename U>
-  constexpr auto operator+(const SimpleDuration<U> &b) const {
+  template <typename U> constexpr auto operator+(const SimpleDuration<U> &b) const {
     using R = std::common_type_t<T, U>;
     return SimpleDuration<R>::micros(_value + b.micros());
   }
 
   template <typename U>
-  constexpr std::optional<SimpleDuration>
-  operator-(const SimpleDuration<U> &b) const {
+  constexpr std::optional<SimpleDuration> operator-(const SimpleDuration<U> &b) const {
     if (_value >= b.micros())
       return SimpleDuration<T>(_value - b.micros());
     else
       return {};
   }
 
-  constexpr SimpleDuration operator*(const int b) const {
-    return SimpleDuration(_value * b);
-  }
+  constexpr SimpleDuration operator*(const int b) const { return SimpleDuration(_value * b); }
   constexpr SimpleDuration operator*(const float b) const {
     return SimpleDuration(static_cast<T>(_value * b));
   }
@@ -78,31 +66,25 @@ public:
     return *this;
   }
 
-  template <typename U>
-  constexpr bool operator<(const SimpleDuration<U> &b) const {
+  template <typename U> constexpr bool operator<(const SimpleDuration<U> &b) const {
     return _value < b.micros();
   }
 
-  template <typename U>
-  constexpr bool operator>(const SimpleDuration<U> &b) const {
+  template <typename U> constexpr bool operator>(const SimpleDuration<U> &b) const {
     return _value > b.micros();
   }
 
-  template <typename U>
-  constexpr bool operator==(const SimpleDuration<U> &b) const {
+  template <typename U> constexpr bool operator==(const SimpleDuration<U> &b) const {
     return _value == b.micros();
   }
-  template <typename U>
-  constexpr bool operator!=(const SimpleDuration<U> &b) const {
+  template <typename U> constexpr bool operator!=(const SimpleDuration<U> &b) const {
     return _value != b.micros();
   }
 
-  template <typename U>
-  constexpr bool operator<=(const SimpleDuration<U> &b) const {
+  template <typename U> constexpr bool operator<=(const SimpleDuration<U> &b) const {
     return _value <= b.micros();
   }
-  template <typename U>
-  constexpr bool operator>=(const SimpleDuration<U> &b) const {
+  template <typename U> constexpr bool operator>=(const SimpleDuration<U> &b) const {
     return _value >= b.micros();
   }
   constexpr bool is_zero() const { return _value == 0; }
@@ -125,9 +107,8 @@ typedef SimpleDuration<uint16_t> Duration16;
 
 namespace {
 template <unsigned long long V> struct smallest_uint {
-  using type = std::conditional_t<
-      (V <= UINT16_MAX), uint16_t,
-      std::conditional_t<(V <= UINT32_MAX), uint32_t, uint64_t>>;
+  using type = std::conditional_t<(V <= UINT16_MAX), uint16_t,
+                                  std::conditional_t<(V <= UINT32_MAX), uint32_t, uint64_t>>;
 };
 
 constexpr unsigned long long pow10(unsigned n) {

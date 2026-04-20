@@ -14,7 +14,9 @@
 
 using namespace teslasynth::midisynth;
 
-constexpr uint8_t mnotef(int i) { return static_cast<uint8_t>(69 + i); }
+constexpr uint8_t mnotef(int i) {
+  return static_cast<uint8_t>(69 + i);
+}
 constexpr Instrument instrument(int i) {
   return {.envelope = EnvelopeLevel(i * 0.1), .vibrato = Vibrato::none()};
 }
@@ -30,34 +32,22 @@ public:
     const SoundPreset preset;
     const ChannelState *state;
 
-    bool is_pitch() const {
-      return std::holds_alternative<PitchPreset>(preset);
-    }
-    bool is_perc() const {
-      return std::holds_alternative<PercussivePreset>(preset);
-    }
-    const PitchPreset &as_pitch() const {
-      return std::get<PitchPreset>(preset);
-    }
+    bool is_pitch() const { return std::holds_alternative<PitchPreset>(preset); }
+    bool is_perc() const { return std::holds_alternative<PercussivePreset>(preset); }
+    const PitchPreset &as_pitch() const { return std::get<PitchPreset>(preset); }
 
-    const PercussivePreset &as_perc() const {
-      return std::get<PercussivePreset>(preset);
-    }
+    const PercussivePreset &as_perc() const { return std::get<PercussivePreset>(preset); }
 
-    void
-    assert_instrument(const Instrument &expectedInst //, Hertz expectedTuning,
+    void assert_instrument(const Instrument &expectedInst //, Hertz expectedTuning,
     ) const {
-      TEST_ASSERT_TRUE_MESSAGE(is_pitch(),
-                               "Expected PitchPreset but got PercussivePreset");
+      TEST_ASSERT_TRUE_MESSAGE(is_pitch(), "Expected PitchPreset but got PercussivePreset");
       const auto &p = as_pitch();
       assert_instrument_equal(expectedInst, *p.instrument);
     }
     void assert_percussion(const Percussion &expectedPerc) const {
-      TEST_ASSERT_TRUE_MESSAGE(is_perc(),
-                               "Expected PercussivePreset but got PitchPreset");
+      TEST_ASSERT_TRUE_MESSAGE(is_perc(), "Expected PercussivePreset but got PitchPreset");
       const auto &p = as_perc();
-      TEST_ASSERT_TRUE_MESSAGE(expectedPerc == *p.percussion,
-                               "Percussion pointer mismatch");
+      TEST_ASSERT_TRUE_MESSAGE(expectedPerc == *p.percussion, "Percussion pointer mismatch");
     }
   };
 
@@ -75,15 +65,13 @@ private:
   std::vector<uint8_t> adjusts_;
 
 public:
-  Note &start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-              const SoundPreset &preset, const ChannelState *state = nullptr) {
+  Note &start(uint8_t number, EnvelopeLevel amplitude, Duration time, const SoundPreset &preset,
+              const ChannelState *state = nullptr) {
     started_.push_back({number, amplitude, time, preset, state});
     return note;
   }
 
-  void release(uint8_t number, Duration time) {
-    released_.push_back({number, time});
-  }
+  void release(uint8_t number, Duration time) { released_.push_back({number, time}); }
   void off() { offs_.push_back({}); }
 
   void adjust_size(uint8_t size) { adjusts_.push_back(size); }
@@ -120,8 +108,7 @@ void test_should_handle_note_on(void) {
     TEST_ASSERT_EQUAL(i + 1, notes.started().size());
     assert_duration_equal(notes.started().back().time, now);
     TEST_ASSERT_EQUAL(69 + i, notes.started().back().number);
-    assert_level_equal(notes.started().back().amplitude,
-                       EnvelopeLevel::logscale(2 * velocity + 1));
+    assert_level_equal(notes.started().back().amplitude, EnvelopeLevel::logscale(2 * velocity + 1));
     notes.started().back().assert_instrument(default_instrument());
   }
 }
@@ -317,8 +304,7 @@ void test_should_handle_channel_volume(void) {
     // Route channel to the only output we have here
     tsynth.configuration().routing().mapping[ch] = 0;
 
-    auto msg = MidiChannelMessage::control_change(
-        ch, ControlChange::CHANNEL_VOLUME_MSB, 8 * ch);
+    auto msg = MidiChannelMessage::control_change(ch, ControlChange::CHANNEL_VOLUME_MSB, 8 * ch);
     tsynth.handle(msg, 0_s);
     tsynth.handle(MidiChannelMessage::note_on(ch, 69, 127), 0_ms);
 
@@ -370,4 +356,6 @@ extern "C" void app_main(void) {
 
   UNITY_END();
 }
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

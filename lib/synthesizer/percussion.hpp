@@ -18,19 +18,18 @@ struct Percussion {
   envelopes::EnvelopeConfig envelope = EnvelopeLevel(1);
 
   constexpr bool operator==(const Percussion &b) const {
-    return burst == b.burst && prf == b.prf && noise == b.noise &&
-           skip == b.skip && envelope == b.envelope;
+    return burst == b.burst && prf == b.prf && noise == b.noise && skip == b.skip &&
+           envelope == b.envelope;
   }
   constexpr bool operator!=(const Percussion &b) const {
-    return burst != b.burst || prf != b.prf || noise != b.noise ||
-           skip != b.skip || envelope != b.envelope;
+    return burst != b.burst || prf != b.prf || noise != b.noise || skip != b.skip ||
+           envelope != b.envelope;
   }
 
   inline operator std::string() const {
-    std::string stream =
-        "Burst " + std::string(burst) + " PRF " + std::string(prf) + " Noise " +
-        std::string(noise) + " Skip " + std::string(skip) + " Envelope " +
-        std::visit([](auto const &e) { return std::string(e); }, envelope);
+    std::string stream = "Burst " + std::string(burst) + " PRF " + std::string(prf) + " Noise " +
+                         std::string(noise) + " Skip " + std::string(skip) + " Envelope " +
+                         std::visit([](auto const &e) { return std::string(e); }, envelope);
     return stream;
   }
 };

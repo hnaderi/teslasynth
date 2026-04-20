@@ -15,12 +15,12 @@
 #define WITH_TASKS_INFO 1
 #endif
 
-#define BANNER                                                                 \
-  " _____         _                       _   _     \r\n|_   _|       | |    " \
-  "                 | | | |    \r\n  | | ___  ___| | __ _ ___ _   _ _ __ | "   \
-  "|_| |__  \r\n  | |/ _ \\/ __| |/ _` / __| | | | \'_ \\| __| \'_ \\ \r\n  "  \
-  "| |  __/\\__ \\ | (_| \\__ \\ |_| | | | | |_| | | |\r\n  "                  \
-  "\\_/\\___||___/_|\\__,_|___/\\__, |_| |_|\\__|_| |_|\r\n                  " \
+#define BANNER                                                                                     \
+  " _____         _                       _   _     \r\n|_   _|       | |    "                     \
+  "                 | | | |    \r\n  | | ___  ___| | __ _ ___ _   _ _ __ | "                       \
+  "|_| |__  \r\n  | |/ _ \\/ __| |/ _` / __| | | | \'_ \\| __| \'_ \\ \r\n  "                      \
+  "| |  __/\\__ \\ | (_| \\__ \\ |_| | | | | |_| | | |\r\n  "                                      \
+  "\\_/\\___||___/_|\\__,_|___/\\__, |_| |_|\\__|_| |_|\r\n                  "                     \
   "          __/ |                \r\n                           |___/"
 
 namespace teslasynth::app::cli {
@@ -37,16 +37,15 @@ int get_version(int argc, char **argv) {
 
   auto app_version = esp_app_get_description();
   printf("\n%s\n", BANNER);
-  printf("version:%s\ncompiled at:%s %s\n\n", app_version->version,
-         app_version->date, app_version->time);
+  printf("version:%s\ncompiled at:%s %s\n\n", app_version->version, app_version->date,
+         app_version->time);
   printf("IDF Version:%s\r\n", esp_get_idf_version());
   printf("Chip info:\r\n");
   printf("\tmodel:%s\r\n", info.model);
   printf("\tcores:%d\r\n", info.cores);
   printf("\tfeature:%s%s%s%s%" PRIu32 "%s\r\n", info.wifi ? "/802.11bgn" : "",
          info.ble ? "/BLE" : "", info.bt ? "/BT" : "",
-         info.emb_flash ? "/Embedded-Flash:" : "/External-Flash:",
-         info.flash_size, " MB");
+         info.emb_flash ? "/Embedded-Flash:" : "/External-Flash:", info.flash_size, " MB");
   printf("\trevision number:%d\r\n", info.revision);
   return 0;
 }
@@ -169,8 +168,7 @@ struct {
   struct arg_end *end;
 } log_level_args;
 
-constexpr const char *s_log_level_names[] = {"none", "error", "warn",
-                                             "info", "debug", "verbose"};
+constexpr const char *s_log_level_names[] = {"none", "error", "warn", "info", "debug", "verbose"};
 
 int log_level(int argc, char **argv) {
   int nerrors = arg_parse(argc, argv, (void **)&log_level_args);
@@ -198,8 +196,7 @@ int log_level(int argc, char **argv) {
   if (level > CONFIG_LOG_MAXIMUM_LEVEL) {
     printf("Can't set log level to %s, max level limited in menuconfig to %s. "
            "Please increase CONFIG_LOG_MAXIMUM_LEVEL in menuconfig.\n",
-           s_log_level_names[level],
-           s_log_level_names[CONFIG_LOG_MAXIMUM_LEVEL]);
+           s_log_level_names[level], s_log_level_names[CONFIG_LOG_MAXIMUM_LEVEL]);
     return 1;
   }
   esp_log_level_set(tag, static_cast<esp_log_level_t>(level));
@@ -208,11 +205,9 @@ int log_level(int argc, char **argv) {
 
 void register_log_level(void) {
   log_level_args.tag =
-      arg_str1(NULL, NULL, "<tag|*>",
-               "Log tag to set the level for, or * to set for all tags");
-  log_level_args.level =
-      arg_str1(NULL, NULL, "<none|error|warn|info|debug|verbose>",
-               "Log level to set. Abbreviated words are accepted.");
+      arg_str1(NULL, NULL, "<tag|*>", "Log tag to set the level for, or * to set for all tags");
+  log_level_args.level = arg_str1(NULL, NULL, "<none|error|warn|info|debug|verbose>",
+                                  "Log level to set. Abbreviated words are accepted.");
   log_level_args.end = arg_end(2);
 
   const esp_console_cmd_t cmd = {

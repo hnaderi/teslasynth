@@ -40,14 +40,12 @@ config_args_t config_args;
 UIHandle handle_;
 
 #define cstr(value) std::string(value).c_str()
-#define instrument_value(config)                                               \
-  (config.instrument.has_value()                                               \
-       ? std::to_string(*config.instrument + 1).c_str()                        \
-       : "")
+#define instrument_value(config)                                                                   \
+  (config.instrument.has_value() ? std::to_string(*config.instrument + 1).c_str() : "")
 
-#define read_duration(out)                                                     \
-  if (!parse_duration(value, out)) {                                           \
-    return invalid_duration(value);                                            \
+#define read_duration(out)                                                                         \
+  if (!parse_duration(value, out)) {                                                               \
+    return invalid_duration(value);                                                                \
   }
 
 void print_output_config(uint8_t nr, const ChannelConfig &config) {
@@ -58,11 +56,9 @@ void print_output_config(uint8_t nr, const ChannelConfig &config) {
          "\t%s = %s\n"
          "\t%s = %s\n"
          "\t%s = <%s>\n",
-         nr + 1, keys::notes, config.notes, keys::max_on_time,
-         cstr(config.max_on_time), keys::min_deadtime,
-         cstr(config.min_deadtime), keys::max_duty, cstr(config.max_duty),
-         keys::duty_window, cstr(config.duty_window), keys::instrument,
-         instrument_value(config));
+         nr + 1, keys::notes, config.notes, keys::max_on_time, cstr(config.max_on_time),
+         keys::min_deadtime, cstr(config.min_deadtime), keys::max_duty, cstr(config.max_duty),
+         keys::duty_window, cstr(config.duty_window), keys::instrument, instrument_value(config));
 }
 
 void print_routing_config(const AppMidiRoutingConfig &config) {
@@ -113,8 +109,7 @@ int config_cmd(int argc, char **argv) {
     return 0;
   }
 
-  const bool save = config_args.save->count != 0,
-             reload = config_args.reload->count != 0,
+  const bool save = config_args.save->count != 0, reload = config_args.reload->count != 0,
              reset = config_args.reset->count != 0;
   const uint8_t value_count = config_args.value->count;
 
@@ -187,10 +182,9 @@ void register_configuration_commands(UIHandle handle) {
 
   config_args.save = arg_lit0("s", "save", "Persist configuration");
   config_args.reload = arg_lit0("r", "reload", "Reload configuration");
-  config_args.reset =
-      arg_lit0(nullptr, "reset", "Reset configuration values to defaults");
-  config_args.value = arg_strn(nullptr, nullptr, "<key[:ch]=value>", 0, 50,
-                               "Set configuration value");
+  config_args.reset = arg_lit0(nullptr, "reset", "Reset configuration values to defaults");
+  config_args.value =
+      arg_strn(nullptr, nullptr, "<key[:ch]=value>", 0, 50, "Set configuration value");
   config_args.end = arg_end(20);
 
   const std::array commands = {

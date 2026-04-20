@@ -64,9 +64,7 @@ struct JSONParser {
         current = current ? current->next : nullptr;
         return *this;
       }
-      bool operator!=(const Iterator &other) const noexcept {
-        return current != other.current;
-      }
+      bool operator!=(const Iterator &other) const noexcept { return current != other.current; }
     };
 
     Iterator begin() const { return Iterator(first); }
@@ -78,9 +76,7 @@ struct JSONParser {
 
   JSONParser(const JSONParser &) = delete;
   JSONParser &operator=(const JSONParser &) = delete;
-  JSONParser(JSONParser &&other) noexcept : root_(other.root_) {
-    other.root_ = nullptr;
-  }
+  JSONParser(JSONParser &&other) noexcept : root_(other.root_) { other.root_ = nullptr; }
   JSONParser &operator=(JSONParser &&other) noexcept {
     if (this != &other) {
       cJSON_Delete(root_);
@@ -116,8 +112,7 @@ public:
   JSONObjBuilder add_object(const char *key) const;
   JSONArrayBuilder add_array(const char *key) const;
 
-  template <typename T>
-  const JSONObjBuilder &add(const char *key, std::optional<T> opt) const {
+  template <typename T> const JSONObjBuilder &add(const char *key, std::optional<T> opt) const {
     if (opt.has_value())
       return add(key, *opt);
     else {
@@ -152,9 +147,7 @@ struct PrintedJSON {
 
   PrintedJSON(const PrintedJSON &) = delete;
   PrintedJSON &operator=(const PrintedJSON &) = delete;
-  PrintedJSON(PrintedJSON &&other) noexcept : value(other.value) {
-    other.value = nullptr;
-  }
+  PrintedJSON(PrintedJSON &&other) noexcept : value(other.value) { other.value = nullptr; }
   PrintedJSON &operator=(PrintedJSON &&other) noexcept {
     if (this != &other) {
       free((void *)value);
@@ -191,9 +184,7 @@ public:
   JSONEncoder() : root(nullptr) {}
   JSONEncoder(const JSONEncoder &) = delete;
   JSONEncoder &operator=(const JSONEncoder &) = delete;
-  JSONEncoder(JSONEncoder &&other) noexcept : root(other.root) {
-    other.root = nullptr;
-  }
+  JSONEncoder(JSONEncoder &&other) noexcept : root(other.root) { other.root = nullptr; }
   JSONEncoder &operator=(JSONEncoder &&other) noexcept {
     if (this != &other) {
       cJSON_Delete(root);

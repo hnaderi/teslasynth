@@ -35,7 +35,9 @@ void led_gpio_set(bool on) {
   gpio_set_level(config_.pin, on == static_cast<bool>(config_.logic));
 }
 
-void led_apply_pattern(led_pattern_t p) { current_pattern = p; }
+void led_apply_pattern(led_pattern_t p) {
+  current_pattern = p;
+}
 
 void led_task_fn(void *) {
   while (true) {
@@ -107,9 +109,8 @@ void init(const configuration::hardware::LEDConfig &config) {
 
   xTaskCreate(led_task_fn, "signal_led", 1024, nullptr, 1, &led_task);
 
-  ESP_ERROR_CHECK(esp_event_handler_register(
-      helpers::maintenance::MAINT_EVENT_BASE, ESP_EVENT_ANY_ID,
-      &maint_event_handler, nullptr));
+  ESP_ERROR_CHECK(esp_event_handler_register(helpers::maintenance::MAINT_EVENT_BASE,
+                                             ESP_EVENT_ANY_ID, &maint_event_handler, nullptr));
 
   ESP_LOGI(TAG, "LED controller initialized on GPIO %d", config.pin);
 }

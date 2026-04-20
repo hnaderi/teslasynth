@@ -9,10 +9,8 @@ using namespace teslasynth::core;
 // -log_e(0.001)
 constexpr float logfactor = 6.907755278982137;
 
-Curve::Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total,
-             CurveType type)
-    : _target(target), _type(type), _total(total), _current(start),
-      _const(false) {
+Curve::Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total, CurveType type)
+    : _target(target), _type(type), _total(total), _current(start), _const(false) {
   const auto t = total.micros();
   if (t <= 0) {
     _target_reached = true;
@@ -28,11 +26,9 @@ Curve::Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total,
     }
 }
 Curve::Curve(EnvelopeLevel constant)
-    : _target(constant), _type(Lin), _current(constant), _target_reached(false),
-      _const(true) {}
+    : _target(constant), _type(Lin), _current(constant), _target_reached(false), _const(true) {}
 
-std::optional<Duration32>
-Curve::how_much_remains_after(const Duration32 &dt) const {
+std::optional<Duration32> Curve::how_much_remains_after(const Duration32 &dt) const {
   if (!_const) {
     return (dt + _elapsed) - _total;
   } else {

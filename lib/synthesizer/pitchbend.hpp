@@ -15,14 +15,9 @@ class PitchBend {
 
 public:
   constexpr PitchBend() = default;
-  constexpr PitchBend(float value)
-      : normalized(value > 1    ? 1
-                   : value < -1 ? -1
-                                : value) {}
+  constexpr PitchBend(float value) : normalized(value > 1 ? 1 : value < -1 ? -1 : value) {}
 
-  constexpr static PitchBend midi(uint16_t v) {
-    return PitchBend((float(v) - 8192.0f) / 8192.0f);
-  }
+  constexpr static PitchBend midi(uint16_t v) { return PitchBend((float(v) - 8192.0f) / 8192.0f); }
 
   constexpr bool operator==(const PitchBend &b) const {
     return normalized == b.normalized && range == b.range;

@@ -23,4 +23,6 @@ extern "C" void app_main(void) {
   RUN_TEST(test_empty_app_config);
   UNITY_END();
 }
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

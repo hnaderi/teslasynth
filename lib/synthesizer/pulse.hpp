@@ -14,9 +14,8 @@ struct NotePulse {
 
   constexpr bool is_zero() const { return volume.is_zero(); }
   inline operator std::string() const {
-    return std::string("Note[start:") + std::string(start) +
-           ", vol:" + std::string(volume) + ", period:" + std::string(period) +
-           "]";
+    return std::string("Note[start:") + std::string(start) + ", vol:" + std::string(volume) +
+           ", period:" + std::string(period) + "]";
   }
 };
 

@@ -103,9 +103,7 @@ struct MidiStatus {
   constexpr operator uint8_t() const { return value; }
 
   constexpr bool is_channel() const { return (value & 0xF0) != 0xF0; }
-  constexpr MidiChannelNumber channel() const {
-    return MidiChannelNumber(value);
-  }
+  constexpr MidiChannelNumber channel() const { return MidiChannelNumber(value); }
   constexpr MidiMessageType channel_status_type() const {
     return static_cast<MidiMessageType>(value & 0xF0);
   }
@@ -124,8 +122,7 @@ struct MidiChannelMessage {
   MidiChannelNumber channel;
   MidiData data0, data1;
 
-  static constexpr MidiChannelMessage note_on(uint8_t ch, uint8_t note,
-                                              uint8_t vel) {
+  static constexpr MidiChannelMessage note_on(uint8_t ch, uint8_t note, uint8_t vel) {
     return {
         .type = MidiMessageType::NoteOn,
         .channel = ch,
@@ -134,8 +131,7 @@ struct MidiChannelMessage {
     };
   }
 
-  static constexpr MidiChannelMessage note_off(uint8_t ch, uint8_t note,
-                                               uint8_t vel) {
+  static constexpr MidiChannelMessage note_off(uint8_t ch, uint8_t note, uint8_t vel) {
     return {
         .type = MidiMessageType::NoteOff,
         .channel = ch,
@@ -144,8 +140,7 @@ struct MidiChannelMessage {
     };
   }
 
-  static constexpr MidiChannelMessage after_touch(uint8_t ch, uint8_t note,
-                                                  uint8_t value) {
+  static constexpr MidiChannelMessage after_touch(uint8_t ch, uint8_t note, uint8_t value) {
     return {
         .type = MidiMessageType::AfterTouchPoly,
         .channel = ch,
@@ -154,8 +149,7 @@ struct MidiChannelMessage {
     };
   }
 
-  static constexpr MidiChannelMessage after_touch_channel(uint8_t ch,
-                                                          uint8_t value) {
+  static constexpr MidiChannelMessage after_touch_channel(uint8_t ch, uint8_t value) {
     return {
         .type = MidiMessageType::AfterTouchChannel,
         .channel = ch,
@@ -164,8 +158,7 @@ struct MidiChannelMessage {
     };
   }
 
-  static constexpr MidiChannelMessage program_change(uint8_t ch,
-                                                     uint8_t value) {
+  static constexpr MidiChannelMessage program_change(uint8_t ch, uint8_t value) {
     return {
         .type = MidiMessageType::ProgramChange,
         .channel = ch,
@@ -183,8 +176,8 @@ struct MidiChannelMessage {
     };
   }
 
-  static constexpr MidiChannelMessage
-  control_change(uint8_t ch, ControlChange number, uint8_t value) {
+  static constexpr MidiChannelMessage control_change(uint8_t ch, ControlChange number,
+                                                     uint8_t value) {
     return {
         .type = MidiMessageType::ControlChange,
         .channel = ch,
@@ -194,13 +187,10 @@ struct MidiChannelMessage {
   }
 
   constexpr bool operator==(const MidiChannelMessage &b) const {
-    return type == b.type && channel == b.channel && data0 == b.data0 &&
-           data1 == b.data1;
+    return type == b.type && channel == b.channel && data0 == b.data0 && data1 == b.data1;
   }
 
-  constexpr bool operator!=(const MidiChannelMessage &b) const {
-    return !(*this == b);
-  }
+  constexpr bool operator!=(const MidiChannelMessage &b) const { return !(*this == b); }
 
   inline operator std::string() const {
     std::string res = "Channel: " + std::to_string(channel) + " ";
@@ -212,8 +202,7 @@ struct MidiChannelMessage {
       res += "Note Off " + std::to_string(data0) + ", " + std::to_string(data1);
       break;
     case MidiMessageType::ControlChange:
-      res += "Control change " + std::to_string(data0) + ", " +
-             std::to_string(data1);
+      res += "Control change " + std::to_string(data0) + ", " + std::to_string(data1);
       break;
     case MidiMessageType::ProgramChange:
       res += "Program change " + std::to_string(data0);
@@ -222,8 +211,7 @@ struct MidiChannelMessage {
       res += "After touch " + std::to_string(data0);
       break;
     case MidiMessageType::AfterTouchPoly:
-      res += "After touch poly " + std::to_string(data0) + ", " +
-             std::to_string(data1);
+      res += "After touch poly " + std::to_string(data0) + ", " + std::to_string(data1);
       break;
     case MidiMessageType::PitchBend:
       res += "Pitch " + std::to_string(data0) + ", " + std::to_string(data1);
@@ -234,12 +222,8 @@ struct MidiChannelMessage {
     return res;
   }
 
-  constexpr bool is_control() const {
-    return type == MidiMessageType::ControlChange;
-  }
-  constexpr bool is_channel_mode_control() const {
-    return is_control() && data0 >= 120;
-  }
+  constexpr bool is_control() const { return type == MidiMessageType::ControlChange; }
+  constexpr bool is_channel_mode_control() const { return is_control() && data0 >= 120; }
 };
 
 } // namespace teslasynth::midi

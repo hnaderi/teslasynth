@@ -28,8 +28,7 @@ bool read(HardwareConfig &config) {
   ESP_ERROR_CHECK(init(handle));
   size_t len = sizeof(config);
   esp_err_t err = nvs_get_blob(handle, KEY, &config, &len);
-  if (err != ESP_OK || len != sizeof(config) ||
-      config.version != HardwareConfig::current_version) {
+  if (err != ESP_OK || len != sizeof(config) || config.version != HardwareConfig::current_version) {
     success = false;
     config = HardwareConfig();
   }

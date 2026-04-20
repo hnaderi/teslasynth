@@ -26,8 +26,7 @@ class Curve {
   bool _target_reached = false, _const;
 
 public:
-  Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total,
-        CurveType type);
+  Curve(EnvelopeLevel start, EnvelopeLevel target, Duration32 total, CurveType type);
   Curve(EnvelopeLevel constant);
   EnvelopeLevel update(Duration32 delta);
   bool is_target_reached() const { return _target_reached; }

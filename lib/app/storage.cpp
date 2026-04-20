@@ -10,8 +10,7 @@ constexpr char TAG[] = "STORAGE";
 
 void initialize_nvs() {
   esp_err_t err = nvs_flash_init();
-  if (err == ESP_ERR_NVS_NO_FREE_PAGES ||
-      err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+  if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
     // NVS partition was truncated and needs to be erased
     // Retry nvs_flash_init
     ESP_ERROR_CHECK(nvs_flash_erase());
@@ -46,8 +45,7 @@ void init_filesystem() {
   size_t total = 0, used = 0;
   ret = esp_littlefs_info(conf.partition_label, &total, &used);
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to get LittleFS partition information (%s)",
-             esp_err_to_name(ret));
+    ESP_LOGE(TAG, "Failed to get LittleFS partition information (%s)", esp_err_to_name(ret));
     esp_littlefs_format(conf.partition_label);
   } else {
     ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);

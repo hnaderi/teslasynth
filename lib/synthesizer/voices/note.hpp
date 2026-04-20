@@ -31,21 +31,17 @@ class Note final {
   ChannelState const *_channel;
 
 public:
-  void start(Hertz prf, EnvelopeLevel amplitude, Duration time,
-             const Envelope &env, const Vibrato &vibrato,
-             const ChannelState *channel = nullptr);
+  void start(Hertz prf, EnvelopeLevel amplitude, Duration time, const Envelope &env,
+             const Vibrato &vibrato, const ChannelState *channel = nullptr);
 
-  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const Envelope &env, const Vibrato &vibrato, Hertz tuning,
-             const ChannelState *channel = nullptr);
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time, const Envelope &env,
+             const Vibrato &vibrato, Hertz tuning, const ChannelState *channel = nullptr);
 
-  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const Instrument &instrument, Hertz tuning,
-             const ChannelState *channel = nullptr);
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time, const Instrument &instrument,
+             Hertz tuning, const ChannelState *channel = nullptr);
 
-  void start(uint8_t number, EnvelopeLevel amplitude, Duration time,
-             const Envelope &env, Hertz tuning,
-             const ChannelState *channel = nullptr);
+  void start(uint8_t number, EnvelopeLevel amplitude, Duration time, const Envelope &env,
+             Hertz tuning, const ChannelState *channel = nullptr);
   void release(Duration time);
 
   void off();

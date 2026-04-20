@@ -32,8 +32,7 @@ void input(void *) {
   });
   uint8_t buffer[256];
   while (true) {
-    size_t read =
-        xStreamBufferReceive(stream, buffer, sizeof(buffer), portMAX_DELAY);
+    size_t read = xStreamBufferReceive(stream, buffer, sizeof(buffer), portMAX_DELAY);
 
     if (read) {
       playback.acquire();
@@ -60,8 +59,8 @@ void output(void *pvParams) {
     playback.acquire();
     auto now = esp_timer_get_time();
     auto left = now - processed;
-    auto budget = Duration16::micros(static_cast<uint16_t>(
-        std::min<int64_t>(left, std::numeric_limits<uint16_t>::max())));
+    auto budget = Duration16::micros(
+        static_cast<uint16_t>(std::min<int64_t>(left, std::numeric_limits<uint16_t>::max())));
     playback.sample_all(budget, buffer);
     playback.release();
 
@@ -84,9 +83,8 @@ void output(void *pvParams) {
 
 #if CONFIG_TESLASYNTH_DEBUG
     if (counter++ % 100 == 0) {
-      ESP_LOGI(TAG,
-               "Render stats, min: %u, max: %u, total: %u, avg: %u, ctr: %u",
-               min_i, max_i, total, total / counter, counter);
+      ESP_LOGI(TAG, "Render stats, min: %u, max: %u, total: %u, avg: %u, ctr: %u", min_i, max_i,
+               total, total / counter, counter);
     }
 #endif
   }
@@ -102,16 +100,15 @@ StreamBufferHandle_t init(PlaybackHandle handle) {
   }
   playback = handle;
 
-  constexpr BaseType_t app_core =
-      CONFIG_FREERTOS_NUMBER_OF_CORES > 1 ? 1 : tskNO_AFFINITY;
+  constexpr BaseType_t app_core = CONFIG_FREERTOS_NUMBER_OF_CORES > 1 ? 1 : tskNO_AFFINITY;
   constexpr size_t stack_size = 8 * 1024;
-  if (xTaskCreatePinnedToCore(input, "Input", stack_size, nullptr, 10, nullptr,
-                              app_core) != pdPASS) {
+  if (xTaskCreatePinnedToCore(input, "Input", stack_size, nullptr, 10, nullptr, app_core) !=
+      pdPASS) {
     ESP_LOGE(TAG, "Couldn't create Input task!");
     return nullptr;
   }
-  if (xTaskCreatePinnedToCore(output, "Output", stack_size, nullptr, 10,
-                              nullptr, app_core) != pdPASS) {
+  if (xTaskCreatePinnedToCore(output, "Output", stack_size, nullptr, 10, nullptr, app_core) !=
+      pdPASS) {
     ESP_LOGE(TAG, "Couldn't create Output task!");
     return nullptr;
   }

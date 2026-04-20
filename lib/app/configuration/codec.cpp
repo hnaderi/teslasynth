@@ -52,16 +52,14 @@ Decoder<DutyCycle> parse_duty(const JSONParser::JSONObjectView &j) {
     return "Invalid dutycycle";
 }
 
-Decoder<JSONParser::JSONArrayView>
-parse_array(const JSONParser::JSONObjectView &j) {
+Decoder<JSONParser::JSONArrayView> parse_array(const JSONParser::JSONObjectView &j) {
   if (j.is_arr())
     return j.arr();
   else
     return "Not an array";
 }
 
-Decoder<std::optional<uint8_t>>
-parse_instrument(const JSONParser::JSONObjectView &j) {
+Decoder<std::optional<uint8_t>> parse_instrument(const JSONParser::JSONObjectView &j) {
   if (j.is_null())
     return std::optional<uint8_t>();
   else if (j.is_number())
@@ -177,8 +175,7 @@ namespace decoders {
 
 Decoder<gpio_num_t> gpio(const JSONParser::JSONObjectView &j) {
   auto nn = j.number();
-  if (nn.has_value() && *nn < gpio_num_t::GPIO_NUM_MAX &&
-      *nn >= gpio_num_t::GPIO_NUM_NC) {
+  if (nn.has_value() && *nn < gpio_num_t::GPIO_NUM_MAX && *nn >= gpio_num_t::GPIO_NUM_NC) {
     return static_cast<gpio_num_t>(*nn);
   } else
     return "";
@@ -216,9 +213,7 @@ Decoder<OutputConfig> hardware_output(JSONParser::JSONObjectView obj) {
 }
 
 Decoder<hardware::InputConfig> hardware_input(JSONParser::JSONObjectView obj) {
-  return gpio(obj.get("pin")).map([](gpio_num_t p) {
-    return hardware::InputConfig{p};
-  });
+  return gpio(obj.get("pin")).map([](gpio_num_t p) { return hardware::InputConfig{p}; });
 }
 Decoder<hardware::LEDConfig> hardware_led(JSONParser::JSONObjectView obj) {
   LEDConfig led;

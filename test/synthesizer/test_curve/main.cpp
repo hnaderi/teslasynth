@@ -8,8 +8,7 @@
 using namespace teslasynth::synth;
 
 void test_curve_lin_positive(void) {
-  Curve curve =
-      Curve(EnvelopeLevel(0), EnvelopeLevel(1), 10_ms, CurveType::Lin);
+  Curve curve = Curve(EnvelopeLevel(0), EnvelopeLevel(1), 10_ms, CurveType::Lin);
   assert_level_equal(curve.update(1_ms), EnvelopeLevel(0.1));
   assert_level_equal(curve.update(1_ms), EnvelopeLevel(0.2));
   TEST_ASSERT_FALSE(curve.is_target_reached());
@@ -23,8 +22,7 @@ void test_curve_lin_positive(void) {
   TEST_ASSERT_TRUE(curve.is_target_reached());
 }
 void test_curve_lin_positive2(void) {
-  Curve curve =
-      Curve(EnvelopeLevel(0.35), EnvelopeLevel(1), 65_ms, CurveType::Lin);
+  Curve curve = Curve(EnvelopeLevel(0.35), EnvelopeLevel(1), 65_ms, CurveType::Lin);
   assert_level_equal(curve.update(5_ms), EnvelopeLevel(0.4));
   assert_level_equal(curve.update(10_ms), EnvelopeLevel(0.5));
   TEST_ASSERT_FALSE(curve.is_target_reached());
@@ -36,16 +34,14 @@ void test_curve_lin_positive2(void) {
   TEST_ASSERT_TRUE(curve.is_target_reached());
 }
 void test_curve_lin_positive3(void) {
-  Curve curve =
-      Curve(EnvelopeLevel(0), EnvelopeLevel(1), 10_ms, CurveType::Lin);
+  Curve curve = Curve(EnvelopeLevel(0), EnvelopeLevel(1), 10_ms, CurveType::Lin);
   assert_level_equal(curve.update(5_ms), EnvelopeLevel(0.5));
   TEST_ASSERT_FALSE(curve.is_target_reached());
   assert_level_equal(curve.update(5_ms), EnvelopeLevel(1));
   TEST_ASSERT_TRUE(curve.is_target_reached());
 }
 void test_curve_lin_negative(void) {
-  Curve curve =
-      Curve(EnvelopeLevel(1), EnvelopeLevel(0.2), 10_ms, CurveType::Lin);
+  Curve curve = Curve(EnvelopeLevel(1), EnvelopeLevel(0.2), 10_ms, CurveType::Lin);
   assert_level_equal(curve.update(5_ms), EnvelopeLevel(0.6));
   TEST_ASSERT_FALSE(curve.is_target_reached());
 
@@ -59,8 +55,7 @@ void test_curve_lin_negative(void) {
 }
 
 void test_curve_lin_negative2(void) {
-  Curve curve =
-      Curve(EnvelopeLevel(1), EnvelopeLevel(0.7), 100_ms, CurveType::Lin);
+  Curve curve = Curve(EnvelopeLevel(1), EnvelopeLevel(0.7), 100_ms, CurveType::Lin);
   assert_level_equal(curve.update(50_ms), EnvelopeLevel(0.85));
   TEST_ASSERT_FALSE(curve.is_target_reached());
 
@@ -68,8 +63,7 @@ void test_curve_lin_negative2(void) {
   TEST_ASSERT_TRUE(curve.is_target_reached());
 }
 void test_curve_lin_negative_small(void) {
-  Curve curve =
-      Curve(EnvelopeLevel(1), EnvelopeLevel(0.65), 10_ms, CurveType::Lin);
+  Curve curve = Curve(EnvelopeLevel(1), EnvelopeLevel(0.65), 10_ms, CurveType::Lin);
   assert_level_equal(curve.update(5_us), EnvelopeLevel(1));
   TEST_ASSERT_FALSE(curve.is_target_reached());
 
@@ -99,8 +93,7 @@ void test_curve_exp_positive(void) {
   TEST_ASSERT_TRUE(curve.is_target_reached());
 }
 void test_curve_exp_negative(void) {
-  Curve curve =
-      Curve(EnvelopeLevel(1), EnvelopeLevel(0.4), 50_ms, CurveType::Exp);
+  Curve curve = Curve(EnvelopeLevel(1), EnvelopeLevel(0.4), 50_ms, CurveType::Exp);
   assert_level_equal(curve.update(1_ms), EnvelopeLevel(0.922));
   TEST_ASSERT_FALSE(curve.is_target_reached());
 
@@ -112,8 +105,7 @@ void test_curve_exp_negative(void) {
 }
 
 void test_curve_must_be_only_time_dependent_after_creation(void) {
-  Curve curve =
-      Curve(EnvelopeLevel(1), EnvelopeLevel(1), 100_ms, CurveType::Exp);
+  Curve curve = Curve(EnvelopeLevel(1), EnvelopeLevel(1), 100_ms, CurveType::Exp);
 
   TEST_ASSERT_FALSE(curve.how_much_remains_after(7_us));
   assert_level_equal(curve.update(7_us), EnvelopeLevel(1));
@@ -130,16 +122,14 @@ void test_curve_must_be_only_time_dependent_after_creation(void) {
 
 void test_curve_constant(void) {
   Curve curve = Curve(EnvelopeLevel(0.6));
-  TEST_ASSERT_FALSE_MESSAGE(curve.is_target_reached(),
-                            "Constant curve never reaches target!");
+  TEST_ASSERT_FALSE_MESSAGE(curve.is_target_reached(), "Constant curve never reaches target!");
   TEST_ASSERT_FALSE_MESSAGE(curve.how_much_remains_after(10_s).has_value(),
                             "Constant curve never reaches target!");
   assert_level_equal(curve.update(0_us), EnvelopeLevel(0.6));
 }
 void test_curve_constant_zero(void) {
   Curve curve = Curve(EnvelopeLevel(0));
-  TEST_ASSERT_FALSE_MESSAGE(curve.is_target_reached(),
-                            "Constant curve never reaches target!");
+  TEST_ASSERT_FALSE_MESSAGE(curve.is_target_reached(), "Constant curve never reaches target!");
   TEST_ASSERT_FALSE_MESSAGE(curve.how_much_remains_after(10_s).has_value(),
                             "Constant curve never reaches target!");
   assert_level_equal(curve.update(0_us), EnvelopeLevel(0));
@@ -161,4 +151,6 @@ extern "C" void app_main(void) {
   UNITY_END();
 }
 
-int main(int argc, char **argv) { app_main(); }
+int main(int argc, char **argv) {
+  app_main();
+}

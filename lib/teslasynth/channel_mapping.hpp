@@ -25,12 +25,8 @@ public:
   }
   constexpr operator uint8_t() const { return value_; }
 
-  constexpr bool operator==(const OutputNumber<OUTPUTS> &b) const {
-    return value_ == b.value_;
-  }
-  constexpr bool operator!=(const OutputNumber<OUTPUTS> &b) const {
-    return value_ != b.value_;
-  }
+  constexpr bool operator==(const OutputNumber<OUTPUTS> &b) const { return value_ == b.value_; }
+  constexpr bool operator!=(const OutputNumber<OUTPUTS> &b) const { return value_ != b.value_; }
 };
 
 template <std::uint8_t OUTPUTS> class OutputNumberOpt final {
@@ -41,9 +37,7 @@ public:
   constexpr OutputNumberOpt() : value_(-1) {}
   constexpr OutputNumberOpt(int8_t value) : value_(value) {}
 
-  constexpr bool has_value() const {
-    return OutputNumber<OUTPUTS>::is_valid(value_);
-  }
+  constexpr bool has_value() const { return OutputNumber<OUTPUTS>::is_valid(value_); }
   constexpr operator bool() const { return has_value(); }
   constexpr uint8_t max() const { return OUTPUTS; }
   constexpr std::optional<OutputNumber<OUTPUTS>> value() const {
@@ -55,12 +49,8 @@ public:
   constexpr bool operator!=(const OutputNumberOpt<OUTPUTS> &b) const {
     return value() != b.value();
   }
-  constexpr bool operator==(int b) const {
-    return value() == OutputNumber<OUTPUTS>::from(b);
-  }
-  constexpr bool operator!=(int b) const {
-    return value() != OutputNumber<OUTPUTS>::from(b);
-  }
+  constexpr bool operator==(int b) const { return value() == OutputNumber<OUTPUTS>::from(b); }
+  constexpr bool operator!=(int b) const { return value() != OutputNumber<OUTPUTS>::from(b); }
   inline operator std::string() const {
     if (has_value())
       return std::to_string(value_);
@@ -80,13 +70,10 @@ public:
     }
   }
   ChannelMapping(const Mapping &mapping) : data_(mapping) {}
-  constexpr const OutputNumberOpt<OUTPUTS> &
-  operator[](midi::MidiChannelNumber ch) const {
+  constexpr const OutputNumberOpt<OUTPUTS> &operator[](midi::MidiChannelNumber ch) const {
     return data_[ch.value];
   }
-  OutputNumberOpt<OUTPUTS> &operator[](midi::MidiChannelNumber ch) {
-    return data_[ch.value];
-  }
+  OutputNumberOpt<OUTPUTS> &operator[](midi::MidiChannelNumber ch) { return data_[ch.value]; }
   constexpr const Mapping &data() const { return data_; }
   constexpr auto size() const { return data_.size(); }
   constexpr auto begin() { return data_.begin(); }
@@ -100,9 +87,7 @@ class InstrumentMapping final {
   Mapping data_{};
 
 public:
-  constexpr const uint8_t &operator[](midi::MidiChannelNumber ch) const {
-    return data_[ch.value];
-  }
+  constexpr const uint8_t &operator[](midi::MidiChannelNumber ch) const { return data_[ch.value]; }
   uint8_t &operator[](midi::MidiChannelNumber ch) { return data_[ch.value]; }
   constexpr const Mapping &data() const { return data_; }
 };
@@ -112,13 +97,10 @@ class MidiChannels final {
   Mapping data_{};
 
 public:
-  constexpr const synth::ChannelState &
-  operator[](midi::MidiChannelNumber ch) const {
+  constexpr const synth::ChannelState &operator[](midi::MidiChannelNumber ch) const {
     return data_[ch.value];
   }
-  synth::ChannelState &operator[](midi::MidiChannelNumber ch) {
-    return data_[ch.value];
-  }
+  synth::ChannelState &operator[](midi::MidiChannelNumber ch) { return data_[ch.value]; }
   constexpr auto size() const { return data_.size(); }
   constexpr auto begin() const { return data_.begin(); }
   constexpr auto end() const { return data_.end(); }
