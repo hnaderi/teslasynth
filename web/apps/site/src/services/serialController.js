@@ -29,7 +29,7 @@ export function createSerialController(transport, { onData, onDisconnect }) {
             if (writer) {
                 await writer.write(data);
             }
-        } catch (e) {
+        } catch {
             close();
         }
     }
@@ -41,7 +41,7 @@ export function createSerialController(transport, { onData, onDisconnect }) {
         try {
             writer?.releaseLock();
             transport.disconnect();
-        } catch {}
+        } catch { /* ignore cleanup errors */ }
 
         onDisconnect?.();
     }

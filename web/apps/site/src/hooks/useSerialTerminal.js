@@ -26,5 +26,6 @@ export function useSerialTerminal({ term, transport, controllerRef }) {
             controller.close();
             controllerRef.current = null;
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- controllerRef is a stable ref object, intentionally omitted
     }, [term, transport]);
 }
