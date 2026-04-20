@@ -109,8 +109,6 @@ void init(const OutputConfig &config) {
           {
               .invert_out = false,
               .with_dma = false,
-              .io_loop_back = false,
-              .io_od_mode = false,
               .allow_pd = false,
           },
   };

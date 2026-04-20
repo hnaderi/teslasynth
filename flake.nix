@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs-esp-dev.url = "github:mirrexagon/nixpkgs-esp-dev";
+    nixpkgs-esp-dev.url = "github:HTunne/nixpkgs-esp-dev";
   };
 
   outputs =
@@ -18,10 +18,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        esp-idf = nixpkgs-esp-dev.packages.${system}.esp-idf-full.override {
-          rev = "v6.0";
-          sha256 = "sha256-YhON/zUFOVTh8UEvujAXsd9IPaaNmSIP+dSZDE5fyqw=";
-        };
+        esp-idf = nixpkgs-esp-dev.packages.${system}.esp-idf-full;
       in
       {
         devShells.default = pkgs.mkShell {

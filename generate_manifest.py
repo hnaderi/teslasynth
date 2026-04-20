@@ -53,7 +53,7 @@ def generate_manifest(build_dir: Path, out_dir: Path, version: str):
             if not filename:
                 fail(f"Unknown flash file mapping for '{logical_path}'")
 
-            src_path = current_path / filename
+            src_path = current_path / logical_path
             dest_filename = f"{directory}-{filename}"
             dest_path = out_dir / dest_filename
             shutil.copy(src_path, dest_path)
@@ -80,7 +80,7 @@ def calculate_version():
 
 if __name__ == "__main__":
     build_dir = (
-        Path(sys.argv[1]) if len(sys.argv) >= 2 else Path(".pio", "build").resolve()
+        Path(sys.argv[1]) if len(sys.argv) >= 2 else Path("build").resolve()
     )
     dist_dir = Path("dist").resolve()
     version = sys.argv[2] if len(sys.argv) == 3 else calculate_version()
