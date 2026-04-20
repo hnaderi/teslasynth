@@ -50,7 +50,6 @@
             pnpm
 
             # Tooling
-            clang-tools
             ruff
             xxd
             copywrite
