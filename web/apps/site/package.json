@@ -10,6 +10,8 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@mdx-js/preact": "^3.1.1",
+    "@mdx-js/rollup": "^3.1.1",
     "@teslasynth/ui": "workspace:*",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",

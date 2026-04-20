@@ -1,12 +1,11 @@
 import { useEffect } from "preact/hooks";
 import { Logo } from "@teslasynth/ui/components/Logo";
 import { Router, route } from 'preact-router';
+import { MDXProvider } from '@mdx-js/preact';
 import { Home } from './Home';
-import { DocPage } from './Docs';
+import GettingStarted from './content/getting_started.mdx';
 import { Console } from "./WebConsole";
 import { FirmwareFlasher } from "./Flasher";
-
-import getting_started from './content/getting_started.md?raw';
 
 export default function App() {
     const BASE_URL = import.meta.env.BASE_URL
@@ -26,7 +25,7 @@ export default function App() {
     }, []);
 
     return (
-        <>
+        <MDXProvider components={{ wrapper: ({ children }) => <article>{children}</article> }}>
             <nav>
                 <ul>
                     <Logo size={100} />
@@ -41,11 +40,11 @@ export default function App() {
             <main class="container">
                 <Router>
                     <Home path={home_url} />
-                    <DocPage path={getting_started_url} content={getting_started} />
+                    <GettingStarted path={getting_started_url} />
                     <Console path={console_url} />
                     <FirmwareFlasher path={flasher_url} />
                 </Router>
             </main>
-        </>
+        </MDXProvider>
     );
 }

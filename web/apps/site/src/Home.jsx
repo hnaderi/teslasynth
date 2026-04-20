@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { InstallButton } from './components/InstallButton';
-import { DocPage } from './Docs';
-import intro from './content/intro.md?raw';
+import Intro from './content/intro.mdx';
 
 const CATALOG_BASE = 'https://cdn.jsdelivr.net/gh/hnaderi/teslasynth@firmware';
 
@@ -44,7 +43,7 @@ function LatestFirmwareInstall() {
 export function Home({ path }) {
     return (
         <>
-            <DocPage path={path} content={intro} />
+            <Intro />
             <LatestFirmwareInstall />
         </>
     );
