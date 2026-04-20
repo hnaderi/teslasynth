@@ -17,50 +17,50 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        board:
-          - esp32
-          - s2-mini
-          - s3
+        target: [esp32, esp32s2, esp32s3]
+
     steps:
-      - run: gcc --version
-        name: Show gcc version
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
+
       - name: Show version
         run: git describe
+
       - uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache/pip
-            ~/.platformio/.cache
-          key: ${{ runner.os }}-pio
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+          path: managed_components
+          key: ${{ runner.os }}-managed-${{ matrix.target }}-${{ hashFiles('lib/app/idf_component.yml') }}
+
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           cache: true
 
-      - name: Install PlatformIO Core
-        run: pip install --upgrade platformio
       - run: pnpm install
 
-      - name: build dashboard
+      - name: Build dashboard
         run: pnpm build:dashboard
-      - name: Build PlatformIO Project
-        run: pio run -e ${{ matrix.board }}
+
+      - name: Build firmware
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/project \
+            -w /project \
+            espressif/idf:v6.0 \
+            idf.py -B build/${{ matrix.target }} -DIDF_TARGET=${{ matrix.target }} build
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v6
         with:
-          name: ${{ matrix.board }}
+          name: ${{ matrix.target }}
           path: |
-            .pio/build/${{ matrix.board }}/*.bin
-            .pio/build/${{ matrix.board }}/flasher_args.json
+            build/${{ matrix.target }}/teslasynth.bin
+            build/${{ matrix.target }}/bootloader/bootloader.bin
+            build/${{ matrix.target }}/partition_table/partition-table.bin
+            build/${{ matrix.target }}/flasher_args.json
 
   python-test:
     name: Python tests (${{ matrix.os }})
@@ -107,7 +107,7 @@ jobs:
         run: pip install --upgrade platformio
 
       - name: Run linting checks
-        run: pio check
+        run: pio check -e native
 
       - name: Run tests
         run: pio test -e native --verbose
@@ -123,7 +123,7 @@ jobs:
           cache: true
       - run: pnpm install
 
-      - name: build website
+      - name: Build website
         run: pnpm build:site
 
       - name: Publish site
@@ -179,6 +179,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+
       - uses: actions/download-artifact@v7
         with:
           path: build
@@ -221,7 +222,7 @@ jobs:
             wheelhouse/*.whl
 
       - name: Generate version catalog
-        run: git tag --list 'v*' --sort=-version:refname |  jq -R . | jq -s . > _catalog.json
+        run: git tag --list 'v*' --sort=-version:refname | jq -R . | jq -s . > _catalog.json
 
       - name: Checkout firmware branch
         uses: actions/checkout@v6
