@@ -19,6 +19,24 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         esp-idf = nixpkgs-esp-dev.packages.${system}.esp-idf-full;
+        format-cpp = pkgs.writeShellScriptBin "format-cpp" ''
+          git ls-files -- '*.cpp' '*.c' '*.hpp' '*.h' | xargs clang-format -i
+        '';
+        format-cpp-check = pkgs.writeShellScriptBin "format-cpp-check" ''
+          git ls-files -- '*.cpp' '*.c' '*.hpp' '*.h' | xargs clang-format --dry-run --Werror
+        '';
+        fw-build = pkgs.writeShellScriptBin "fw-build" ''
+          : ''${1:?Usage: fw-build <target>  (e.g. fw-build esp32s3)}
+          idf.py -B build/$1 -D IDF_TARGET=$1 build
+        '';
+        fw-flash = pkgs.writeShellScriptBin "fw-flash" ''
+          : ''${1:?Usage: fw-flash <target>  (e.g. fw-flash esp32s3)}
+          idf.py -B build/$1 flash
+        '';
+        fw-monitor = pkgs.writeShellScriptBin "fw-monitor" ''
+          : ''${1:?Usage: fw-monitor <target>  (e.g. fw-monitor esp32s3)}
+          idf.py -B build/$1 monitor
+        '';
       in
       {
         devShells.default = pkgs.mkShell {
@@ -43,11 +61,13 @@
             # MIDI testing
             rosegarden
             alsa-utils
-          ];
 
-          shellHook = ''
-            source ${esp-idf}/activate
-          '';
+            format-cpp
+            format-cpp-check
+            fw-build
+            fw-flash
+            fw-monitor
+          ];
         };
       }
     );
