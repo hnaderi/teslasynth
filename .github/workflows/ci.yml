@@ -111,6 +111,30 @@ jobs:
       - name: Run tests
         run: pio test -e native --verbose
 
+  firmware-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check clang-format
+        run: |
+          git ls-files -- '*.cpp' '*.c' '*.hpp' '*.h' \
+            | xargs clang-format --dry-run --Werror
+
+  python-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --group dev --no-build-isolation
+        working-directory: python
+      - name: Ruff lint
+        run: uv run ruff check .
+        working-directory: python
+      - name: Ruff format check
+        run: uv run ruff format --check .
+        working-directory: python
+
   web-lint:
     runs-on: ubuntu-latest
     steps:
@@ -148,6 +172,7 @@ jobs:
 
   python-wheels:
     name: Python wheels (${{ matrix.os }})
+    needs: [python-lint]
     if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ${{ matrix.os }}
     strategy:
@@ -183,7 +208,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
-    needs: [build, test, python-test, python-wheels]
+    needs: [build, test, python-test, python-wheels, firmware-lint, python-lint, web-lint]
     permissions:
       contents: write
       id-token: write
