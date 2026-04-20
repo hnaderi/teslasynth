@@ -2,14 +2,25 @@
 Convert mido MIDI messages to MidiChannelMessage and drive the synth from a
 .mid file, yielding pulses in fixed-size time steps.
 """
+
 from __future__ import annotations
 
-from typing import Generator
+from typing import Generator, NamedTuple
 
 import mido
 
 from ._teslasynth import MidiChannelMessage, Teslasynth
 from ._types import NoteEvent
+
+
+class _NoteKey(NamedTuple):
+    channel: int
+    note: int
+
+
+class _PendingNote(NamedTuple):
+    start_us: int
+    velocity: int
 
 
 def from_mido(msg: mido.Message) -> MidiChannelMessage | None:
@@ -48,7 +59,9 @@ def _build_tempo_map(mid: mido.MidiFile) -> list[tuple[int, int]]:
     return changes
 
 
-def _ticks_to_us(abs_tick: int, ticks_per_beat: int, tempo_map: list[tuple[int, int]]) -> int:
+def _ticks_to_us(
+    abs_tick: int, ticks_per_beat: int, tempo_map: list[tuple[int, int]]
+) -> int:
     """Convert an absolute tick position to microseconds using a global tempo map."""
     us = 0
     prev_tick, prev_tempo = 0, 500_000
@@ -103,7 +116,9 @@ def render_file(
         return
 
     raw.sort(key=lambda x: x[0])
-    events = [(_ticks_to_us(tick, mid.ticks_per_beat, tempo_map), cm) for tick, cm in raw]
+    events = [
+        (_ticks_to_us(tick, mid.ticks_per_beat, tempo_map), cm) for tick, cm in raw
+    ]
     total_us = events[-1][0]
 
     event_idx = 0
@@ -162,33 +177,40 @@ def notes_from_midi(path: str) -> list[NoteEvent]:
                 events.append((abs_ticks, msg))
     events.sort(key=lambda x: x[0])
 
-    pending: dict[tuple[int, int], tuple[int, int]] = {}  # (ch, note) -> (start_us, vel)
+    pending: dict[_NoteKey, _PendingNote] = {}
     notes: list[NoteEvent] = []
 
     for abs_ticks, msg in events:
         time_us = _ticks_to_us(abs_ticks, mid.ticks_per_beat, tempo_map)
-        key = (msg.channel, msg.note)
+        key = _NoteKey(msg.channel, msg.note)
         if msg.type == "note_on" and msg.velocity > 0:
-            pending[key] = (time_us, msg.velocity)
+            pending[key] = _PendingNote(time_us, msg.velocity)
         else:
             if key in pending:
-                start_us, velocity = pending.pop(key)
-                notes.append(NoteEvent(
-                    channel=msg.channel,
-                    note=msg.note,
-                    velocity=velocity,
-                    start_us=start_us,
-                    end_us=time_us,
-                ))
+                p = pending.pop(key)
+                notes.append(
+                    NoteEvent(
+                        channel=key.channel,
+                        note=key.note,
+                        velocity=p.velocity,
+                        start_us=p.start_us,
+                        end_us=time_us,
+                    )
+                )
 
     # Close any notes still open at end of file
     if events:
         tail_us = _ticks_to_us(events[-1][0], mid.ticks_per_beat, tempo_map)
-        for (ch, note), (start_us, velocity) in pending.items():
-            notes.append(NoteEvent(
-                channel=ch, note=note, velocity=velocity,
-                start_us=start_us, end_us=tail_us,
-            ))
+        for key, p in pending.items():
+            notes.append(
+                NoteEvent(
+                    channel=key.channel,
+                    note=key.note,
+                    velocity=p.velocity,
+                    start_us=p.start_us,
+                    end_us=tail_us,
+                )
+            )
 
     notes.sort(key=lambda n: n.start_us)
     return notes

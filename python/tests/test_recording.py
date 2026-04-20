@@ -5,7 +5,9 @@ All data is constructed directly from numpy arrays — no MIDI rendering needed,
 but the C++ extension must be importable (render.py imports Teslasynth at the
 module level).
 """
+
 import pytest
+
 from .conftest import requires_extension
 
 
@@ -27,6 +29,7 @@ class TestStartTimes:
 
     def test_monotonically_increasing(self, recording_440hz):
         import numpy as np
+
         times = recording_440hz.start_times_us
         assert np.all(np.diff(times) > 0)
 
@@ -39,8 +42,11 @@ class TestDurationUs:
 
     def test_sum_of_pulse_lengths(self, recording_440hz):
         import numpy as np
+
         pulses = recording_440hz.pulses
-        expected = int((pulses[:, 0].astype(np.int64) + pulses[:, 1].astype(np.int64)).sum())
+        on = pulses[:, 0].astype(np.int64)
+        off = pulses[:, 1].astype(np.int64)
+        expected = int((on + off).sum())
         assert recording_440hz.duration_us == expected
 
 
@@ -54,6 +60,7 @@ class TestDutyCycle:
 
     def test_silence_pulse_duty_is_zero(self, recording_440hz):
         import numpy as np
+
         duty = recording_440hz.duty_cycle
         silent = recording_440hz.pulses[:, 0] == 0
         assert np.all(duty[silent] == 0.0)

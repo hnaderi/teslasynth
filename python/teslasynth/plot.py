@@ -8,6 +8,7 @@ Time parameters are always in **milliseconds** (user-facing API).
 All x-axis data is stored in **microseconds**. Ticks always show exact integer
 µs values (e.g. "1500 µs") at any zoom level — no unit conversion ambiguity.
 """
+
 from __future__ import annotations
 
 from typing import Iterable
@@ -15,8 +16,12 @@ from typing import Iterable
 import numpy as np
 
 from ._teslasynth import Envelope, EnvelopeEngine, InstrumentId, PercussionId
-from ._types import (InstrumentInfo, NoteEvent, PercussionInfo,
-                     get_all_instruments, get_instrument, get_percussion)
+from ._types import (
+    NoteEvent,
+    get_all_instruments,
+    get_instrument,
+    get_percussion,
+)
 from .render import Recording
 
 
@@ -24,18 +29,31 @@ def _plotly():
     try:
         import plotly.graph_objects as go
         from plotly.subplots import make_subplots
+
         return go, make_subplots
     except ImportError as e:
         raise ImportError(
-            "plotly is required for visualization. "
-            "Install it with: pip install plotly"
+            "plotly is required for visualization. Install it with: pip install plotly"
         ) from e
 
 
 _CHANNEL_COLORS = [
-    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-    "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
-    "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94",
+    "#1f77b4",
+    "#ff7f0e",
+    "#2ca02c",
+    "#d62728",
+    "#9467bd",
+    "#8c564b",
+    "#e377c2",
+    "#7f7f7f",
+    "#bcbd22",
+    "#17becf",
+    "#aec7e8",
+    "#ffbb78",
+    "#98df8a",
+    "#ff9896",
+    "#c5b0d5",
+    "#c49c94",
 ]
 
 
@@ -60,6 +78,7 @@ def _time_axis(fig, row=None, col=None, **extra) -> None:
 # Internal helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _build_signal_trace(
     recording: Recording,
     start_ms: float,
@@ -71,31 +90,31 @@ def _build_signal_trace(
     O(pulses in window) — efficient for any recording length.
     """
     start_us = int(start_ms * 1e3)
-    end_us   = int(end_ms   * 1e3)
+    end_us = int(end_ms * 1e3)
 
-    times  = recording.start_times_us
-    on_us  = recording.pulses[:, 0].astype(np.int64)
+    times = recording.start_times_us
+    on_us = recording.pulses[:, 0].astype(np.int64)
     off_us = recording.pulses[:, 1].astype(np.int64)
-    end_t  = times + on_us + off_us
+    end_t = times + on_us + off_us
 
     in_win = (end_t > start_us) & (times < end_us)
-    idx    = np.where(in_win)[0]
+    idx = np.where(in_win)[0]
 
     xs: list = []
     ys: list = []
     prev = start_us
 
     for i in idx:
-        t0  = int(times[i])
+        t0 = int(times[i])
         ton = int(times[i] + on_us[i])
-        t1  = int(end_t[i])
+        t1 = int(end_t[i])
 
         if t0 > prev:
             xs += [prev, t0]
             ys += [0.0, 0.0]
 
         if on_us[i] > 0:
-            xs += [t0,  t0,  ton, ton]
+            xs += [t0, t0, ton, ton]
             ys += [0.0, 1.0, 1.0, 0.0]
 
         prev = t1
@@ -113,8 +132,8 @@ def _compute_envelope(
     dt_ms: float = 0.2,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Step the C++ EnvelopeEngine; return (time_us, amplitude) arrays."""
-    eng     = EnvelopeEngine(instrument_id)
-    dt_us   = max(1, int(dt_ms * 1000))
+    eng = EnvelopeEngine(instrument_id)
+    dt_us = max(1, int(dt_ms * 1000))
     note_us = int(note_duration_ms * 1000)
 
     t_us: list[float] = []
@@ -133,6 +152,7 @@ def _compute_envelope(
 # ─────────────────────────────────────────────────────────────────────────────
 # Envelope plots
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def plot_envelope(
     instrument_id: InstrumentId | PercussionId,
@@ -156,12 +176,15 @@ def plot_envelope(
     t, amp = _compute_envelope(instrument_id, hold_ms)
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=t, y=amp,
-        mode="lines",
-        name=info.name,
-        line=dict(width=2),
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=t,
+            y=amp,
+            mode="lines",
+            name=info.name,
+            line=dict(width=2),
+        )
+    )
     _add_envelope_markers(fig, info.envelope, hold_ms)
     _time_axis(fig)
     fig.update_layout(
@@ -211,22 +234,32 @@ def _add_envelope_markers(fig, env: Envelope, note_duration_ms: float) -> None:
         return
     boundaries = {
         "Attack end": env.attack_ms * 1000,
-        "Decay end":  (env.attack_ms + env.decay_ms) * 1000,
-        "Release":    (env.attack_ms + env.decay_ms + note_duration_ms) * 1000,
+        "Decay end": (env.attack_ms + env.decay_ms) * 1000,
+        "Release": (env.attack_ms + env.decay_ms + note_duration_ms) * 1000,
     }
     for label, x in boundaries.items():
         if x > 0:
-            fig.add_vline(x=x, line_dash="dot", line_color="grey",
-                          annotation_text=label, annotation_position="top right")
+            fig.add_vline(
+                x=x,
+                line_dash="dot",
+                line_color="grey",
+                annotation_text=label,
+                annotation_position="top right",
+            )
     if env.type == "adsr" and env.sustain > 0:
-        fig.add_hline(y=env.sustain, line_dash="dot", line_color="green",
-                      annotation_text=f"Sustain ({env.sustain:.2f})",
-                      annotation_position="bottom right")
+        fig.add_hline(
+            y=env.sustain,
+            line_dash="dot",
+            line_color="green",
+            annotation_text=f"Sustain ({env.sustain:.2f})",
+            annotation_position="bottom right",
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Piano roll
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def plot_piano_roll(
     notes: list[NoteEvent],
@@ -259,11 +292,15 @@ def plot_piano_roll(
         for n in ch_notes:
             xs += [n.start_us, n.end_us, None]
             ys += [n.note, n.note, None]
-        fig.add_trace(go.Scatter(
-            x=xs, y=ys, mode="lines",
-            line=dict(width=4, color=_channel_color(ch)),
-            name=f"Ch {ch}",
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=xs,
+                y=ys,
+                mode="lines",
+                line=dict(width=4, color=_channel_color(ch)),
+                name=f"Ch {ch}",
+            )
+        )
 
     note_nums = [n.note for n in visible] or [0, 127]
     _time_axis(fig)
@@ -273,16 +310,19 @@ def plot_piano_roll(
         yaxis=dict(range=[min(note_nums) - 2, max(note_nums) + 2]),
     )
     if start_ms is not None or end_ms is not None:
-        fig.update_xaxes(range=[
-            (start_ms or 0.0) * 1000,
-            (end_ms   or 0.0) * 1000,
-        ])
+        fig.update_xaxes(
+            range=[
+                (start_ms or 0.0) * 1000,
+                (end_ms or 0.0) * 1000,
+            ]
+        )
     return fig
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Recording plots
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def plot_signal(
     recording: Recording,
@@ -301,15 +341,18 @@ def plot_signal(
         Time window in milliseconds.
     """
     go, _ = _plotly()
-    xs, ys  = _build_signal_trace(recording, start_ms, end_ms)
+    xs, ys = _build_signal_trace(recording, start_ms, end_ms)
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=xs, y=ys,
-        mode="lines",
-        line=dict(width=1, color="royalblue"),
-        name="Coil signal",
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=xs,
+            y=ys,
+            mode="lines",
+            line=dict(width=1, color="royalblue"),
+            name="Coil signal",
+        )
+    )
     _time_axis(fig)
     fig.update_layout(
         title=f"Coil output — {start_ms:.3f} ms to {end_ms:.3f} ms",
@@ -336,15 +379,15 @@ def _freq_from_pulses(
 
     Returns (times_us, freq_hz) arrays filtered to the given window and min_freq.
     """
-    times_us  = recording.start_times_us
-    active    = recording.pulses[:, 0] > 0
-    at_us     = times_us[active].astype(float)
+    times_us = recording.start_times_us
+    active = recording.pulses[:, 0] > 0
+    at_us = times_us[active].astype(float)
     if len(at_us) < 2:
         return np.array([]), np.array([])
-    periods   = np.diff(at_us)
-    freq      = np.where(periods > 0, 1e6 / periods, 0.0)
-    t_us      = (at_us[:-1] + at_us[1:]) / 2.0
-    mask      = (t_us >= start_ms * 1000) & (t_us <= end_ms * 1000) & (freq >= min_freq)
+    periods = np.diff(at_us)
+    freq = np.where(periods > 0, 1e6 / periods, 0.0)
+    t_us = (at_us[:-1] + at_us[1:]) / 2.0
+    mask = (t_us >= start_ms * 1000) & (t_us <= end_ms * 1000) & (freq >= min_freq)
     return t_us[mask], freq[mask]
 
 
@@ -359,14 +402,14 @@ def _duty_by_step(
     step_us-wide window. This matches what max_duty_percent enforces in
     the firmware: total on-time / step duration.
     """
-    step    = recording.step_us
-    times   = recording.start_times_us
-    on_us   = recording.pulses[:, 0].astype(float)
-    idx     = (times // step).astype(np.intp)
+    step = recording.step_us
+    times = recording.start_times_us
+    on_us = recording.pulses[:, 0].astype(float)
+    idx = (times // step).astype(np.intp)
     step_on = np.bincount(idx, weights=on_us)
-    duty    = step_on / step
-    t_us    = (np.arange(len(step_on)) * step + step // 2).astype(float)
-    mask    = (t_us >= start_ms * 1000) & (t_us <= end_ms * 1000)
+    duty = step_on / step
+    t_us = (np.arange(len(step_on)) * step + step // 2).astype(float)
+    mask = (t_us >= start_ms * 1000) & (t_us <= end_ms * 1000)
     return t_us[mask], duty[mask]
 
 
@@ -389,12 +432,15 @@ def plot_frequency(
     t_us, freq = _freq_from_pulses(recording, min_freq=min_freq)
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=t_us, y=freq,
-        mode="markers",
-        marker=dict(size=2, color=freq, colorscale="Viridis"),
-        name="Frequency",
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=t_us,
+            y=freq,
+            mode="markers",
+            marker=dict(size=2, color=freq, colorscale="Viridis"),
+            name="Frequency",
+        )
+    )
     _time_axis(fig)
     fig.update_layout(title="Instantaneous Frequency", yaxis_title="Frequency (Hz)")
     return fig
@@ -411,12 +457,15 @@ def plot_duty_cycle(recording: Recording):
     active = duty > 0
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=t_us[active], y=duty[active] * 100,
-        mode="markers",
-        marker=dict(size=2),
-        name="Duty cycle",
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=t_us[active],
+            y=duty[active] * 100,
+            mode="markers",
+            marker=dict(size=2),
+            name="Duty cycle",
+        )
+    )
     _time_axis(fig)
     fig.update_layout(
         title="Duty Cycle",
@@ -463,7 +512,8 @@ def plot_overview(
         sig_row, freq_row, duty_row = 1, 2, 3
 
     fig = make_subplots(
-        rows=rows, cols=1,
+        rows=rows,
+        cols=1,
         shared_xaxes=True,
         subplot_titles=titles,
         row_heights=row_heights,
@@ -473,10 +523,9 @@ def plot_overview(
     # ── piano roll ────────────────────────────────────────────────────────────
     if has_piano:
         start_us_win = start_ms * 1000
-        end_us_win   = end_ms   * 1000
+        end_us_win = end_ms * 1000
         visible = [
-            n for n in notes
-            if n.end_us >= start_us_win and n.start_us <= end_us_win
+            n for n in notes if n.end_us >= start_us_win and n.start_us <= end_us_win
         ]
         for ch in sorted(set(n.channel for n in visible)):
             ch_notes = [n for n in visible if n.channel == ch]
@@ -485,47 +534,80 @@ def plot_overview(
             for n in ch_notes:
                 xs += [n.start_us, n.end_us, None]
                 ys += [n.note, n.note, None]
-            fig.add_trace(go.Scatter(
-                x=xs, y=ys, mode="lines",
-                line=dict(width=4, color=_channel_color(ch)),
-                name=f"Ch {ch}",
-            ), row=1, col=1)
+            fig.add_trace(
+                go.Scatter(
+                    x=xs,
+                    y=ys,
+                    mode="lines",
+                    line=dict(width=4, color=_channel_color(ch)),
+                    name=f"Ch {ch}",
+                ),
+                row=1,
+                col=1,
+            )
         if visible:
             note_nums = [n.note for n in visible]
             fig.update_yaxes(
                 range=[min(note_nums) - 2, max(note_nums) + 2],
-                title_text="MIDI Note", row=1, col=1,
+                title_text="MIDI Note",
+                row=1,
+                col=1,
             )
 
     # ── coil signal ───────────────────────────────────────────────────────────
     xs, ys = _build_signal_trace(recording, start_ms, end_ms)
-    fig.add_trace(go.Scatter(
-        x=xs, y=ys, mode="lines",
-        line=dict(width=1, color="royalblue"),
-        name="Coil signal", showlegend=False,
-    ), row=sig_row, col=1)
+    fig.add_trace(
+        go.Scatter(
+            x=xs,
+            y=ys,
+            mode="lines",
+            line=dict(width=1, color="royalblue"),
+            name="Coil signal",
+            showlegend=False,
+        ),
+        row=sig_row,
+        col=1,
+    )
     fig.update_yaxes(
-        range=[-0.1, 1.2], tickvals=[0, 1], ticktext=["Off", "On"],
-        title_text="State", row=sig_row, col=1,
+        range=[-0.1, 1.2],
+        tickvals=[0, 1],
+        ticktext=["Off", "On"],
+        title_text="State",
+        row=sig_row,
+        col=1,
     )
 
     # ── frequency ─────────────────────────────────────────────────────────────
     t_freq_us, freq = _freq_from_pulses(recording, start_ms=start_ms, end_ms=end_ms)
-    fig.add_trace(go.Scatter(
-        x=t_freq_us, y=freq,
-        mode="markers", marker=dict(size=2, color="royalblue"),
-        name="Frequency", showlegend=False,
-    ), row=freq_row, col=1)
+    fig.add_trace(
+        go.Scatter(
+            x=t_freq_us,
+            y=freq,
+            mode="markers",
+            marker=dict(size=2, color="royalblue"),
+            name="Frequency",
+            showlegend=False,
+        ),
+        row=freq_row,
+        col=1,
+    )
     fig.update_yaxes(title_text="Hz", row=freq_row, col=1)
 
     # ── duty cycle ────────────────────────────────────────────────────────────
     t_duty_us, duty = _duty_by_step(recording, start_ms=start_ms, end_ms=end_ms)
     active_duty = duty > 0
-    fig.add_trace(go.Scatter(
-        x=t_duty_us[active_duty], y=duty[active_duty] * 100,
-        mode="markers", marker=dict(size=2, color="coral"),
-        name="Duty cycle", showlegend=False,
-    ), row=duty_row, col=1)
+    fig.add_trace(
+        go.Scatter(
+            x=t_duty_us[active_duty],
+            y=duty[active_duty] * 100,
+            mode="markers",
+            marker=dict(size=2, color="coral"),
+            name="Duty cycle",
+            showlegend=False,
+        ),
+        row=duty_row,
+        col=1,
+    )
     fig.update_yaxes(title_text="%", row=duty_row, col=1)
 
     # ── shared time axis ──────────────────────────────────────────────────────

@@ -17,7 +17,7 @@ plot = ["plotly>=5.0"]
 wav  = ["scipy>=1.7"]
 
 [dependency-groups]
-dev = ["plotly>=5.0", "scipy>=1.7", "jupyter", "pytest>=8.0"]
+dev = ["plotly>=5.0", "scipy>=1.7", "jupyter", "pytest>=8.0", "ruff>=0.1"]
 
 [project.scripts]
 teslasynth = "teslasynth.__main__:main"
@@ -36,6 +36,18 @@ teslasynth = ["setuptools_scm>=8"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+# Usage examples in the module docstring cannot be wrapped
+"teslasynth/__main__.py" = ["E501"]
 
 # ── cibuildwheel ──────────────────────────────────────────────────────────────
 # Run from repo root with: cibuildwheel --package-dir python

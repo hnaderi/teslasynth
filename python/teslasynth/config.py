@@ -35,11 +35,11 @@ Each entry is an output index (0–7) or ``null`` (ignore that channel).
 Omitted ``channels`` entries keep firmware defaults.  A single ``"channel"``
 key (legacy) is accepted and applied to output channel 0.
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Union
 
 from ._teslasynth import Configuration
 
@@ -49,22 +49,22 @@ def to_dict(cfg: Configuration) -> dict:
     r = cfg.routing
     return {
         "synth": {
-            "tuning_hz":  cfg.synth.tuning_hz,
+            "tuning_hz": cfg.synth.tuning_hz,
             "instrument": cfg.synth.instrument,
         },
         "channels": [
             {
-                "max_on_time_us":   cfg.channel(i).max_on_time_us,
-                "min_deadtime_us":  cfg.channel(i).min_deadtime_us,
-                "duty_window_us":   cfg.channel(i).duty_window_us,
-                "notes":            cfg.channel(i).notes,
+                "max_on_time_us": cfg.channel(i).max_on_time_us,
+                "min_deadtime_us": cfg.channel(i).min_deadtime_us,
+                "duty_window_us": cfg.channel(i).duty_window_us,
+                "notes": cfg.channel(i).notes,
                 "max_duty_percent": cfg.channel(i).max_duty_percent,
-                "instrument":       cfg.channel(i).instrument,
+                "instrument": cfg.channel(i).instrument,
             }
             for i in range(cfg.channels_size)
         ],
         "routing": {
-            "mapping":    r.mapping,
+            "mapping": r.mapping,
             "percussion": r.percussion,
         },
     }
@@ -101,10 +101,10 @@ def _load_synth(cfg: Configuration, s: dict) -> None:
 
 def _load_channel(ch, c: dict) -> None:
     for key, attr, lo, hi in [
-        ("max_on_time_us",   "max_on_time_us",   1,   65535),
-        ("min_deadtime_us",  "min_deadtime_us",   0,   65535),
-        ("duty_window_us",   "duty_window_us",    1,   65535),
-        ("notes",            "notes",             1,   255),
+        ("max_on_time_us", "max_on_time_us", 1, 65535),
+        ("min_deadtime_us", "min_deadtime_us", 0, 65535),
+        ("duty_window_us", "duty_window_us", 1, 65535),
+        ("notes", "notes", 1, 255),
     ]:
         if key in c:
             v = int(c[key])
@@ -133,7 +133,8 @@ def _load_routing(r, d: dict) -> None:
                 v = int(v)
                 if not (0 <= v <= 7):
                     raise ValueError(
-                        f"routing.mapping[{i}]: output index must be 0–7, got {v}")
+                        f"routing.mapping[{i}]: output index must be 0–7, got {v}"
+                    )
                 validated.append(v)
         r.mapping = validated
     if "percussion" in d:
@@ -153,13 +154,14 @@ def _opt_instrument(v, field: str):
 # File I/O
 # ─────────────────────────────────────────────────────────────────────────────
 
-def load(path: Union[str, Path]) -> Configuration:
+
+def load(path: str | Path) -> Configuration:
     """Load a :class:`Configuration` from a JSON file."""
     with open(path) as f:
         return from_dict(json.load(f))
 
 
-def save(cfg: Configuration, path: Union[str, Path]) -> None:
+def save(cfg: Configuration, path: str | Path) -> None:
     """Write a :class:`Configuration` to a JSON file."""
     with open(path, "w") as f:
         json.dump(to_dict(cfg), f, indent=2)

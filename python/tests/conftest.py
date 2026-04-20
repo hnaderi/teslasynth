@@ -5,10 +5,12 @@ Imports that require compiled extensions or native libraries are deferred into
 fixtures so that pytest can collect and skip tests gracefully when the
 environment is not fully set up.
 """
+
 import pytest
 
 try:
     import teslasynth._teslasynth  # noqa: F401
+
     HAS_EXTENSION = True
 except ImportError:
     HAS_EXTENSION = False
@@ -34,10 +36,10 @@ def _make_440hz_pulses(step_us: int = 10_000):
     """
     import numpy as np
 
-    period = 2272          # µs  (1e6 / 440 ≈ 2272.7)
-    on_us  = 100
-    dead   = 100
-    gap    = period - on_us - dead   # 2072 µs
+    period = 2272  # µs  (1e6 / 440 ≈ 2272.7)
+    on_us = 100
+    dead = 100
+    gap = period - on_us - dead  # 2072 µs
 
     rows = []
     t = 0
@@ -55,6 +57,7 @@ def _make_440hz_pulses(step_us: int = 10_000):
 def recording_440hz():
     """Recording with one 10 ms step of a synthesised ~440 Hz note."""
     from teslasynth.render import Recording
+
     return Recording(pulses=_make_440hz_pulses(), step_us=10_000)
 
 
@@ -68,12 +71,13 @@ def simple_midi(tmp_path):
         note_off at tick 480 → 500 000 µs
     """
     import mido
+
     mid = mido.MidiFile(ticks_per_beat=480)
     track = mido.MidiTrack()
     mid.tracks.append(track)
     track.append(mido.MetaMessage("set_tempo", tempo=500_000, time=0))
-    track.append(mido.Message("note_on",  channel=0, note=60, velocity=100, time=0))
-    track.append(mido.Message("note_off", channel=0, note=60, velocity=0,   time=480))
+    track.append(mido.Message("note_on", channel=0, note=60, velocity=100, time=0))
+    track.append(mido.Message("note_off", channel=0, note=60, velocity=0, time=480))
     path = tmp_path / "test.mid"
     mid.save(str(path))
     return str(path)

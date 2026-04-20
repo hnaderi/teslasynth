@@ -16,9 +16,16 @@ Quick start
 >>> ts.wav.write(rec, "out.wav")
 """
 
+from . import (
+    config,  # noqa: F401
+    midi,  # noqa: F401
+    plot,  # noqa: F401
+    render,  # noqa: F401
+    wav,  # noqa: F401
+)
 from ._teslasynth import (  # noqa: F401 — re-export C++ types
-    Configuration,
     ChannelConfig,
+    Configuration,
     Envelope,
     EnvelopeEngine,
     InstrumentId,
@@ -31,7 +38,6 @@ from ._teslasynth import (  # noqa: F401 — re-export C++ types
     Teslasynth,
     version,
 )
-
 from ._types import (  # noqa: F401 — typed Python wrappers
     BuildInfo,
     InstrumentInfo,
@@ -44,9 +50,3 @@ from ._types import (  # noqa: F401 — typed Python wrappers
     get_percussion,
     percussion_for_note,
 )
-
-from . import config  # noqa: F401
-from . import midi    # noqa: F401
-from . import plot    # noqa: F401
-from . import render  # noqa: F401
-from . import wav     # noqa: F401

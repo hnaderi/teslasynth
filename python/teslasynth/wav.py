@@ -2,6 +2,7 @@
 Export coil signal to WAV — either from a :class:`~teslasynth.render.Recording`
 or streamed directly from a MIDI file without materializing the full signal.
 """
+
 from __future__ import annotations
 
 import wave
@@ -48,10 +49,11 @@ def write(
 
     with wave.open(path_wav, "wb") as wf:
         wf.setnchannels(1)
-        wf.setsampwidth(2)      # 16-bit PCM
+        wf.setsampwidth(2)  # 16-bit PCM
         wf.setframerate(sample_rate)
-        for chunk in signal_stream(synth, path_mid, sample_rate=sample_rate,
-                                   step_us=step_us, channel=channel):
+        for chunk in signal_stream(
+            synth, path_mid, sample_rate=sample_rate, step_us=step_us, channel=channel
+        ):
             wf.writeframes((chunk.astype(np.int16) * 32767).tobytes())
 
 

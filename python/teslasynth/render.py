@@ -1,6 +1,7 @@
 """
 Collect synthesis output into a :class:`Recording` and derive analysis signals.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -37,20 +38,21 @@ class Recording:
     @property
     def start_times_us(self) -> np.ndarray:
         """Absolute start time (µs) of each pulse."""
-        lengths = self.pulses[:, 0].astype(np.int64) + self.pulses[:, 1].astype(np.int64)
-        return np.concatenate([[0], np.cumsum(lengths)[:-1]])
+        on = self.pulses[:, 0].astype(np.int64)
+        off = self.pulses[:, 1].astype(np.int64)
+        return np.concatenate([[0], np.cumsum(on + off)[:-1]])
 
     @property
     def duration_us(self) -> int:
         """Total recording duration in microseconds."""
-        return int(
-            (self.pulses[:, 0].astype(np.int64) + self.pulses[:, 1].astype(np.int64)).sum()
-        )
+        on = self.pulses[:, 0].astype(np.int64)
+        off = self.pulses[:, 1].astype(np.int64)
+        return int((on + off).sum())
 
     @property
     def frequency_hz(self) -> np.ndarray:
         """Instantaneous frequency (Hz) per pulse. Silent pulses yield 0."""
-        on  = self.pulses[:, 0].astype(float)
+        on = self.pulses[:, 0].astype(float)
         off = self.pulses[:, 1].astype(float)
         period = on + off
         return np.where((period > 0) & (on > 0), 1e6 / period, 0.0)
@@ -58,7 +60,7 @@ class Recording:
     @property
     def duty_cycle(self) -> np.ndarray:
         """Duty cycle [0, 1] per pulse."""
-        on     = self.pulses[:, 0].astype(float)
+        on = self.pulses[:, 0].astype(float)
         period = on + self.pulses[:, 1].astype(float)
         return np.where(period > 0, on / period, 0.0)
 
@@ -74,16 +76,16 @@ class Recording:
             return np.array([], dtype=np.uint8)
 
         starts_us = self.start_times_us
-        on_us     = self.pulses[:, 0].astype(np.int64)
-        total_us  = int(starts_us[-1] + on_us[-1] + self.pulses[-1, 1])
+        on_us = self.pulses[:, 0].astype(np.int64)
+        total_us = int(starts_us[-1] + on_us[-1] + self.pulses[-1, 1])
 
-        n      = total_us * sample_rate // 1_000_000 + 1
+        n = total_us * sample_rate // 1_000_000 + 1
         signal = np.zeros(n, dtype=np.uint8)
 
-        mask    = on_us > 0
-        s_start = (starts_us[mask] * sample_rate // 1_000_000).astype(np.int64)
-        s_end   = ((starts_us[mask] + on_us[mask]) * sample_rate // 1_000_000).astype(np.int64)
-        s_end   = np.minimum(s_end, n)
+        mask = on_us > 0
+        spus = sample_rate // 1_000_000
+        s_start = (starts_us[mask] * spus).astype(np.int64)
+        s_end = np.minimum(((starts_us[mask] + on_us[mask]) * spus).astype(np.int64), n)
 
         for s, e in zip(s_start, s_end):
             if e > s:
@@ -111,13 +113,18 @@ class Recording:
             Step size recorded for reference; does not affect the data.
         """
         pulses = [(on, off) for _, on, off in stream]
-        arr = np.array(pulses, dtype=np.uint32) if pulses else np.empty((0, 2), dtype=np.uint32)
+        arr = (
+            np.array(pulses, dtype=np.uint32)
+            if pulses
+            else np.empty((0, 2), dtype=np.uint32)
+        )
         return cls(pulses=arr, step_us=step_us)
 
 
 # ------------------------------------------------------------------
 # Streaming signal generator
 # ------------------------------------------------------------------
+
 
 def signal_stream(
     synth: Teslasynth,
@@ -152,9 +159,9 @@ def signal_stream(
             continue
 
         total_us = sum(p.on_us + p.off_us for p in pulses)
-        n     = int(total_us * spus) + 1
+        n = int(total_us * spus) + 1
         chunk = np.zeros(n, dtype=np.uint8)
-        pos   = 0
+        pos = 0
         for p in pulses:
             if p.on_us > 0:
                 s = int(pos * spus)
@@ -167,6 +174,7 @@ def signal_stream(
 # ------------------------------------------------------------------
 # Convenience factory
 # ------------------------------------------------------------------
+
 
 def from_file(
     path: str,
