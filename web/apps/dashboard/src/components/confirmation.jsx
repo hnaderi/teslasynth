@@ -4,7 +4,7 @@ export function ConfirmDialog({
     message,
     onConfirm,
     onCancel,
-    busy = false
+    busy = false,
 }) {
     if (!open) return null;
 

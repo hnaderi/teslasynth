@@ -3,19 +3,26 @@ import { NumberInput } from './components/NumberInput';
 import { ConfirmDialog } from './components/confirmation';
 import { InstrumentSelect } from './components/InstrumentSelect';
 import { RoutingConfigSection } from './components/RoutingConfigSection';
-const synthConfig = (init) => fetch('/api/config/synth', init)
+const synthConfig = (init) => fetch('/api/config/synth', init);
 
-function SynthChannelConfigSection({ channel, channelIdx, onChange, instruments }) {
+function SynthChannelConfigSection({
+    channel,
+    channelIdx,
+    onChange,
+    instruments,
+}) {
     return (
         <article class="channel" key={channelIdx} style="padding: 1rem;">
-            <header><strong>Channel {channelIdx + 1}</strong></header>
+            <header>
+                <strong>Channel {channelIdx + 1}</strong>
+            </header>
 
             <NumberInput
                 id={`notes-${channelIdx}`}
                 title="Max concurrent notes"
                 help="Maximum allowed number of notes playing at the same time"
                 value={channel.notes}
-                onChange={n => onChange(channelIdx, 'notes', n)}
+                onChange={(n) => onChange(channelIdx, 'notes', n)}
                 min="1"
                 max="4"
                 step="1"
@@ -25,7 +32,7 @@ function SynthChannelConfigSection({ channel, channelIdx, onChange, instruments 
                 id={`instrument-${channelIdx}`}
                 instruments={instruments}
                 label="Instrument"
-                onChange={id => onChange(channelIdx, 'instrument', id)}
+                onChange={(id) => onChange(channelIdx, 'instrument', id)}
                 value={channel['instrument']}
             />
 
@@ -37,7 +44,7 @@ function SynthChannelConfigSection({ channel, channelIdx, onChange, instruments 
                 min="0"
                 max="65536"
                 step="1"
-                onChange={n => onChange(channelIdx, 'max-on-time', n)}
+                onChange={(n) => onChange(channelIdx, 'max-on-time', n)}
             />
 
             <NumberInput
@@ -48,7 +55,7 @@ function SynthChannelConfigSection({ channel, channelIdx, onChange, instruments 
                 min="0"
                 max="65536"
                 step="1"
-                onChange={n => onChange(channelIdx, 'min-deadtime', n)}
+                onChange={(n) => onChange(channelIdx, 'min-deadtime', n)}
             />
 
             <NumberInput
@@ -60,7 +67,7 @@ function SynthChannelConfigSection({ channel, channelIdx, onChange, instruments 
                 max="100"
                 step="0.5"
                 slider={true}
-                onChange={n => onChange(channelIdx, 'max-duty', n)}
+                onChange={(n) => onChange(channelIdx, 'max-duty', n)}
             />
 
             <NumberInput
@@ -71,10 +78,10 @@ function SynthChannelConfigSection({ channel, channelIdx, onChange, instruments 
                 min="10000"
                 max="65536"
                 step="1"
-                onChange={n => onChange(channelIdx, 'duty-window', n)}
+                onChange={(n) => onChange(channelIdx, 'duty-window', n)}
             />
         </article>
-    )
+    );
 }
 
 function SynthConfigForm({
@@ -105,7 +112,7 @@ function SynthConfigForm({
             const res = await synthConfig({
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(draft)
+                body: JSON.stringify(draft),
             });
             const updated = await res.json();
             onUpdate(updated);
@@ -115,14 +122,14 @@ function SynthConfigForm({
     }
 
     async function reset() {
-        setBusy(true)
+        setBusy(true);
         try {
-            const res = await synthConfig({ method: 'DELETE' })
-            const updated = await res.json()
-            onReset(updated)
+            const res = await synthConfig({ method: 'DELETE' });
+            const updated = await res.json();
+            onReset(updated);
         } finally {
-            setBusy(false)
-            setConfirmOpen(false)
+            setBusy(false);
+            setConfirmOpen(false);
         }
     }
 
@@ -136,41 +143,48 @@ function SynthConfigForm({
                 min="1"
                 max="1000"
                 step="0.001"
-                onChange={n => setDraft({ ...draft, tuning: n })}
+                onChange={(n) => setDraft({ ...draft, tuning: n })}
             />
             <InstrumentSelect
                 id="instrument"
                 instruments={instruments}
                 label="Global instrument"
-                onChange={id => setDraft({ ...draft, instrument: id })}
+                onChange={(id) => setDraft({ ...draft, instrument: id })}
                 value={draft['instrument']}
             />
 
             <h3>Channels</h3>
 
             <div class="channel-grid">
-                {draft.channels.map((ch, idx) => (
+                {draft.channels.map((ch, idx) =>
                     SynthChannelConfigSection({
-                        channel: ch, channelIdx: idx,
+                        channel: ch,
+                        channelIdx: idx,
                         onChange: (idx, field, value) =>
                             updateChannel(draft, setDraft, idx, field, value),
-                        instruments: instruments
+                        instruments: instruments,
                     })
-                ))}
+                )}
             </div>
 
             <RoutingConfigSection
                 routing={draft.routing}
                 channelCount={draft.channels.length}
-                onChange={routing =>
-                    setDraft({ ...draft, routing })
-                }
+                onChange={(routing) => setDraft({ ...draft, routing })}
             />
 
             <footer>
                 <div class="grid">
-                    <button type="submit" onClick={save} disabled={busy}>Save</button>
-                    <button type="button" onClick={() => setConfirmOpen(true)} disabled={busy}>Reset</button>
+                    <button type="submit" onClick={save} disabled={busy}>
+                        Save
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setConfirmOpen(true)}
+                        disabled={busy}
+                    >
+                        Reset
+                    </button>
                     <ConfirmDialog
                         open={confirmOpen}
                         title="Reset configuration?"
@@ -185,7 +199,6 @@ function SynthConfigForm({
     );
 }
 
-
 export function SynthConfigSection() {
     const [cfg, setCfg] = useState(null);
     const [instruments, setInstruments] = useState(null);
@@ -193,16 +206,20 @@ export function SynthConfigSection() {
 
     useEffect(() => {
         synthConfig()
-            .then(r => r.json())
+            .then((r) => r.json())
             .then(setCfg);
 
         fetch('/api/synth/instruments')
-            .then(r => r.json())
+            .then((r) => r.json())
             .then(setInstruments);
     }, []);
 
     if (!cfg || !instruments)
-        return <article><header aria-busy="true">Loading Synth Configuration…</header></article>;
+        return (
+            <article>
+                <header aria-busy="true">Loading Synth Configuration…</header>
+            </article>
+        );
     else
         return (
             <article>

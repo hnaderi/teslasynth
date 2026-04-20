@@ -6,16 +6,16 @@ export function useSerialTerminal({ term, transport, controllerRef }) {
         if (!term || !transport) return;
 
         const controller = createSerialController(transport, {
-            onData: data => term.write(data),
+            onData: (data) => term.write(data),
             onDisconnect: () => {
                 term.writeln('\r\n[Disconnected]');
-            }
+            },
         });
 
         controllerRef.current = controller;
 
         const encoder = new TextEncoder();
-        const disposable = term.onData(data => {
+        const disposable = term.onData((data) => {
             controller.write(encoder.encode(data));
         });
 
@@ -26,6 +26,6 @@ export function useSerialTerminal({ term, transport, controllerRef }) {
             controller.close();
             controllerRef.current = null;
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- controllerRef is a stable ref object, intentionally omitted
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- controllerRef is a stable ref object, intentionally omitted
     }, [term, transport]);
 }

@@ -5,7 +5,7 @@ export function GpioInput({
     onChange,
     allowNone = true,
     min = 0,
-    max = 39
+    max = 39,
 }) {
     function handleChange(e) {
         const v = e.target.value;

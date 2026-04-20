@@ -20,7 +20,7 @@ export const firmwares: Firmware[] = [
         files: [
             { offset: 0x1000, url: '/fw/bootloader.bin' },
             { offset: 0x8000, url: '/fw/partition.bin' },
-            { offset: 0x10000, url: '/fw/app.bin' }
-        ]
-    }
+            { offset: 0x10000, url: '/fw/app.bin' },
+        ],
+    },
 ];

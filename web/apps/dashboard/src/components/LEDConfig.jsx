@@ -1,4 +1,4 @@
-import { GpioInput } from "./GpioInput";
+import { GpioInput } from './GpioInput';
 
 export function LedConfigSection({ led, onChange }) {
     return (
@@ -12,7 +12,7 @@ export function LedConfigSection({ led, onChange }) {
                 id="led-pin"
                 label="LED GPIO"
                 value={led.pin}
-                onChange={pin => onChange({ ...led, pin })}
+                onChange={(pin) => onChange({ ...led, pin })}
             />
 
             <label>
@@ -20,10 +20,10 @@ export function LedConfigSection({ led, onChange }) {
                     type="checkbox"
                     checked={led['active-high']}
                     disabled={led.pin === -1}
-                    onChange={e =>
+                    onChange={(e) =>
                         onChange({
                             ...led,
-                            'active-high': e.target.checked
+                            'active-high': e.target.checked,
                         })
                     }
                 />

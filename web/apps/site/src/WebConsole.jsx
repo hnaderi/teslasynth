@@ -1,5 +1,5 @@
 import { useState, useRef } from 'preact/hooks';
-import { openEspTransport } from './services/esptool.js'
+import { openEspTransport } from './services/esptool.js';
 import { SerialTerminal } from './components/SerialTerminal';
 import { useSerialTerminal } from './hooks/useSerialTerminal';
 
@@ -9,7 +9,6 @@ export function Console() {
     const controllerRef = useRef(null);
     const [term, setTerm] = useState(null);
 
-
     async function onClick() {
         async function connect() {
             try {
@@ -17,7 +16,7 @@ export function Console() {
                 setTransport(transport);
                 setConnected(true);
             } catch (e) {
-                console.error("Couldn't connect", e)
+                console.error("Couldn't connect", e);
             }
         }
 
@@ -38,7 +37,14 @@ export function Console() {
     useSerialTerminal({ term, transport, controllerRef });
 
     if (!(navigator.serial || navigator.usb)) {
-        return <article><p>Web Serial is not supported in this browser. Please use Chrome or Edge.</p></article>;
+        return (
+            <article>
+                <p>
+                    Web Serial is not supported in this browser. Please use
+                    Chrome or Edge.
+                </p>
+            </article>
+        );
     }
 
     return (
@@ -47,14 +53,13 @@ export function Console() {
                 <h2>Teslasynth webtool</h2>
                 <p>Flash and serial console</p>
             </header>
-            <div class='grid'>
-                <button onClick={onClick} >
-                    {isConnected ? "Disconnect" : "Connect"}
+            <div class="grid">
+                <button onClick={onClick}>
+                    {isConnected ? 'Disconnect' : 'Connect'}
                 </button>
             </div>
 
             <SerialTerminal onInit={setTerm} />
-
         </article>
     );
 }

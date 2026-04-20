@@ -1,4 +1,4 @@
-import { GpioInput } from "./GpioInput";
+import { GpioInput } from './GpioInput';
 
 export function OutputConfigSection({ channels, onChange }) {
     function updateChannel(index, value) {
@@ -21,7 +21,7 @@ export function OutputConfigSection({ channels, onChange }) {
                         id={`out-${i}`}
                         label={`Channel ${i + 1}`}
                         value={pin}
-                        onChange={v => updateChannel(i, v)}
+                        onChange={(v) => updateChannel(i, v)}
                     />
                 ))}
             </div>

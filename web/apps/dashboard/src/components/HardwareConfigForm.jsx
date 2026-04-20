@@ -1,14 +1,14 @@
-import { useEffect, useState } from "preact/hooks";
-import { InputConfigSection } from "./InputConfig";
-import { LedConfigSection } from "./LEDConfig";
-import { OutputConfigSection } from "./OutputConfig";
+import { useEffect, useState } from 'preact/hooks';
+import { InputConfigSection } from './InputConfig';
+import { LedConfigSection } from './LEDConfig';
+import { OutputConfigSection } from './OutputConfig';
 
 export function HardwareConfigForm({
     config,
     busy,
     setBusy,
     onUpdate,
-    onReset
+    onReset,
 }) {
     const [draft, setDraft] = useState(config);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -22,7 +22,7 @@ export function HardwareConfigForm({
             const res = await fetch('/api/config/hardware', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(draft)
+                body: JSON.stringify(draft),
             });
             onUpdate(await res.json());
         } finally {
@@ -34,7 +34,7 @@ export function HardwareConfigForm({
         setBusy(true);
         try {
             const res = await fetch('/api/config/hardware', {
-                method: 'DELETE'
+                method: 'DELETE',
             });
             onReset(await res.json());
         } finally {
@@ -47,26 +47,22 @@ export function HardwareConfigForm({
         <form onSubmit={save}>
             <OutputConfigSection
                 channels={draft.output.channels}
-                onChange={channels =>
+                onChange={(channels) =>
                     setDraft({
                         ...draft,
-                        output: { ...draft.output, channels }
+                        output: { ...draft.output, channels },
                     })
                 }
             />
 
             <InputConfigSection
                 input={draft.input}
-                onChange={input =>
-                    setDraft({ ...draft, input })
-                }
+                onChange={(input) => setDraft({ ...draft, input })}
             />
 
             <LedConfigSection
                 led={draft.led}
-                onChange={led =>
-                    setDraft({ ...draft, led })
-                }
+                onChange={(led) => setDraft({ ...draft, led })}
             />
 
             <footer>

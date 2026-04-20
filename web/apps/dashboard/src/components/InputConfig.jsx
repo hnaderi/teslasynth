@@ -1,4 +1,4 @@
-import { GpioInput } from "./GpioInput";
+import { GpioInput } from './GpioInput';
 
 export function InputConfigSection({ input, onChange }) {
     return (
@@ -12,7 +12,7 @@ export function InputConfigSection({ input, onChange }) {
                 id="input-pin"
                 label="Input GPIO"
                 value={input.pin}
-                onChange={pin => onChange({ ...input, pin })}
+                onChange={(pin) => onChange({ ...input, pin })}
             />
         </article>
     );

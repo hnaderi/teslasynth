@@ -1,10 +1,6 @@
-import { RoutingMatrix } from "./RoutingMatrix";
+import { RoutingMatrix } from './RoutingMatrix';
 
-export function RoutingConfigSection({
-    routing,
-    channelCount,
-    onChange
-}) {
+export function RoutingConfigSection({ routing, channelCount, onChange }) {
     return (
         <article>
             <header>
@@ -17,10 +13,10 @@ export function RoutingConfigSection({
                     type="checkbox"
                     checked={routing.percussion}
                     role="switch"
-                    onChange={e =>
+                    onChange={(e) =>
                         onChange({
                             ...routing,
-                            percussion: e.target.checked
+                            percussion: e.target.checked,
                         })
                     }
                 />
@@ -32,9 +28,7 @@ export function RoutingConfigSection({
             <RoutingMatrix
                 mapping={routing.mapping}
                 channelCount={channelCount}
-                onChange={mapping =>
-                    onChange({ ...routing, mapping })
-                }
+                onChange={(mapping) => onChange({ ...routing, mapping })}
             />
         </article>
     );

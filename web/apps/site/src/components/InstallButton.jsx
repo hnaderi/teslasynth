@@ -4,7 +4,7 @@ import 'esp-web-tools/dist/install-button.js';
 const CATALOG_BASE = 'https://cdn.jsdelivr.net/gh/hnaderi/teslasynth@firmware';
 
 const CHIP_FAMILY = {
-    esp32:   'ESP32',
+    esp32: 'ESP32',
     esp32s2: 'ESP32-S2',
     esp32s3: 'ESP32-S3',
 };
@@ -14,9 +14,11 @@ export function toEspWebToolsManifest(manifest, version) {
         name: manifest.name,
         version,
         new_install_prompt_erase: true,
-        builds: Object.values(manifest.targets).map(target => ({
-            chipFamily: CHIP_FAMILY[target.extra_esptool_args?.chip] ?? target.extra_esptool_args?.chip,
-            parts: target.files.map(f => ({
+        builds: Object.values(manifest.targets).map((target) => ({
+            chipFamily:
+                CHIP_FAMILY[target.extra_esptool_args?.chip] ??
+                target.extra_esptool_args?.chip,
+            parts: target.files.map((f) => ({
                 path: `${CATALOG_BASE}/${version}/${f.path}`,
                 offset: parseInt(f.offset, 16),
             })),
@@ -35,7 +37,10 @@ export function InstallButton({ manifest, version, label, disabled }) {
     useEffect(() => {
         if (!manifest || !version) return;
 
-        const blob = new Blob([JSON.stringify(toEspWebToolsManifest(manifest, version))], { type: 'application/json' });
+        const blob = new Blob(
+            [JSON.stringify(toEspWebToolsManifest(manifest, version))],
+            { type: 'application/json' }
+        );
         const url = URL.createObjectURL(blob);
         setManifestUrl(url);
 

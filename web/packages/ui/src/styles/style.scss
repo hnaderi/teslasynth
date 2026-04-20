@@ -1,5 +1,5 @@
-@use "@picocss/pico/scss/pico" with (
-  $theme-color: "indigo"
+@use '@picocss/pico/scss/pico' with (
+    $theme-color: 'indigo'
 );
 
 .svg-logo {
@@ -7,8 +7,8 @@
     width: auto;
 }
 .channel-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  max-width: 100%;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    max-width: 100%;
 }

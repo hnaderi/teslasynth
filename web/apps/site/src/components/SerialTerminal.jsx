@@ -34,7 +34,9 @@ export function SerialTerminal({ onInit }) {
 
     return (
         <article>
-            <header><strong>Console</strong></header>
+            <header>
+                <strong>Console</strong>
+            </header>
             <div
                 ref={containerRef}
                 style={{

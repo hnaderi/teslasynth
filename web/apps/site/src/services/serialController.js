@@ -5,8 +5,9 @@ export function createSerialController(transport, { onData, onDisconnect }) {
     async function start() {
         try {
             await transport.connect(115200);
-            writer = transport.device.writable ?
-                transport.device.writable.getWriter() : null;
+            writer = transport.device.writable
+                ? transport.device.writable.getWriter()
+                : null;
 
             for await (const data of transport.rawRead()) {
                 if (closed || !data || data.length === 0) {
@@ -41,7 +42,9 @@ export function createSerialController(transport, { onData, onDisconnect }) {
         try {
             writer?.releaseLock();
             transport.disconnect();
-        } catch { /* ignore cleanup errors */ }
+        } catch {
+            /* ignore cleanup errors */
+        }
 
         onDisconnect?.();
     }

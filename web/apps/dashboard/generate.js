@@ -10,12 +10,12 @@ const html = await fs.readFile(DIST, 'utf8');
 const gzipped = zlib.gzipSync(html, { level: 9 });
 
 const varName = 'index_html_gz';
-const cArray = gzipped
-    .reduce((acc, byte, i) => {
-        const s = byte.toString().padStart(4, ' ') + ((i + 1) % 15 === 0 ? ',\n    ' : ',');
-        return acc + s;
-    }, '    ');
-
+const cArray = gzipped.reduce((acc, byte, i) => {
+    const s =
+        byte.toString().padStart(4, ' ') +
+        ((i + 1) % 15 === 0 ? ',\n    ' : ',');
+    return acc + s;
+}, '    ');
 
 const cCode = `#include <stdint.h>
 #include <stddef.h>

@@ -1,7 +1,7 @@
 export function RoutingMatrix({
-    mapping,        // number[16]
-    channelCount,   // number
-    onChange
+    mapping, // number[16]
+    channelCount, // number
+    onChange,
 }) {
     function setRoute(midiCh, outCh) {
         const next = [...mapping];
@@ -31,19 +31,26 @@ export function RoutingMatrix({
                 <tbody>
                     {mapping.map((out, midiCh) => (
                         <tr key={midiCh}>
-                            <th>{midiCh == 9 ? "Percussion" : `MIDI ${midiCh + 1}`}
+                            <th>
+                                {midiCh == 9
+                                    ? 'Percussion'
+                                    : `MIDI ${midiCh + 1}`}
                             </th>
 
-                            {Array.from({ length: channelCount }).map((_, outCh) => (
-                                <td key={outCh}>
-                                    <input
-                                        type="radio"
-                                        name={`midi-${midiCh}`}
-                                        checked={out === outCh}
-                                        onChange={() => setRoute(midiCh, outCh)}
-                                    />
-                                </td>
-                            ))}
+                            {Array.from({ length: channelCount }).map(
+                                (_, outCh) => (
+                                    <td key={outCh}>
+                                        <input
+                                            type="radio"
+                                            name={`midi-${midiCh}`}
+                                            checked={out === outCh}
+                                            onChange={() =>
+                                                setRoute(midiCh, outCh)
+                                            }
+                                        />
+                                    </td>
+                                )
+                            )}
 
                             <td>
                                 <input

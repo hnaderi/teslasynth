@@ -7,7 +7,7 @@ export function HardwareConfigSection() {
 
     useEffect(() => {
         fetch('/api/config/hardware')
-            .then(r => r.json())
+            .then((r) => r.json())
             .then(setCfg);
     }, []);
 

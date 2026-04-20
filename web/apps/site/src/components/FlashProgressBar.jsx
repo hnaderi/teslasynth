@@ -4,10 +4,7 @@ export function FlashProgressBar({ progress }) {
     return (
         <div>
             <small>{progress.message}</small>
-            <progress
-                value={progress.percent}
-                max="100"
-            />
+            <progress value={progress.percent} max="100" />
         </div>
     );
 }
