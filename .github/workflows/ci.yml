@@ -44,12 +44,11 @@ jobs:
         run: pnpm build:dashboard
 
       - name: Build firmware
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/project \
-            -w /project \
-            espressif/idf:v6.0 \
-            idf.py -B build/${{ matrix.target }} -DIDF_TARGET=${{ matrix.target }} build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v6.0
+          target: ${{ matrix.target }}
+          command: idf.py -B build/${{ matrix.target }} build
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
