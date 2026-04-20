@@ -118,12 +118,12 @@ NB_MODULE(_teslasynth, m) {
         .value("SynthPluck",       InstrumentId::SynthPluck)
         .value("HarpPluck",        InstrumentId::HarpPluck)
         .value("EPluck",           InstrumentId::EPluck)
-        .value("FMKey",            InstrumentId::FMKey)
+        .value("Flute",            InstrumentId::Flute)
         .value("BellKey",          InstrumentId::BellKey)
         .value("SubBass",          InstrumentId::SubBass)
         .value("AnalogBass",       InstrumentId::AnalogBass)
         .value("RubberBass",       InstrumentId::RubberBass)
-        .value("AcidBass",         InstrumentId::AcidBass)
+        .value("SlapBass",         InstrumentId::SlapBass)
         .value("WarmPad",          InstrumentId::WarmPad)
         .value("SlowPad",          InstrumentId::SlowPad)
         .value("ChoirPad",         InstrumentId::ChoirPad)
@@ -135,7 +135,7 @@ NB_MODULE(_teslasynth, m) {
         .value("Strings",          InstrumentId::Strings)
         .value("StaccatoStrings",  InstrumentId::StaccatoStrings)
         .value("SynthHit",         InstrumentId::SynthHit)
-        .value("NoiseHit",         InstrumentId::NoiseHit)
+        .value("Ping",             InstrumentId::Ping)
         .value("RiseFX",           InstrumentId::RiseFX)
         .value("FallFX",           InstrumentId::FallFX);
 

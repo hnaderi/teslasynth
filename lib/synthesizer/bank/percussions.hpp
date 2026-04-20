@@ -51,7 +51,7 @@ constexpr std::array<Percussion, percussion_size> percussion_kit{{
      .envelope = envelopes::AD::exponential(1_ms, 180_ms)},
 
     // Snare — strong noise + mid body
-    {.burst = 40_ms,
+    {.burst = 150_ms,
      .prf = 180_hz,
      .noise = Probability(0.95),
      .skip = Probability(0.0),
@@ -79,35 +79,35 @@ constexpr std::array<Percussion, percussion_size> percussion_kit{{
      .envelope = envelopes::AD::exponential(2_ms, 280_ms)},
 
     // Low Tom — tonal, deep, resonant
-    {.burst = 100_ms,
+    {.burst = 185_ms,
      .prf = 110_hz,
      .noise = Probability(0.15),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 200_ms)},
 
     // Mid Tom — tonal, punchy
-    {.burst = 70_ms,
+    {.burst = 155_ms,
      .prf = 180_hz,
      .noise = Probability(0.10),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 170_ms)},
 
     // High Tom — tonal, bright
-    {.burst = 60_ms,
+    {.burst = 125_ms,
      .prf = 260_hz,
      .noise = Probability(0.08),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 140_ms)},
 
     // Rimshot — sharp, bright, noisy transient
-    {.burst = 20_ms,
+    {.burst = 70_ms,
      .prf = 900_hz,
      .noise = Probability(0.40),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 80_ms)},
 
     // Cowbell — tonal metallic ring
-    {.burst = 80_ms,
+    {.burst = 280_ms,
      .prf = 540_hz,
      .noise = Probability(0.05),
      .skip = Probability(0.0),
@@ -118,17 +118,17 @@ constexpr std::array<Percussion, percussion_size> percussion_kit{{
      .prf = 0_hz, // noise-only mode
      .noise = Probability(1.0),
      .skip = Probability(0.0),
-     .envelope = envelopes::AD::exponential(1_ms, 100_ms)},
+     .envelope = envelopes::AD::exponential(1_ms, 20_ms)},
 
     // Crash — long broadband noise
-    {.burst = 300_ms,
+    {.burst = 1100_ms,
      .prf = 0_hz, // noise-only mode
      .noise = Probability(1.0),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(5_ms, 1200_ms)},
 
     // Ride — long metallic noise wash
-    {.burst = 200_ms,
+    {.burst = 850_ms,
      .prf = 0_hz, // noise-only mode
      .noise = Probability(1.0),
      .skip = Probability(0.0),

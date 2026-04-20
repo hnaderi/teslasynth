@@ -42,14 +42,14 @@ enum class InstrumentId : uint8_t {
   SynthPluck,
   HarpPluck,
   EPluck,
-  FMKey,
+  Flute,
   BellKey,
 
   // Bass
   SubBass,
   AnalogBass,
   RubberBass,
-  AcidBass,
+  SlapBass,
 
   // Pads
   WarmPad,
@@ -69,7 +69,7 @@ enum class InstrumentId : uint8_t {
 
   // Percussive / FX
   SynthHit,
-  NoiseHit,
+  Ping,
   RiseFX,
   FallFX,
 
@@ -90,14 +90,14 @@ constexpr std::array<const char *, instruments_size> instrument_names = {{
     "Synth Pluck",
     "Harp Pluck",
     "Electric Pluck",
-    "FM Key",
+    "Flute",
     "Bell Key",
 
     // Bass
     "Sub Bass",
     "Analog Bass",
     "Rubber Bass",
-    "Acid Bass",
+    "Slap Bass",
 
     // Pads
     "Warm Pad",
@@ -117,7 +117,7 @@ constexpr std::array<const char *, instruments_size> instrument_names = {{
 
     // Percussive / FX
     "Synth Hit",
-    "Noise Hit",
+    "Ping",
     "Rise FX",
     "Fall FX",
 }};
@@ -170,8 +170,10 @@ constexpr std::array<Instrument, instruments_size> instruments{{
          envelopes::ADSR::linear(5_ms, 15_ms, EnvelopeLevel(0.35), 25_ms),
      .vibrato = {2_hz, 0.5_hz}},
 
-    // 9 — FM Key
-    {.envelope = EnvelopeLevel(0.75), .vibrato = {4_hz, 0.8_hz}},
+    // 9 — Flute: soft breath attack, gentle sustain, subtle vibrato
+    {.envelope =
+         envelopes::ADSR::linear(20_ms, 30_ms, EnvelopeLevel(0.70), 50_ms),
+     .vibrato = {3_hz, 0.5_hz}},
 
     // 10 — Bell Key
     {.envelope =
@@ -184,7 +186,7 @@ constexpr std::array<Instrument, instruments_size> instruments{{
 
     // 11 — Sub Bass
     {.envelope =
-         envelopes::ADSR::linear(40_ms, 20_ms, EnvelopeLevel(0.95), 60_ms),
+         envelopes::ADSR::linear(10_ms, 20_ms, EnvelopeLevel(0.95), 60_ms),
      .vibrato = Vibrato::none()},
 
     // 12 — Analog Bass
@@ -197,8 +199,10 @@ constexpr std::array<Instrument, instruments_size> instruments{{
          envelopes::ADSR::linear(15_ms, 25_ms, EnvelopeLevel(0.65), 30_ms),
      .vibrato = {3_hz, 2_hz}},
 
-    // 14 — Acid Bass
-    {.envelope = EnvelopeLevel(0.90), .vibrato = {6_hz, 3_hz}},
+    // 14 — Slap Bass: sharp percussive click, near-zero sustain, no vibrato
+    {.envelope =
+         envelopes::ADSR::exponential(2_ms, 8_ms, EnvelopeLevel(0.08), 15_ms),
+     .vibrato = Vibrato::none()},
 
     // ====================
     // Pads
@@ -222,12 +226,12 @@ constexpr std::array<Instrument, instruments_size> instruments{{
     // 18 — Glass Pad
     {.envelope =
          envelopes::ADSR::exponential(30_ms, 40_ms, EnvelopeLevel(0.50), 70_ms),
-     .vibrato = {2_hz, 5_hz}},
+     .vibrato = {2_hz, 2_hz}},
 
     // 19 — Motion Pad
     {.envelope =
          envelopes::ADSR::exponential(25_ms, 35_ms, EnvelopeLevel(0.55), 60_ms),
-     .vibrato = {3_hz, 6_hz}},
+     .vibrato = {3_hz, 2.5_hz}},
 
     // ====================
     // Organs & Brass
@@ -269,20 +273,20 @@ constexpr std::array<Instrument, instruments_size> instruments{{
          envelopes::ADSR::exponential(2_ms, 10_ms, EnvelopeLevel(0.30), 15_ms),
      .vibrato = Vibrato::none()},
 
-    // 26 — Noise Hit
+    // 26 — Ping: instant attack, fast complete decay, no vibrato (mallet character)
     {.envelope =
-         envelopes::ADSR::linear(1_ms, 20_ms, EnvelopeLevel(0.20), 30_ms),
+         envelopes::ADSR::exponential(1_ms, 40_ms, EnvelopeLevel(0.04), 10_ms),
      .vibrato = Vibrato::none()},
 
-    // 27 — Rise FX
+    // 27 — Rise FX: slow build over 200ms, then decays away
     {.envelope =
-         envelopes::ADSR::linear(60_ms, 80_ms, EnvelopeLevel(1.0), 100_ms),
-     .vibrato = {4_hz, 6_hz}},
+         envelopes::ADSR::linear(200_ms, 80_ms, EnvelopeLevel(0.15), 60_ms),
+     .vibrato = {2_hz, 1_hz}},
 
-    // 28 — Fall FX
+    // 28 — Fall FX: instant peak, slow fade to near-silence
     {.envelope =
-         envelopes::ADSR::exponential(5_ms, 40_ms, EnvelopeLevel(0.40), 80_ms),
-     .vibrato = {2_hz, 5_hz}},
+         envelopes::ADSR::exponential(2_ms, 280_ms, EnvelopeLevel(0.05), 60_ms),
+     .vibrato = {1.5_hz, 1.5_hz}},
 }};
 
 const inline Instrument &default_instrument() { return instruments[0]; }
