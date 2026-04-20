@@ -37,6 +37,10 @@ export function Console() {
 
     useSerialTerminal({ term, transport, controllerRef });
 
+    if (!(navigator.serial || navigator.usb)) {
+        return <article><p>Web Serial is not supported in this browser. Please use Chrome or Edge.</p></article>;
+    }
+
     return (
         <article>
             <header>

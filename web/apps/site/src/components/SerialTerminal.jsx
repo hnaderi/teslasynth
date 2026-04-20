@@ -13,7 +13,7 @@ export function SerialTerminal({ onInit }) {
             fontFamily: 'monospace',
             fontSize: 14,
             scrollback: 5000,
-            convertEol: false,
+            convertEol: true,
         });
 
         const fit = new FitAddon();

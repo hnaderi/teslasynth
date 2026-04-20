@@ -1,79 +1,69 @@
-import { useState, useRef } from 'preact/hooks';
-import { firmwares } from './services/firmwares';
-import { FirmwareSelector } from './components/FirmwareSelector';
-import { openEspTransport, flashFirmware } from './services/esptool.js'
-import { SerialTerminal } from './components/SerialTerminal';
+import { useEffect, useState } from 'preact/hooks';
+import { InstallButton } from './components/InstallButton';
 
-export function Flasher() {
-    const [firmwareId, setFirmwareId] = useState(firmwares[0].id);
-    const [busy, setBusy] = useState(false);
-    const [isConnected, setConnected] = useState(false);
-    const [progress, setProgress] = useState({ phase: 'idle', percent: 0 });
-    const transportRef = useRef(null);
+const CATALOG_BASE = 'https://cdn.jsdelivr.net/gh/hnaderi/teslasynth@firmware';
+const FIRST_SUPPORTED_VERSION = 'v0.4.1';
 
-    async function connect() {
-        if (isConnected || transportRef.current) return;
-        try {
-            const transport = await openEspTransport();
-            transportRef.current = transport;
-            setConnected(true);
-        } catch (e) {
-            console.error("Couldn't connect", e)
-        }
-    }
+export function FirmwareFlasher() {
+    const [versions, setVersions] = useState([]);
+    const [selectedVersion, setSelectedVersion] = useState(null);
+    const [manifest, setManifest] = useState(null);
+    const [loadingManifest, setLoadingManifest] = useState(false);
+    const [error, setError] = useState(null);
 
-    function log(msg) { console.log(msg); }
+    useEffect(() => {
+        fetch(`${CATALOG_BASE}/catalog.json`)
+            .then(r => r.json())
+            .then(data => {
+                const idx = data.indexOf(FIRST_SUPPORTED_VERSION);
+                const supported = idx !== -1 ? data.slice(0, idx + 1) : data;
+                setVersions(supported);
+                if (supported.length > 0) setSelectedVersion(supported[0]);
+            })
+            .catch(e => setError(`Failed to load firmware catalog: ${e.message}`));
+    }, []);
 
-    async function disconnect() {
-        setConnected(false);
-        transportRef.current = null;
-    }
+    useEffect(() => {
+        if (!selectedVersion) return;
+        setLoadingManifest(true);
+        setManifest(null);
+        fetch(`${CATALOG_BASE}/${selectedVersion}/manifest.json`)
+            .then(r => r.json())
+            .then(m => setManifest(m))
+            .catch(e => setError(`Failed to load manifest for ${selectedVersion}: ${e.message}`))
+            .finally(() => setLoadingManifest(false));
+    }, [selectedVersion]);
 
-    async function flash() {
-        setBusy(true);
-        setProgress({ phase: 'download', percent: 0 });
-
-        const fw = firmwares.find(f => f.id === firmwareId);
-
-        await flashFirmware({
-            firmware: fw,
-            transport: transportRef,
-            log,
-            onProgress: (phase, percent) =>
-                setProgress({ phase, percent }),
-        });
-
-        log('Flash complete.');
-        setBusy(false);
+    if (!(navigator.serial || navigator.usb)) {
+        return <article><p>Web Serial is not supported in this browser. Please use Chrome or Edge.</p></article>;
     }
 
     return (
         <article>
-            <header>
-                <h2>Teslasynth webtool</h2>
-                <p>Flash and serial console</p>
-            </header>
-            <div class='grid'>
-                <button onClick={connect} disabled={isConnected}>
-                    Console
-                </button>
-                <button disabled={isConnected}>
-                    Program
-                </button>
-            </div>
+            <header><h2>Install firmware</h2></header>
 
-            {isConnected ?
-                (<SerialTerminal
-                    transport={transportRef.current}
-                    onDisconnect={disconnect} />) : <div />
-            }
+            {error && <p style="color: var(--pico-del-color)">{error}</p>}
 
+            <label>
+                Version
+                <select
+                    value={selectedVersion || ''}
+                    onChange={e => setSelectedVersion(e.target.value)}
+                    disabled={versions.length === 0}
+                >
+                    {versions.length === 0
+                        ? <option>Loading...</option>
+                        : versions.map(v => <option key={v} value={v}>{v}</option>)
+                    }
+                </select>
+            </label>
 
-            <FirmwareSelector firmwares={firmwares} onChange={f => setFirmwareId(f.id)} />
-
-            <button onClick={flash} disabled={!isConnected} aria-busy={busy}>
-                Flash Device
-            </button>
+            <InstallButton
+                manifest={manifest}
+                version={selectedVersion}
+                label={loadingManifest ? 'Loading...' : 'Connect & Flash'}
+                disabled={loadingManifest}
+            />
         </article>
     );
 }
