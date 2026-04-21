@@ -52,6 +52,14 @@ Once in maintenance mode:
 See [Configuration](/configuration) for the full list of settings and CLI
 commands.
 
+## ⚠ Before connecting high-voltage hardware
+
+**Please read the [Configuration](/configuration) page carefully before any
+high-voltage tests.** In particular, the duty cycle default is 100% — safe for
+passive loads and simulations, but must be set to a safe value for your specific
+device before energising it. Connecting a DRSSTC or flyback transformer without
+configuring these limits first risks destroying your hardware or causing injury.
+
 ## Wiring an output
 
 Connect your output device's interrupter input to the GPIO pin configured for
