@@ -1,3 +1,6 @@
+// Copyright Hossein Naderi 2025, 2026
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include "midi_core.hpp"
 #include "midi_parser.hpp"
 #include <cstddef>

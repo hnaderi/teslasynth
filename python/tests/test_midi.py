@@ -1,3 +1,6 @@
+# Copyright Hossein Naderi 2025, 2026
+# SPDX-License-Identifier: LGPL-3.0-only
+
 """
 Tests for teslasynth.midi — tempo map building, tick→µs conversion, note extraction.
 """

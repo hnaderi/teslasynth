@@ -1,3 +1,6 @@
+// Copyright Hossein Naderi 2025, 2026
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include "argtable3/argtable3.h"
 #include "esp_app_desc.h"
 #include "esp_console.h"

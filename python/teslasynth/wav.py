@@ -1,3 +1,6 @@
+# Copyright Hossein Naderi 2025, 2026
+# SPDX-License-Identifier: LGPL-3.0-only
+
 """
 Export coil signal to WAV — either from a :class:`~teslasynth.render.Recording`
 or streamed directly from a MIDI file without materializing the full signal.

@@ -1,3 +1,6 @@
+// Copyright Hossein Naderi 2025, 2026
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include "channel_mapping.hpp"
 #include "midi_core.hpp"
 #include "midi_synth.hpp"

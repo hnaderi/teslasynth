@@ -1,3 +1,6 @@
+# Copyright Hossein Naderi 2025, 2026
+# SPDX-License-Identifier: LGPL-3.0-only
+
 """
 Convert mido MIDI messages to MidiChannelMessage and drive the synth from a
 .mid file, yielding pulses in fixed-size time steps.

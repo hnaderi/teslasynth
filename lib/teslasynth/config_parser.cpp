@@ -1,3 +1,6 @@
+// Copyright Hossein Naderi 2025, 2026
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include "config_parser.hpp"
 #include <cerrno>
 #include <charconv>

@@ -1,3 +1,8 @@
+/**
+ * Copyright Hossein Naderi 2025, 2026
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 import { useEffect, useState } from 'preact/hooks';
 import { InputConfigSection } from './InputConfig';
 import { LedConfigSection } from './LEDConfig';

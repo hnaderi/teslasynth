@@ -1,3 +1,6 @@
+# Copyright Hossein Naderi 2025, 2026
+# SPDX-License-Identifier: LGPL-3.0-only
+
 """
 Collect synthesis output into a :class:`Recording` and derive analysis signals.
 """

@@ -118,7 +118,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-      - uses: hashicorp/setup-copywrite@v1
+      - uses: hashicorp/setup-copywrite@v1.1.2
       - name: Check copyright headers (firmware)
         run: copywrite headers --plan
       - name: Check copyright headers (python)

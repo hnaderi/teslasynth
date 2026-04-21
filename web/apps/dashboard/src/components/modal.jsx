@@ -1,3 +1,8 @@
+/**
+ * Copyright Hossein Naderi 2025, 2026
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 import { useEffect, useRef } from 'preact/hooks';
 
 export function Modal({ open, onClose, title, children }) {

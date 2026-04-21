@@ -1,3 +1,6 @@
+// Copyright Hossein Naderi 2025, 2026
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include "application.hpp"
 #include "configuration/hardware.hpp"
 #include "esp_log.h"

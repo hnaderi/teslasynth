@@ -1,3 +1,6 @@
+// Copyright Hossein Naderi 2025, 2026
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include "channel_state.hpp"
 #include "core/envelope_level.hpp"
 #include "instruments.hpp"

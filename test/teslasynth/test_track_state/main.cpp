@@ -1,3 +1,6 @@
+// Copyright Hossein Naderi 2025, 2026
+// SPDX-License-Identifier: GPL-3.0-only
+
 #include "core.hpp"
 #include "midi_synth.hpp"
 #include "synthesizer/helpers/assertions.hpp"

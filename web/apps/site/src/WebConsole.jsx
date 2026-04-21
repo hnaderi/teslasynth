@@ -1,3 +1,8 @@
+/**
+ * Copyright Hossein Naderi 2025, 2026
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 import { useState, useRef } from 'preact/hooks';
 import { openEspTransport } from './services/esptool.js';
 import { SerialTerminal } from './components/SerialTerminal';
