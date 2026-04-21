@@ -1,6 +1,88 @@
-# Introduction
+import { LatestFirmwareInstall } from '../components/LatestFirmwareInstall.jsx';
 
-This is a complete MIDI synthesizer, that uses pulse width modulation(PWM) to play music through any interrupted device, including Tesla coils, Flyback transformers, High power lasers, or basically any device that can make noise when powered on.
+# Teslasynth
 
+Teslasynth is open-source MIDI synthesizer firmware for ESP32 that turns
+interruptible high-voltage devices into musical instruments. Connect a Tesla
+coil, flyback transformer, high-power laser, or any device that makes noise
+when switched, and play it over MIDI.
 
-To be documented soon...
+The firmware drives up to 4 independent output channels through the ESP32's RMT
+peripheral, producing precisely timed microsecond pulses. Each channel can play
+up to 4 simultaneous notes from a library of 28 instruments and a set of
+percussion presets.
+
+<LatestFirmwareInstall />
+
+## Features
+
+- **Up to 4 output channels**, each independently configurable
+- **28 instruments** — leads, pads, bass, brass, strings, and effects
+- **Percussion presets** — full MIDI channel 10 support with burst and noise
+  synthesis (to my knowledge, unique among interrupter firmware)
+- **USB MIDI** (ESP32-S2 and S3) and **Bluetooth MIDI** (ESP32 only — see
+  [MIDI setup](/midi))
+- **Web installer** — flash firmware from your browser, no software needed
+- **Web dashboard** — configure the device over Wi-Fi from any browser,
+  including your phone at showtime
+- **Python library** — render MIDI files offline, visualise signals, and
+  analyse output before connecting any hardware
+
+## Design
+
+Teslasynth was built around a few principles:
+
+**Accessible.** An ESP32 costs a few dollars and is available worldwide. The
+firmware runs on any dev board with no custom hardware. There is no proprietary
+software, no account, no licence fee.
+
+**Easy to use.** Firmware installs from a browser with one click. Configuration
+happens over Wi-Fi from any phone — no laptop, no serial cable. A new device
+is ready to play in minutes.
+
+**Safe.** Configurable duty cycle limits, pulse-width caps, and dead-time
+enforcement protect your hardware at the firmware level. The Python library lets
+you simulate and visualise output before connecting anything high-voltage. The
+firmware is tested and the synthesis engine is independently testable offline.
+
+**Standard MIDI.** Teslasynth is a transparent MIDI device. Any software or
+hardware that sends standard MIDI works with it — no custom drivers, no special
+plugins, no proprietary protocol.
+
+**Modern.** Web-installable, web-configurable, open-source. The goal is to make
+quality interrupter firmware so accessible and complete that there is no reason
+to reach for anything else.
+
+## Supported hardware
+
+| Chip     | USB MIDI | Bluetooth MIDI |
+|----------|----------|----------------|
+| ESP32    | —        | ✓              |
+| ESP32-S2 | ✓        | —              |
+| ESP32-S3 | ✓        | —¹             |
+
+¹ The ESP32-S3 supports Bluetooth in hardware, but this firmware builds for
+USB only on S3. USB is the recommended connection for any serious coil
+ensemble — Bluetooth MIDI introduces jitter on fast note runs and is
+unreliable in the presence of strong electric fields.
+
+Any development board based on these chips works. The firmware has been tested
+on standard 4 MB flash modules.
+
+## ⚠ Safety
+
+**Teslasynth is designed to control high-voltage and high-power devices. These
+are dangerous. Read this before connecting anything.**
+
+- Tesla coils and flyback transformers produce lethal voltages. Never operate
+  them unenclosed or without proper safety barriers.
+- High-power lasers can cause permanent eye damage and fire. Use appropriate
+  enclosures, interlocks, and eye protection.
+- The firmware enforces configurable duty cycle and pulse-width limits to
+  protect your hardware, but these are not a substitute for proper system-level
+  safety design.
+- Never work on live high-voltage circuits. Always discharge capacitors before
+  touching any part of the circuit.
+
+The firmware has no awareness of what it is connected to. Safe operation is
+entirely the responsibility of the builder and operator.

@@ -57,7 +57,7 @@ export function InstallButton({ manifest, version, label, disabled }) {
 
     return (
         <esp-web-install-button manifest={manifestUrl}>
-            <button slot="activate" disabled={disabled}>
+            <button slot="activate" class="install-btn" disabled={disabled}>
                 {label ?? `Install ${version}`}
             </button>
         </esp-web-install-button>

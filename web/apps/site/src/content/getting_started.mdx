@@ -1,3 +1,80 @@
 # Getting started
 
-To be documented soon...
+## What you need
+
+- An ESP32, ESP32-S2, or ESP32-S3 development board
+- A USB cable (for flashing and power)
+- A Chrome or Edge browser (for the web installer)
+- Your interruptible device connected to an output GPIO pin
+
+The firmware ships with **1 output channel** configured on **GPIO 12** by
+default. You can add more outputs and change pin assignments later through the
+web dashboard.
+
+## Installing the firmware
+
+The easiest way to install Teslasynth is directly from your browser — no
+software installation required.
+
+1. Plug your ESP32 board into your computer via USB.
+2. Open the [Teslasynth website](/) in Chrome or Edge.
+3. Click **Install firmware** on the home page.
+4. When the browser asks, select the serial port for your board.
+5. If prompted, hold the **BOOT** button on your board, press and release
+   **RESET**, then release **BOOT**. This puts the board into bootloader mode
+   on adapters that don't support auto-reset.
+6. Follow the on-screen prompts. The installer will ask whether to erase the
+   device — choose **Erase** for a clean first install, skip it for upgrades if
+   you want to keep your settings.
+7. Wait for the progress bar to complete. The board reboots automatically when
+   done.
+
+To install a specific firmware version, use the
+[version selector](/flasher) instead.
+
+## Connecting to the device
+
+The web dashboard and Wi-Fi access point are only active in **maintenance
+mode**. After a clean flash the device boots into maintenance mode automatically
+so you can configure it before first use. On subsequent boots, hold the **BOOT**
+button for 3 seconds to enter maintenance mode manually (watch for the slow then
+fast LED blink — release during the fast blink to confirm).
+
+Once in maintenance mode:
+
+1. On your phone or computer, connect to the Wi-Fi network **Teslasynth**.
+   The default password is `Wardenclyffe1891!`
+2. Open **http://teslasynth.local** in a browser. If mDNS doesn't work on your
+   device, use **http://192.168.4.1** instead.
+3. The web dashboard opens. From here you can configure outputs, MIDI routing,
+   and hardware settings.
+
+See [Configuration](/configuration) for the full list of settings and CLI
+commands.
+
+## Wiring an output
+
+Connect your output device's interrupter input to the GPIO pin configured for
+channel 1 (default: **GPIO 12**) and to **GND**. The signal is a 3.3 V logic
+pulse — your interrupter circuit must accept this level or use a level shifter.
+
+The output is **active-high**: the pin goes high during a pulse and returns low
+between pulses.
+
+**Do not connect high voltage directly to the ESP32.** Always use an optocoupler
+or a dedicated interrupter board as the interface between the ESP32 and your
+high-voltage device.
+
+Add a **pull-down resistor** (10 kΩ is typical) from each output GPIO to GND.
+Without it, the pin floats during boot and reset, which can send spurious pulses
+to your device before the firmware takes control of the pin.
+
+## Confirming it works
+
+Open the **Console** page on the website and connect to your board's serial
+port. You should see boot messages from the firmware, including the firmware
+version, chip info, and a line confirming the Wi-Fi AP has started.
+
+Once a MIDI source is connected and sending notes, the console will stay quiet —
+the firmware does not log individual MIDI events. A connected status LED (if
+configured) will flicker with each pulse.

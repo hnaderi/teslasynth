@@ -19,6 +19,9 @@
     "esptool-js": "^0.5.7",
     "preact": "^10.28.0",
     "preact-router": "^4.1.2",
+    "rehype-pretty-code": "^0.14.3",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^4.0.2",
     "web-serial-polyfill": "^1.0.15"
   },
   "devDependencies": {

@@ -1,0 +1,216 @@
+# Python library
+
+The `teslasynth` Python package runs the same synthesis engine as the firmware
+and adds analysis and visualization tools. Use it to preview how a MIDI file
+will sound on a coil, inspect pulse-level signal details, and tune safety
+parameters before connecting any hardware.
+
+## Installation
+
+```
+pip install teslasynth
+```
+
+Optional extras:
+
+```
+pip install "teslasynth[plot]"   # Plotly visualizations
+pip install "teslasynth[wav]"    # WAV export (requires scipy)
+```
+
+Requires Python 3.8+ and NumPy.
+
+## Quick start
+
+```python
+import teslasynth as ts
+
+# Render a MIDI file with default settings
+rec = ts.render.from_file("song.mid")
+
+# Visualize: piano roll + frequency + duty cycle overview
+ts.plot.plot_overview(rec).show()
+
+# Export to WAV
+ts.wav.write(rec, "out.wav")
+```
+
+## CLI
+
+The package installs a `teslasynth` command. All subcommands accept
+`--config FILE.json` to load a configuration saved with
+`teslasynth config > my.json`.
+
+| Command | Description |
+|---------|-------------|
+| `teslasynth render <midi> <out.wav>` | Render MIDI to WAV |
+| `teslasynth plot <midi>` | Full overview plot (piano roll + signal) |
+| `teslasynth signal <midi>` | Zoomed coil signal view |
+| `teslasynth config [key=value ...]` | Print or modify configuration as JSON |
+| `teslasynth instruments` | List all 28 built-in instruments |
+| `teslasynth percussions` | List all built-in percussion presets |
+| `teslasynth envelope <name\|index>` | Plot an instrument or percussion envelope |
+| `teslasynth version` | Print engine version and build info |
+
+**Examples:**
+
+```sh
+# Render with a custom config and 192 kHz sample rate
+teslasynth render song.mid out.wav --config my.json --sample-rate 192000
+
+# Overview plot for the first 5 seconds, output channel 1
+teslasynth plot song.mid --end-ms 5000 --channel 1
+
+# Zoom into the first 10 ms of the coil signal
+teslasynth signal song.mid --start-ms 0 --end-ms 10
+
+# Generate a config with lower duty cycle, then save it
+teslasynth config output.1.max-duty=5 output.1.max-on-time=80us > safe.json
+```
+
+## Configuration
+
+The configuration format used by the Python library matches the firmware's
+key/value syntax. `teslasynth config` reads and writes JSON:
+
+```json
+{
+  "synth": { "tuning_hz": 440.0, "instrument": null },
+  "channels": [
+    {
+      "max_on_time_us": 100,
+      "min_deadtime_us": 100,
+      "duty_window_us": 10000,
+      "max_duty_percent": 10.0,
+      "notes": 4,
+      "instrument": null
+    }
+  ],
+  "routing": {
+    "mapping": [0, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null],
+    "percussion": false
+  }
+}
+```
+
+`channels` is a list of up to 8 entries, one per output channel. `routing.mapping`
+is a 16-element list (one per MIDI channel 0–15); each entry is an output index
+(0–7) or `null` to ignore that channel.
+
+Load and modify a config in Python:
+
+```python
+import teslasynth as ts
+from teslasynth import config as tscfg
+
+cfg = tscfg.load("my.json")
+cfg.channel(0).max_duty_percent = 8.0
+cfg.synth.tuning_hz = 432.0
+tscfg.save(cfg, "updated.json")
+```
+
+Or apply firmware-style key=value strings directly:
+
+```sh
+teslasynth config --config my.json output.1.max-duty=8 synth.tuning=432hz
+```
+
+## Rendering
+
+`teslasynth.render.from_file` runs the synthesizer against a MIDI file and
+returns a `Recording` containing all output pulses.
+
+```python
+import teslasynth as ts
+
+synth = ts.Teslasynth()                         # default config
+rec = ts.render.from_file("song.mid", synth=synth, channel=0)
+
+print(f"Duration: {rec.duration_us / 1e6:.1f} s")
+print(f"Pulses: {len(rec.pulses)}")
+```
+
+`Recording` exposes several derived arrays for analysis:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `pulses` | `(N, 2) uint32` | Raw `[on_us, off_us]` pairs |
+| `start_times_us` | `(N,) int64` | Absolute start of each pulse in µs |
+| `duration_us` | `int` | Total recording length in µs |
+| `frequency_hz` | `(N,) float64` | Instantaneous frequency per pulse |
+| `duty_cycle` | `(N,) float64` | Duty cycle [0–1] per pulse |
+
+To render a signal array (0/1 samples):
+
+```python
+signal = rec.to_signal(sample_rate=192_000)  # ~5 µs resolution
+```
+
+## Visualization
+
+`teslasynth.plot` produces interactive Plotly figures. Requires the `plot`
+extra.
+
+```python
+import teslasynth as ts
+
+rec = ts.render.from_file("song.mid")
+
+# Full overview: piano roll + output signal + frequency + duty cycle
+ts.plot.plot_overview(rec).show()
+
+# Zoom in on 5–15 ms of the raw coil signal
+ts.plot.plot_signal(rec, start_ms=5.0, end_ms=15.0).show()
+
+# Envelope shape for an instrument or percussion preset
+ts.plot.plot_envelope(ts.InstrumentId.SynthPluck).show()
+ts.plot.plot_envelope(ts.PercussionId.BassDrum).show()
+```
+
+Save any figure to a self-contained HTML file instead of opening the browser:
+
+```python
+fig = ts.plot.plot_overview(rec)
+fig.write_html("overview.html")
+```
+
+## WAV export
+
+Requires the `wav` extra (`scipy`).
+
+```python
+import teslasynth as ts
+
+ts.wav.write("song.mid", "out.wav", sample_rate=192_000)
+```
+
+Or from an existing `Recording`:
+
+```python
+rec = ts.render.from_file("song.mid")
+ts.wav.write(rec, "out.wav")
+```
+
+The output is a mono WAV file at the requested sample rate. The firmware
+synthesises at 1 MHz (1 µs precision), but 192 kHz is a practical default: it
+gives ~5 µs resolution and happens to match the Nyquist frequency of a coil
+with a 100 kHz resonant frequency, making the waveform meaningful for signal
+analysis. Higher rates give finer resolution at the cost of file size.
+
+## Instruments
+
+```python
+import teslasynth as ts
+
+# List all instruments with envelope details
+for info in ts.get_all_instruments():
+    print(info.index, info.name)
+
+# Look up by name or index
+info = ts.get_instrument("SynthPluck")
+print(info.envelope)
+```
+
+Use `InstrumentId` enum values when constructing a `Teslasynth` with a custom
+config, or pass them to `plot_envelope`.

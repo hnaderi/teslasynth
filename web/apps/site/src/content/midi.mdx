@@ -1,0 +1,85 @@
+# MIDI setup
+
+## Connecting a MIDI device
+
+### USB MIDI (ESP32-S2 and ESP32-S3)
+
+On boards with native USB (ESP32-S2 and ESP32-S3), Teslasynth appears as a
+standard USB MIDI device. Connect the board to your computer or MIDI host with
+a USB cable — the same cable used for power works.
+
+The device shows up as **Teslasynth** in your DAW or MIDI software. No drivers
+are needed on any major operating system.
+
+Note that on ESP32-S2 and S3 boards, the USB port used for MIDI is the **native
+USB port**, not the USB-to-serial adapter used for flashing. Some boards expose
+both; check your board's pinout.
+
+### Bluetooth MIDI (ESP32 only)
+
+On the original ESP32, Teslasynth advertises itself as a BLE MIDI peripheral.
+To connect:
+
+1. On your device, open your DAW or MIDI app and scan for Bluetooth MIDI
+   devices.
+2. Select **Teslasynth** from the list.
+3. No pairing PIN is required.
+
+BLE MIDI is supported natively on macOS, iOS, and iPadOS. On Windows and
+Android you will need a BLE MIDI-compatible app or driver.
+
+**Note:** Bluetooth MIDI is convenient for casual use but has limitations in
+demanding environments. BLE introduces scheduling jitter that becomes audible
+on fast note runs. It is also unreliable near high-voltage equipment — strong
+electric fields interfere with the radio link. For any serious performance or
+multi-coil ensemble, use USB MIDI (ESP32-S2 or S3).
+
+## Channel routing
+
+Teslasynth has 16 MIDI input channels and up to 4 output channels. By default,
+each MIDI channel is routed to the output with the same number (channel 1 →
+output 1, channel 2 → output 2, and so on). Channels without a matching output
+are ignored.
+
+Routing is configured through the web dashboard under **Routing**:
+
+- Each of the 16 MIDI channels can be mapped to any output channel (1-4), or
+  left unrouted.
+- Multiple MIDI channels can share the same output channel.
+- **MIDI channel 10** is the standard percussion channel. Enable the
+  **Percussion** toggle to activate it — percussion events bypass the normal
+  instrument assignment and use the built-in percussion presets.
+
+The default routing for four independent coils (matches factory defaults):
+
+| MIDI channel | Output |
+|---|---|
+| 1 | 1 |
+| 2 | 2 |
+| 3 | 3 |
+| 4 | 4 |
+| 5–16 | — (unrouted) |
+
+For a single-output coil you might route all channels to output 1:
+
+| MIDI channel | Output |
+|---|---|
+| 1–9, 11–16 | 1 |
+| 10 (percussion) | 1 |
+
+## Compatible software
+
+Teslasynth works with any software or hardware that sends standard MIDI. Some
+options:
+
+| Software | Platform | Notes |
+|---|---|---|
+| [LMMS](https://lmms.io) | Windows, macOS, Linux | Free, good for sequencing |
+| [Rosegarden](https://rosegardenmusic.com) | Linux | Free, MIDI-focused |
+| [Ableton Live](https://www.ableton.com) | Windows, macOS | Industry standard DAW |
+| [GarageBand](https://www.apple.com/mac/garageband/) | macOS, iOS | Free, easy BLE MIDI setup |
+| Hardware MIDI keyboard | Any | Plug directly into USB on S2/S3 |
+
+Any MIDI-compliant device or software will work. There is nothing
+Teslasynth-specific about the MIDI implementation — standard note on/off,
+program change, and pitch bend messages are all supported.

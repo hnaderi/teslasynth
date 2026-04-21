@@ -2,10 +2,82 @@
     $theme-color: 'indigo'
 );
 
+.nav-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+    }
+
+    nav {
+        position: relative;
+    }
+
+    .nav-mobile {
+        display: block;
+        margin-left: auto;
+
+        summary {
+            cursor: pointer;
+        }
+
+        ul {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            background: var(--pico-background-color);
+            border-bottom: 1px solid var(--pico-muted-border-color);
+            display: flex;
+            flex-direction: column;
+            list-style: none;
+            margin: 0;
+            padding: 0.5rem 1rem 1rem;
+
+            li a {
+                display: block;
+                padding: 0.75rem 0;
+            }
+        }
+    }
+}
+
 .svg-logo {
     height: 100px;
     width: auto;
 }
+// Shiki dual-theme: light/dark adaptive code highlighting
+[data-rehype-pretty-code-figure] pre {
+    background-color: var(--shiki-light-bg);
+    span {
+        color: var(--shiki-light);
+    }
+    @media (prefers-color-scheme: dark) {
+        background-color: var(--shiki-dark-bg);
+        span {
+            color: var(--shiki-dark);
+        }
+    }
+}
+
+.install-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 2rem 0;
+}
+
+.install-btn {
+    font-size: 1.2rem;
+    padding: 0.85rem 2.5rem;
+    font-weight: 600;
+    width: auto;
+}
+
 .channel-grid {
     display: grid;
     gap: 1rem;

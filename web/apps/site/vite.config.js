@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import mdx from '@mdx-js/rollup';
+import remarkGfm from 'remark-gfm';
+import rehypePrettyCode from 'rehype-pretty-code';
 
 export default defineConfig({
     base: '/teslasynth',
@@ -10,6 +12,18 @@ export default defineConfig({
             ...mdx({
                 jsxImportSource: 'preact',
                 providerImportSource: '@mdx-js/preact',
+                remarkPlugins: [remarkGfm],
+                rehypePlugins: [
+                    [
+                        rehypePrettyCode,
+                        {
+                            theme: {
+                                light: 'github-light',
+                                dark: 'github-dark-dimmed',
+                            },
+                        },
+                    ],
+                ],
             }),
         },
         preact(),

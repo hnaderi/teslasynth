@@ -1,0 +1,171 @@
+# Configuration
+
+Teslasynth stores its configuration in NVS (non-volatile storage) on the device
+flash. Settings survive reboots and firmware upgrades, unless you explicitly
+erase or reset them.
+
+There are two ways to configure the device:
+
+- **Web dashboard** — boot into maintenance mode (see below), connect to the
+  device's Wi-Fi AP, and open http://teslasynth.local.
+- **Serial CLI** — connect via the serial console and use the `config` command.
+  More powerful: supports wildcards, bulk updates, and scripting.
+
+## Maintenance mode
+
+The web dashboard and Wi-Fi AP are only active in **maintenance mode**. During
+normal operation the device runs the synthesizer with no network stack, keeping
+all resources available for audio.
+
+There are two ways to enter maintenance mode:
+
+**Physical button** — hold the maintenance button (default: **GPIO 0**, the
+BOOT button on most dev boards) and watch the status LED:
+
+| LED | Meaning |
+|-----|---------|
+| Slow blink | Hold detected — keep holding |
+| Fast blink | 3 seconds reached — release now |
+| Solid | Confirmed — rebooting into maintenance mode |
+| Off | Released too early — aborted, try again |
+
+Release the button during the fast-blink phase to confirm. If you release too
+early the sequence aborts and the LED goes off.
+
+The LED indicators require a status LED to be configured in the hardware
+settings. Without one, the sequence still works — there is just no visual
+feedback.
+
+**First install** — if no valid hardware configuration is stored (e.g. after a
+clean flash), the device automatically boots into maintenance mode so you can
+configure it before first use.
+
+**CLI command** — from the serial console, run:
+
+```
+maintenance
+```
+
+Once in maintenance mode:
+1. Connect to the Wi-Fi network **Teslasynth** (default password:
+   `Wardenclyffe1891!`).
+2. Open **http://teslasynth.local** (or **http://192.168.4.1** if mDNS doesn't
+   work on your device).
+3. Configure the device using the web dashboard.
+4. Reboot (via the dashboard or the `restart` CLI command) to return to normal
+   synthesis mode.
+
+## CLI config command
+
+```
+config [<key[:<ch>]=value> ...] [flags]
+```
+
+Called with no arguments it prints the full current configuration. Pass one or
+more `key=value` pairs to update settings.
+
+**Flags:**
+
+| Flag | Description |
+|------|-------------|
+| `-s`, `--save` | Persist changes to NVS flash |
+| `-r`, `--reload` | Reload synthesizer with new config immediately |
+| `--reset` | Reset all config to firmware defaults |
+
+Changes are **not** saved automatically — always add `-s` if you want them to
+survive a reboot. Add `-r` to hear the effect immediately without rebooting.
+
+**Examples:**
+
+```
+config
+config synth.tuning=432hz
+config output.1.max-duty=15.5 output.2.notes=2 --save
+config output.*.max-on-time=200us -r -s
+config --reset
+```
+
+---
+
+## Global synth settings
+
+| Key | Format | Default | Description |
+|-----|--------|---------|-------------|
+| `synth.tuning` | `<n>[hz\|khz]` | `440hz` | Reference tuning frequency |
+| `synth.instrument` | `<1–28>` or `-` | — | Default instrument for all outputs |
+
+**Frequency format:** `440`, `440hz`, or `0.44khz` are all accepted.
+
+`synth.instrument` sets a global fallback used by any output that does not have
+its own instrument assigned. Set it to `-` to clear it.
+
+---
+
+## Per-output settings
+
+Replace `<ch>` with an output number (`1`–`4`) or use `*` to apply a value to
+all outputs at once.
+
+| Key | Format | Default | Description |
+|-----|--------|---------|-------------|
+| `output.<ch>.max-on-time` | `<n>[us\|ms]` | `100us` | Maximum continuous on-time per pulse |
+| `output.<ch>.min-deadtime` | `<n>[us\|ms]` | `100us` | Minimum dead time between pulses |
+| `output.<ch>.max-duty` | `0–100` (float) | `100` | Maximum duty cycle (%) |
+| `output.<ch>.duty-window` | `<n>[us\|ms]` | `10ms` | Time window for duty cycle enforcement |
+| `output.<ch>.notes` | `1–8` | `4` | Maximum concurrent notes |
+| `output.<ch>.instrument` | `<1–28>` or `-` | — | Instrument override for this output |
+
+**Duration format:** `100`, `100us`, or `10ms`. Maximum value is 65535 µs.
+
+**Duty cycle** is the fraction of time the output is on within the duty window.
+It is the primary safety limit for your device: keeping it low protects your
+coil or transformer from overheating. Start conservatively (5–10%) and increase
+gradually while monitoring the device temperature.
+
+**Max on-time** caps the length of any single pulse regardless of the note being
+played. Use this to prevent the output from latching high on
+a stuck note or a firmware bug.
+
+**Min deadtime** ensures a minimum off-time between pulses. For DRSSTCs this is
+critical: the tank circuit current must ring down to zero before the next burst,
+or the bridge switches under load — set it conservatively until you have
+confirmed safe operation on your specific coil.
+
+---
+
+## MIDI routing
+
+| Key | Format | Description |
+|-----|--------|-------------|
+| `routing.channel.<midi_ch>` | `<1–4>` or `-` | Map MIDI channel (1–16) to an output, or `-` to unroute |
+| `routing.percussion` | `y` / `n` | Enable MIDI channel 10 percussion routing |
+
+Use `*` as the MIDI channel to set all 16 channels at once.
+
+```
+config routing.channel.*=-        # unroute all channels
+config routing.channel.1=1        # route MIDI ch 1 to output 1
+config routing.channel.2=1        # also route MIDI ch 2 to output 1
+config routing.channel.3=2 -s     # route MIDI ch 3 to output 2, save
+config routing.percussion=y -s    # enable percussion
+```
+
+---
+
+## Hardware configuration
+
+Hardware settings (GPIO pins, LED) are configured through the web dashboard
+under **Hardware**. They require a reboot to take effect and are stored
+separately from the synth configuration.
+
+Use the `hwconfig` CLI command to inspect the current hardware configuration:
+
+```
+hwconfig
+```
+
+To show compile-time limits (max notes, number of outputs):
+
+```
+limits
+```

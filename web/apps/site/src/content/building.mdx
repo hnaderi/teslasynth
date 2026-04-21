@@ -1,0 +1,123 @@
+# Building from source
+
+## Prerequisites
+
+The recommended way to set up the development environment is with
+[Nix](https://nixos.org/). From the repo root:
+
+```sh
+nix develop
+```
+
+This drops you into a shell with ESP-IDF, PlatformIO, pnpm, uv, ruff, and all
+other tools pre-installed and pinned.
+
+Without Nix, install the tools manually:
+
+- **Firmware**: [ESP-IDF v6.0](https://docs.espressif.com/projects/esp-idf/)
+- **Native tests**: [PlatformIO](https://platformio.org/)
+- **Python library**: [uv](https://docs.astral.sh/uv/) + a C++17 compiler
+- **Website**: [pnpm](https://pnpm.io/)
+
+---
+
+## Firmware
+
+The firmware embeds the web dashboard, so the dashboard must be built first:
+
+```sh
+pnpm build:dashboard
+```
+
+Then build the firmware. The Nix shell provides wrapper commands:
+
+```sh
+fw-build <target>    # esp32 | esp32s2 | esp32s3
+fw-flash <target>
+fw-monitor <target>
+```
+
+Or use `idf.py` directly:
+
+```sh
+idf.py -B build/esp32s3 -D IDF_TARGET=esp32s3 build
+idf.py -B build/esp32s3 flash monitor
+```
+
+### Native tests
+
+Unit tests run on the host via PlatformIO without any hardware:
+
+```sh
+pio test -e native
+```
+
+### Formatting
+
+```sh
+format-cpp          # format in place
+format-cpp-check    # check only (used in CI)
+```
+
+---
+
+## Python library
+
+The library has a C++ extension built with [nanobind](https://github.com/wjakob/nanobind)
+and [scikit-build-core](https://scikit-build-core.readthedocs.io/). Building
+requires a C++17 compiler and CMake.
+
+```sh
+cd python
+uv venv
+uv pip install scikit-build-core nanobind setuptools_scm
+uv sync --group dev --no-build-isolation
+```
+
+Run the tests:
+
+```sh
+uv run pytest tests -v
+```
+
+Lint and format:
+
+```sh
+uvx ruff check .
+uvx ruff format .
+```
+
+---
+
+## Website
+
+```sh
+pnpm install        # install all workspace dependencies (run from repo root)
+pnpm dev:site       # start dev server
+pnpm build:site     # production build → web/apps/site/dist
+```
+
+Lint and format:
+
+```sh
+pnpm lint
+pnpm format
+```
+
+---
+
+## CI
+
+GitHub Actions runs on every push:
+
+| Job | What it does |
+|-----|-------------|
+| `build` | Builds firmware for esp32, esp32s2, esp32s3 |
+| `test` | Runs native unit tests via PlatformIO |
+| `python-test` | Builds the Python extension and runs pytest on Linux, macOS, Windows |
+| `firmware-lint` | Checks C/C++ formatting with clang-format |
+| `python-lint` | Checks Python with ruff |
+| `web-lint` | Checks JS/TS with ESLint and Prettier |
+| `website` | Deploys the site to GitHub Pages (main branch only) |
+| `python-wheels` | Builds wheels for all platforms (tags only) |
+| `publish` | Creates a GitHub release and publishes to PyPI (tags only) |
