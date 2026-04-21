@@ -118,9 +118,18 @@ all outputs at once.
 **Duration format:** `100`, `100us`, or `10ms`. Maximum value is 65535 µs.
 
 **Duty cycle** is the fraction of time the output is on within the duty window.
-It is the primary safety limit for your device: keeping it low protects your
-coil or transformer from overheating. Start conservatively (5–10%) and increase
-gradually while monitoring the device temperature.
+It is the primary safety limit for your device.
+
+The default of **100%** is intentional: it imposes no limit, which is safe for
+passive loads (speakers, LEDs) and Python simulations. **Before connecting any
+high-voltage device, set this to a value appropriate for your hardware:**
+
+- **DRSSTCs** — typically 5–10%; the resonant tank stores energy and even short
+  bursts carry significant power
+- **Flyback transformers** — up to ~50% is often acceptable depending on the
+  core and drive circuit
+- **Other interrupters** — consult your device's documentation; when in doubt,
+  start at 5% and increase gradually while monitoring temperature
 
 **Max on-time** caps the length of any single pulse regardless of the note being
 played. Use this to prevent the output from latching high on

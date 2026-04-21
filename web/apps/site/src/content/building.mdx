@@ -92,9 +92,10 @@ uvx ruff format .
 ## Website
 
 ```sh
-pnpm install        # install all workspace dependencies (run from repo root)
-pnpm dev:site       # start dev server
-pnpm build:site     # production build → web/apps/site/dist
+pnpm install           # install all workspace dependencies (run from repo root)
+pnpm dev:site          # start dev server
+pnpm build:site        # production build → web/apps/site/dist
+pnpm build:dashboard   # build the embedded dashboard (required before fw-build)
 ```
 
 Lint and format:
