@@ -19,6 +19,10 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         esp-idf = nixpkgs-esp-dev.packages.${system}.esp-idf-full;
+        add-headers = pkgs.writeShellScriptBin "add-headers" ''
+          copywrite headers "$@"
+          (cd python && copywrite headers "$@")
+        '';
         format-cpp = pkgs.writeShellScriptBin "format-cpp" ''
           git ls-files -- '*.cpp' '*.c' '*.hpp' '*.h' | xargs clang-format -i
         '';
@@ -61,6 +65,7 @@
             rosegarden
             alsa-utils
 
+            add-headers
             format-cpp
             format-cpp-check
             fw-build

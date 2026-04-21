@@ -6,6 +6,7 @@ build-backend = "scikit_build_core.build"
 name = "teslasynth"
 dynamic = ["version"]
 description = "Python bindings and analysis tools for the teslasynth firmware"
+license = { file = "LICENSE" }
 requires-python = ">=3.8"
 dependencies = [
     "numpy>=1.21",
