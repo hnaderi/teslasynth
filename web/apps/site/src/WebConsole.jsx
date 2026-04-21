@@ -2,6 +2,7 @@ import { useState, useRef } from 'preact/hooks';
 import { openEspTransport } from './services/esptool.js';
 import { SerialTerminal } from './components/SerialTerminal';
 import { useSerialTerminal } from './hooks/useSerialTerminal';
+import CliReference from './content/cli.mdx';
 
 export function Console() {
     const [isConnected, setConnected] = useState(false);
@@ -38,28 +39,38 @@ export function Console() {
 
     if (!(navigator.serial || navigator.usb)) {
         return (
-            <article>
-                <p>
-                    Web Serial is not supported in this browser. Please use
-                    Chrome or Edge.
-                </p>
-            </article>
+            <>
+                <article>
+                    <p>
+                        Web Serial is not supported in this browser. Please use
+                        Chrome or Edge.
+                    </p>
+                </article>
+                <article>
+                    <CliReference />
+                </article>
+            </>
         );
     }
 
     return (
-        <article>
-            <header>
-                <h2>Teslasynth webtool</h2>
-                <p>Flash and serial console</p>
-            </header>
-            <div class="grid">
-                <button onClick={onClick}>
-                    {isConnected ? 'Disconnect' : 'Connect'}
-                </button>
-            </div>
+        <>
+            <article>
+                <header>
+                    <h2>Teslasynth webtool</h2>
+                    <p>Flash and serial console</p>
+                </header>
+                <div class="grid">
+                    <button onClick={onClick}>
+                        {isConnected ? 'Disconnect' : 'Connect'}
+                    </button>
+                </div>
 
-            <SerialTerminal onInit={setTerm} />
-        </article>
+                <SerialTerminal onInit={setTerm} />
+            </article>
+            <article>
+                <CliReference />
+            </article>
+        </>
     );
 }

@@ -1,0 +1,59 @@
+## CLI reference
+
+The firmware exposes a serial command-line interface over UART or USB serial.
+Connect via the **Console** above and type commands at the prompt.
+
+### System
+
+| Command | Description |
+|---------|-------------|
+| `version` | Firmware version, build timestamp, IDF version, chip info |
+| `restart` | Software reset the device |
+| `maintenance` | Reboot into maintenance mode (starts Wi-Fi AP and web dashboard) |
+| `free` | Current available heap memory in bytes |
+| `heap` | Minimum free heap observed since boot |
+
+### Playback
+
+| Command | Description |
+|---------|-------------|
+| `off` | Immediately stop all note playback on all outputs |
+| `instruments` | List all 28 built-in instruments with their IDs |
+
+### Hardware info
+
+| Command | Description |
+|---------|-------------|
+| `hwconfig` | Current hardware config: outputs, GPIO pins, maintenance button, status LED |
+| `limits` | Compile-time limits: max concurrent notes per output |
+
+### config
+
+```
+config [<key=value> ...] [flags]
+```
+
+Called with no arguments, prints the full current configuration. Pass one or
+more `key=value` pairs to update settings.
+
+| Flag | Description |
+|------|-------------|
+| `-s`, `--save` | Persist changes to NVS flash |
+| `-r`, `--reload` | Reload synthesizer with new config immediately |
+| `--reset` | Reset all config to firmware defaults |
+
+Changes are **not** saved automatically — always add `-s` to survive a reboot.
+Add `-r` to hear the effect immediately without rebooting.
+
+```
+config
+config synth.tuning=432hz
+config output.1.max-duty=15.5 output.2.notes=2 --save
+config output.*.max-on-time=200us -r -s
+config routing.channel.*=-
+config routing.channel.1=1 routing.channel.2=2 -s
+config routing.percussion=y -s
+config --reset
+```
+
+For the full list of configuration keys see [Configuration](/configuration).

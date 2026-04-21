@@ -18,7 +18,9 @@ export function LatestFirmwareInstall() {
             .then(async (versions) => {
                 const latest = versions[0];
                 setVersion(latest);
-                const r = await fetch(`${CATALOG_BASE}/${latest}/manifest.json`);
+                const r = await fetch(
+                    `${CATALOG_BASE}/${latest}/manifest.json`
+                );
                 return r.json();
             })
             .then((m) => setManifest(m))
