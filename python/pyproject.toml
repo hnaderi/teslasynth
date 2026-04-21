@@ -6,12 +6,43 @@ build-backend = "scikit_build_core.build"
 name = "teslasynth"
 dynamic = ["version"]
 description = "Python bindings and analysis tools for the teslasynth firmware"
+readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.8"
+authors = [
+    { name = "Hossein Naderi" },
+]
+keywords = [
+    "midi", "synthesizer", "audio", "music",
+    "esp32", "embedded", "firmware",
+    "tesla-coil", "flyback", "interrupter", "high-voltage", "laser",
+    "pulse", "waveform", "signal",
+]
+classifiers = [
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio :: MIDI",
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "numpy>=1.21",
     "mido>=1.3",
 ]
+
+[project.urls]
+Homepage      = "http://projects.hnaderi.dev/teslasynth/"
+Documentation = "http://projects.hnaderi.dev/teslasynth/python"
+Repository    = "https://github.com/hnaderi/teslasynth"
+"Bug Tracker" = "https://github.com/hnaderi/teslasynth/issues"
 
 [project.optional-dependencies]
 plot = ["plotly>=5.0"]
