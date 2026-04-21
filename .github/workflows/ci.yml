@@ -115,10 +115,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Install clang-format-20
+        run: sudo apt-get install -y clang-format-20
       - name: Check clang-format
         run: |
           git ls-files -- '*.cpp' '*.c' '*.hpp' '*.h' \
-            | xargs clang-format --dry-run --Werror
+            | xargs clang-format-20 --dry-run --Werror
 
   python-lint:
     runs-on: ubuntu-latest
