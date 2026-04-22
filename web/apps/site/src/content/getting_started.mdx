@@ -63,7 +63,7 @@ configuring these limits first risks destroying your hardware or causing injury.
 ## Wiring an output
 
 Connect your output device's interrupter input to the GPIO pin configured for
-channel 1 (default: **GPIO 12**) and to **GND**. The signal is a 3.3 V logic
+channel 1 and to **GND**. The signal is a 3.3 V logic
 pulse — your interrupter circuit must accept this level or use a level shifter.
 
 The output is **active-high**: the pin goes high during a pulse and returns low
@@ -81,8 +81,4 @@ to your device before the firmware takes control of the pin.
 
 Open the **Console** page on the website and connect to your board's serial
 port. You should see boot messages from the firmware, including the firmware
-version, chip info, and a line confirming the Wi-Fi AP has started.
-
-Once a MIDI source is connected and sending notes, the console will stay quiet —
-the firmware does not log individual MIDI events. A connected status LED (if
-configured) will flicker with each pulse.
+version, chip info, and a command prompt waiting for commands.

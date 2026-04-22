@@ -20,7 +20,7 @@ all resources available for audio.
 There are two ways to enter maintenance mode:
 
 **Physical button** — hold the maintenance button (default: **GPIO 0**, the
-BOOT button on most dev boards) and watch the status LED:
+BOOT button on most dev boards, or alternativly, ground the **GPIO 0**) and watch the status LED:
 
 | LED | Meaning |
 |-----|---------|
@@ -112,7 +112,7 @@ all outputs at once.
 | `output.<ch>.min-deadtime` | `<n>[us\|ms]` | `100us` | Minimum dead time between pulses |
 | `output.<ch>.max-duty` | `0–100` (float) | `100` | Maximum duty cycle (%) |
 | `output.<ch>.duty-window` | `<n>[us\|ms]` | `10ms` | Time window for duty cycle enforcement |
-| `output.<ch>.notes` | `1–8` | `4` | Maximum concurrent notes |
+| `output.<ch>.notes` | `1–4` | `4` | Maximum concurrent notes |
 | `output.<ch>.instrument` | `<1–28>` or `-` | — | Instrument override for this output |
 
 **Duration format:** `100`, `100us`, or `10ms`. Maximum value is 65535 µs.
