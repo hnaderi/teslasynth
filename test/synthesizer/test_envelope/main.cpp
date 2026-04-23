@@ -96,6 +96,59 @@ void test_envelope_comparison(void) {
   // TEST_ASSERT_FALSE(lin_adsr == const_adsr);
 }
 
+const envelopes::AD lin_ad = envelopes::AD::linear(10_ms, 20_ms);
+const envelopes::AD exp_ad = envelopes::AD::exponential(10_ms, 20_ms);
+
+void test_envelope_ad_lin(void) {
+  Envelope env(lin_ad);
+  TEST_ASSERT_EQUAL(0, env.stage());
+  TEST_ASSERT_FALSE(env.is_off());
+
+  assert_level_equal(env.update(0_ms, true), EnvelopeLevel(0));
+  assert_level_equal(env.update(5_ms, true), EnvelopeLevel(0.5));
+  TEST_ASSERT_EQUAL(0, env.stage());
+  assert_level_equal(env.update(5_ms, true), EnvelopeLevel(1));
+  TEST_ASSERT_EQUAL(1, env.stage());
+  assert_level_equal(env.update(10_ms, true), EnvelopeLevel(0.5));
+  TEST_ASSERT_EQUAL(1, env.stage());
+  assert_level_equal(env.update(10_ms, true), EnvelopeLevel(0));
+  TEST_ASSERT_TRUE(env.is_off());
+}
+
+void test_envelope_ad_exp(void) {
+  Envelope env(exp_ad);
+  TEST_ASSERT_EQUAL(0, env.stage());
+
+  assert_level_equal(env.update(0_ms, true), EnvelopeLevel(0));
+  assert_level_equal(env.update(10_ms, true), EnvelopeLevel(1)); // attack complete
+  TEST_ASSERT_EQUAL(1, env.stage());
+
+  auto mid = env.update(10_ms, true); // halfway through decay
+  TEST_ASSERT_TRUE(mid < EnvelopeLevel(1));
+  TEST_ASSERT_TRUE(mid > EnvelopeLevel(0));
+  TEST_ASSERT_EQUAL(1, env.stage());
+
+  assert_level_equal(env.update(10_ms, true), EnvelopeLevel(0));
+  TEST_ASSERT_TRUE(env.is_off());
+}
+
+// AD has no hold stage — the 'on' flag should not stall progression
+void test_envelope_ad_ignores_on_flag(void) {
+  Envelope env(lin_ad);
+
+  assert_level_equal(env.update(10_ms, false), EnvelopeLevel(1)); // attack with on=false
+  TEST_ASSERT_EQUAL(1, env.stage());
+  assert_level_equal(env.update(20_ms, false), EnvelopeLevel(0)); // decay with on=false
+  TEST_ASSERT_TRUE(env.is_off());
+}
+
+void test_envelope_ad_comparison(void) {
+  TEST_ASSERT_TRUE(lin_ad == lin_ad);
+  TEST_ASSERT_FALSE(lin_ad != lin_ad);
+  TEST_ASSERT_TRUE(lin_ad != exp_ad);
+  TEST_ASSERT_FALSE(lin_ad == exp_ad);
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_envelope_lin_full);
@@ -104,6 +157,10 @@ extern "C" void app_main(void) {
   RUN_TEST(test_envelope_const_zero);
   RUN_TEST(test_envelope_const_value);
   RUN_TEST(test_envelope_comparison);
+  RUN_TEST(test_envelope_ad_lin);
+  RUN_TEST(test_envelope_ad_exp);
+  RUN_TEST(test_envelope_ad_ignores_on_flag);
+  RUN_TEST(test_envelope_ad_comparison);
   UNITY_END();
 }
 
