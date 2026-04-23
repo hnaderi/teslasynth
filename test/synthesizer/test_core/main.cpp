@@ -1,6 +1,7 @@
 // Copyright Hossein Naderi 2025, 2026
 // SPDX-License-Identifier: GPL-3.0-only
 
+#include "core/functions.hpp"
 #include "core/probability.hpp"
 #include "synthesizer/helpers/assertions.hpp"
 #include <cmath>
@@ -249,6 +250,41 @@ void test_probability_arithmetic(void) {
   assert_probability_equal(Probability(0.5) * Probability(0), Probability(0));
 }
 
+void test_clip(void) {
+  // Integer: within range, below min, above max, at boundaries
+  TEST_ASSERT_EQUAL(5, clip(5, 0, 10));
+  TEST_ASSERT_EQUAL(0, clip(-1, 0, 10));
+  TEST_ASSERT_EQUAL(10, clip(11, 0, 10));
+  TEST_ASSERT_EQUAL(0, clip(0, 0, 10));
+  TEST_ASSERT_EQUAL(10, clip(10, 0, 10));
+
+  // Float
+  TEST_ASSERT_EQUAL_FLOAT(0.5f, clip(0.5f, 0.0f, 1.0f));
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, clip(-0.1f, 0.0f, 1.0f));
+  TEST_ASSERT_EQUAL_FLOAT(1.0f, clip(1.1f, 0.0f, 1.0f));
+
+  // Hertz — same bounds used by hit.cpp frequency clamping
+  assert_hertz_equal(clip(50_hz, 20_hz, 4_khz), 50_hz);
+  assert_hertz_equal(clip(10_hz, 20_hz, 4_khz), 20_hz);
+  assert_hertz_equal(clip(5_khz, 20_hz, 4_khz), 4_khz);
+}
+
+void test_lerp(void) {
+  // Endpoints
+  TEST_ASSERT_EQUAL_FLOAT(0.0f, lerp(0.0f, 1.0f, 0.0f));
+  TEST_ASSERT_EQUAL_FLOAT(1.0f, lerp(0.0f, 1.0f, 1.0f));
+
+  // Midpoint
+  TEST_ASSERT_EQUAL_FLOAT(0.5f, lerp(0.0f, 1.0f, 0.5f));
+
+  // Arbitrary values
+  TEST_ASSERT_EQUAL_FLOAT(3.0f, lerp(0.0f, 10.0f, 0.3f));
+  TEST_ASSERT_EQUAL_FLOAT(3.0f, lerp(2.0f, 4.0f, 0.5f));
+
+  // Negative range
+  TEST_ASSERT_EQUAL_FLOAT(-1.0f, lerp(-2.0f, 0.0f, 0.5f));
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_seconds);
@@ -272,6 +308,9 @@ extern "C" void app_main(void) {
   RUN_TEST(test_probability_sanity);
   RUN_TEST(test_probability_comparison);
   RUN_TEST(test_probability_arithmetic);
+
+  RUN_TEST(test_clip);
+  RUN_TEST(test_lerp);
   UNITY_END();
 }
 int main(int argc, char **argv) {
