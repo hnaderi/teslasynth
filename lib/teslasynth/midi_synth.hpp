@@ -8,7 +8,7 @@
 #include "channel_mapping.hpp"
 #include "config_data.hpp"
 #include "core/envelope_level.hpp"
-#include "instruments.hpp"
+#include "bank/instruments.hpp"
 #include "pitchbend.hpp"
 #include <algorithm>
 #include <array>

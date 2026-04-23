@@ -3,7 +3,7 @@
 
 #include "core/duration.hpp"
 #include "core/envelope_level.hpp"
-#include "instruments.hpp"
+#include "bank/instruments.hpp"
 #include "percussion.hpp"
 #include "presets.hpp"
 #include "synthesizer/helpers/assertions.hpp"

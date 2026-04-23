@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <instruments.hpp>
+#include <bank/instruments.hpp>
 #include <percussion.hpp>
 #include <stddef.h>
 #include <variant>

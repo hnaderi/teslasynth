@@ -7,7 +7,7 @@
 #include "../synthesizer/voice.hpp"
 #include "channel_mapping.hpp"
 #include "core.hpp"
-#include "instruments.hpp"
+#include "bank/instruments.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>

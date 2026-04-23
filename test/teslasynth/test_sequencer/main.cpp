@@ -3,7 +3,7 @@
 
 #include "core.hpp"
 #include "envelope.hpp"
-#include "instruments.hpp"
+#include "bank/instruments.hpp"
 #include "lfo.hpp"
 #include "midi_synth.hpp"
 #include "synthesizer/helpers/assertions.hpp"

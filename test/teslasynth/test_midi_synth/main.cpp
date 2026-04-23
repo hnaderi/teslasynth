@@ -3,7 +3,7 @@
 
 #include "channel_state.hpp"
 #include "core/envelope_level.hpp"
-#include "instruments.hpp"
+#include "bank/instruments.hpp"
 #include "lfo.hpp"
 #include "midi_core.hpp"
 #include "midi_synth.hpp"

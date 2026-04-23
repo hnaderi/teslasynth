@@ -7,7 +7,7 @@
 #include "core/functions.hpp"
 #include "core/hertz.hpp"
 #include "envelope.hpp"
-#include "instruments.hpp"
+#include "bank/instruments.hpp"
 #include "lfo.hpp"
 #include <algorithm>
 #include <cmath>

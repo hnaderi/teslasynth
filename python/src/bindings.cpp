@@ -10,7 +10,7 @@
 #include "teslasynth/midi_synth.hpp"
 #include "teslasynth/config_patch_update.hpp"
 #include "synthesizer/envelope.hpp"
-#include "synthesizer/instruments.hpp"
+#include "synthesizer/bank/instruments.hpp"
 #include "synthesizer/bank/percussions.hpp"
 
 namespace nb = nanobind;

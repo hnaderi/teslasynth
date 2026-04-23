@@ -4,7 +4,7 @@
 #include "channel_state.hpp"
 #include "core/duration.hpp"
 #include "core/envelope_level.hpp"
-#include "instruments.hpp"
+#include "bank/instruments.hpp"
 #include "lfo.hpp"
 #include "presets.hpp"
 #include "synthesizer/helpers/assertions.hpp"

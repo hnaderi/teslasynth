@@ -4,7 +4,7 @@
 #pragma once
 
 #include "core.hpp"
-#include "instruments.hpp"
+#include "bank/instruments.hpp"
 #include <optional>
 #include <string>
 #include <unity.h>
