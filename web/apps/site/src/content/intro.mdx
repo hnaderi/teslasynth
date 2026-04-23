@@ -50,6 +50,11 @@ firmware is tested and the synthesis engine is independently testable offline.
 hardware that sends standard MIDI works with it — no custom drivers, no special
 plugins, no proprietary protocol.
 
+**Minimal footprint.** Real-time pulse generation on a microcontroller leaves
+little margin for error. RAM and processing are budgeted carefully so that
+the synthesis engine always has the headroom it needs — timing jitter in the
+output is not just an audio artifact, it is a safety concern.
+
 **Modern.** Web-installable, web-configurable, open-source. The goal is to make
 quality interrupter firmware so accessible and complete that there is no reason
 to reach for anything else.
