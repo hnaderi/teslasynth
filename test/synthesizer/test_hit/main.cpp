@@ -83,12 +83,56 @@ void test_generate_bursts_random(void) {
   TEST_ASSERT_GREATER_THAN(10, counter);
 }
 
+// Regardless of jitter magnitude, the clipped PRF must keep periods inside
+// [period(4kHz), period(20Hz)] = [250us, 50ms].
+void test_pitched_period_bounds_high_prf(void) {
+  // 3kHz PRF + max noise: positive jitter can push above 4kHz ceiling
+  Percussion params{.burst = 500_ms, .prf = 3_khz, .noise = Probability(1)};
+  Hit hit;
+  hit.start(127, EnvelopeLevel::max(), 0_s, params);
+
+  const auto min_period = Duration32::micros(250); // 4kHz
+  const auto max_period = Duration32::millis(50);  // 20Hz
+
+  int count = 0;
+  do {
+    count++;
+    const Duration32 p = hit.current().period;
+    TEST_ASSERT_TRUE_MESSAGE(p >= min_period, "Period too short (above 4kHz)");
+    TEST_ASSERT_TRUE_MESSAGE(p <= max_period, "Period too long (below 20Hz)");
+  } while (count < 500 && hit.next());
+
+  TEST_ASSERT_GREATER_THAN(10, count);
+}
+
+void test_pitched_period_bounds_low_prf(void) {
+  // 50Hz PRF + max noise: negative jitter can push near 0Hz (below 20Hz floor)
+  Percussion params{.burst = 500_ms, .prf = 50_hz, .noise = Probability(1)};
+  Hit hit;
+  hit.start(127, EnvelopeLevel::max(), 0_s, params);
+
+  const auto min_period = Duration32::micros(250);
+  const auto max_period = Duration32::millis(50);
+
+  int count = 0;
+  do {
+    count++;
+    const Duration32 p = hit.current().period;
+    TEST_ASSERT_TRUE_MESSAGE(p >= min_period, "Period too short (above 4kHz)");
+    TEST_ASSERT_TRUE_MESSAGE(p <= max_period, "Period too long (below 20Hz)");
+  } while (count < 500 && hit.next());
+
+  TEST_ASSERT_GREATER_THAN(10, count);
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
   RUN_TEST(test_start);
   RUN_TEST(test_generate_bursts_pitched);
   RUN_TEST(test_generate_bursts_random);
+  RUN_TEST(test_pitched_period_bounds_high_prf);
+  RUN_TEST(test_pitched_period_bounds_low_prf);
   UNITY_END();
 }
 
