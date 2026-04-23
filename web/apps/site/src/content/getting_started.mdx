@@ -7,9 +7,15 @@
 - A Chrome or Edge browser (for the web installer)
 - Your interruptible device connected to an output GPIO pin
 
-The firmware ships with **1 output channel** configured on **GPIO 12** by
-default. You can add more outputs and change pin assignments later through the
+The firmware ships with **4 output channels** configured on some of the safe GPIO pins by
+default. You can disable outputs and/or change pin assignments later through the
 web dashboard.
+
+#### ⚠ Note of GPIO selection
+Before choosing a GPIO pin, ensure that it's not a strapping pin.
+Each chip model has its own strapping pins, that are not safe to use for GPIO usage.
+Using these pins can cause sending pulses, uncontrolled by the firmware, during boot time,
+or other arbitrary times. Do a quick search like `esp32s2 strapping pins` before choosing a pin.
 
 ## Installing the firmware
 
