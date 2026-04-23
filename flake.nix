@@ -41,6 +41,10 @@
           : ''${1:?Usage: fw-monitor <target>  (e.g. fw-monitor esp32s3)}
           idf.py -B build/$1 monitor
         '';
+        fw-menuconfig = pkgs.writeShellScriptBin "fw-menuconfig" ''
+          : ''${1:?Usage: fw-menuconfig <target>  (e.g. fw-menuconfig esp32s3)}
+          idf.py -B build/$1 menuconfig
+        '';
       in
       {
         devShells.default = pkgs.mkShell {
@@ -71,6 +75,7 @@
             fw-build
             fw-flash
             fw-monitor
+            fw-menuconfig
           ];
         };
       }
