@@ -79,11 +79,70 @@ void test_start_hit(void) {
   TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::None);
 }
 
+static void start_hit(VoiceEvent &event) {
+  static const Percussion percussion = Percussion{20_ms, 1_khz};
+  const PercussivePreset preset{&percussion};
+  event.start(127, EnvelopeLevel::max(), 1_s, preset);
+}
+
+void test_release_on_inactive(void) {
+  VoiceEvent event;
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::None);
+  event.release(1_s); // must not crash
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::None);
+  TEST_ASSERT_FALSE(event.is_active());
+}
+
+void test_release_on_hit_is_noop(void) {
+  VoiceEvent event;
+  start_hit(event);
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Hit);
+  TEST_ASSERT_TRUE(event.is_active());
+
+  event.release(1_s); // no-op for Hit — no release stage
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Hit);
+  TEST_ASSERT_TRUE(event.is_active());
+}
+
+void test_off_clears_state(void) {
+  VoiceEvent event;
+  start_tone(event);
+  TEST_ASSERT_TRUE(event.is_active());
+  event.off();
+  TEST_ASSERT_FALSE(event.is_active());
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::None);
+}
+
+void test_reassign_tone_to_hit(void) {
+  VoiceEvent event;
+  start_tone(event);
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Tone);
+
+  start_hit(event); // overwrite mid-flight
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Hit);
+  TEST_ASSERT_TRUE(event.is_active());
+}
+
+void test_reassign_hit_to_tone(void) {
+  VoiceEvent event;
+  start_hit(event);
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Hit);
+
+  start_tone(event); // overwrite mid-flight
+  TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Tone);
+  TEST_ASSERT_TRUE(event.is_active());
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_empty);
   RUN_TEST(test_start_tone);
   RUN_TEST(test_start_hit);
+  RUN_TEST(test_release_on_inactive);
+  RUN_TEST(test_release_on_hit_is_noop);
+  RUN_TEST(test_off_clears_state);
+  RUN_TEST(test_reassign_tone_to_hit);
+  RUN_TEST(test_reassign_hit_to_tone);
   UNITY_END();
 }
 
