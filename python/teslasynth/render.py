@@ -86,7 +86,7 @@ class Recording:
         signal = np.zeros(n, dtype=np.uint8)
 
         mask = on_us > 0
-        spus = sample_rate // 1_000_000
+        spus = sample_rate / 1_000_000
         s_start = (starts_us[mask] * spus).astype(np.int64)
         s_end = np.minimum(((starts_us[mask] + on_us[mask]) * spus).astype(np.int64), n)
 

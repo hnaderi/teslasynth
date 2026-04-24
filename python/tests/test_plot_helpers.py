@@ -97,6 +97,40 @@ class TestDutyByStep:
 
 
 @requires_extension
+class TestPianoRollXAxis:
+    def test_xaxis_not_inverted_with_start_ms_only(self):
+        """plot_piano_roll must not set an inverted x-axis when only start_ms is given.
+
+        Bug: the range update ran whenever start_ms OR end_ms was not None, and
+        used (end_ms or 0.0) as the upper bound, giving range=[start*1000, 0]
+        when end_ms was omitted.
+        """
+        pytest.importorskip("plotly")
+
+        from teslasynth._types import NoteEvent
+        from teslasynth.plot import plot_piano_roll
+
+        notes = [NoteEvent(channel=0, note=60, velocity=80, start_us=0, end_us=500_000)]
+        fig = plot_piano_roll(notes, start_ms=100.0)
+        r = fig.layout.xaxis.range
+        assert r is None or r[1] > r[0]
+
+    def test_xaxis_range_set_when_both_bounds_given(self):
+        """When both start_ms and end_ms are provided the axis range is applied."""
+        pytest.importorskip("plotly")
+
+        from teslasynth._types import NoteEvent
+        from teslasynth.plot import plot_piano_roll
+
+        notes = [NoteEvent(channel=0, note=60, velocity=80, start_us=0, end_us=500_000)]
+        fig = plot_piano_roll(notes, start_ms=0.0, end_ms=500.0)
+        r = fig.layout.xaxis.range
+        assert r is not None
+        assert r[0] == pytest.approx(0.0)
+        assert r[1] == pytest.approx(500_000.0)
+
+
+@requires_extension
 class TestBuildSignalTrace:
     def test_returns_nonempty_for_active_window(self, recording_440hz):
         from teslasynth.plot import _build_signal_trace

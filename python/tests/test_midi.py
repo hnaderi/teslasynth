@@ -51,6 +51,26 @@ class TestBuildTempoMap:
         ticks = [t for t, _ in tmap]
         assert ticks == sorted(ticks)
 
+    def test_fast_tempo_at_tick_zero_not_overridden_by_default(self):
+        """A fast (>120 BPM) set_tempo at tick 0 must win over the 500_000 default.
+
+        Bug: default (0, 500_000) was appended before sorting, so for any real
+        tempo < 500_000 it sorted after the real entry and overwrote prev_tempo
+        in _ticks_to_us, producing timings ~33% too slow for e.g. 160 BPM songs.
+        """
+        import mido
+
+        from teslasynth.midi import _build_tempo_map, _ticks_to_us
+
+        mid = mido.MidiFile(ticks_per_beat=480)
+        track = mido.MidiTrack()
+        mid.tracks.append(track)
+        # 160 BPM = 375_000 us/beat, which is faster than the 120 BPM default
+        track.append(mido.MetaMessage("set_tempo", tempo=375_000, time=0))
+        tmap = _build_tempo_map(mid)
+        # One beat (480 ticks) must take 375_000 us, not the default 500_000 us
+        assert _ticks_to_us(480, 480, tmap) == 375_000
+
 
 @requires_extension
 class TestTicksToUs:

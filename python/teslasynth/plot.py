@@ -312,13 +312,8 @@ def plot_piano_roll(
         yaxis_title="MIDI Note",
         yaxis=dict(range=[min(note_nums) - 2, max(note_nums) + 2]),
     )
-    if start_ms is not None or end_ms is not None:
-        fig.update_xaxes(
-            range=[
-                (start_ms or 0.0) * 1000,
-                (end_ms or 0.0) * 1000,
-            ]
-        )
+    if start_ms is not None and end_ms is not None:
+        fig.update_xaxes(range=[start_ms * 1000, end_ms * 1000])
     return fig
 
 

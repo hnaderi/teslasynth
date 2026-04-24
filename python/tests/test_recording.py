@@ -54,6 +54,35 @@ class TestDurationUs:
 
 
 @requires_extension
+class TestToSignal:
+    def test_active_samples_at_192khz(self):
+        """to_signal must not return all-zeros at 192 kHz.
+
+        Bug: used integer division (sample_rate // 1_000_000) which evaluates
+        to 0 for all sample rates below 1 MHz, mapping every pulse to signal[0:0].
+        """
+        import numpy as np
+
+        from teslasynth.render import Recording
+
+        pulses = np.array([[100, 100]], dtype=np.uint32)
+        rec = Recording(pulses=pulses, step_us=200)
+        signal = rec.to_signal(192_000)
+        assert signal.sum() > 0
+
+    def test_active_samples_at_44100hz(self):
+        """to_signal must produce active samples at 44.1 kHz."""
+        import numpy as np
+
+        from teslasynth.render import Recording
+
+        pulses = np.array([[1_000, 1_000]], dtype=np.uint32)
+        rec = Recording(pulses=pulses, step_us=2_000)
+        signal = rec.to_signal(44_100)
+        assert signal.sum() > 0
+
+
+@requires_extension
 class TestDutyCycle:
     def test_active_pulse_duty(self, recording_440hz):
         # Each active pulse: on=100, off=100 → per-pulse duty = 0.5
