@@ -33,10 +33,12 @@ dangerous.**
 
 1. Open the [web installer](http://projects.hnaderi.dev/teslasynth/) in Chrome or
    Edge and flash your ESP32 board.
-2. Hold **BOOT** for 3 seconds to enter maintenance mode.
-3. Connect to the **Teslasynth** Wi-Fi network and open
-   **http://teslasynth.local** to configure the device.
-4. Connect a MIDI source and play.
+2. Connect to the Wi-Fi network **Teslasynth** (default password:
+   `Wardenclyffe1891!`).
+3. Open **http://teslasynth.local** (or **http://192.168.4.1** if mDNS doesn't
+   work on your device).
+4. Configure the device using the web dashboard.
+5. Connect a MIDI source and play.
 
 ## Python library
 
