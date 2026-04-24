@@ -51,7 +51,7 @@ def _build_tempo_map(mid: mido.MidiFile) -> list[tuple[int, int]]:
     Tempo changes in SMF affect all tracks simultaneously regardless of which
     track they appear on. This collects them all into one sorted list.
     """
-    changes: list[tuple[int, int]] = [(0, 500_000)]  # default 120 BPM
+    changes: list[tuple[int, int]] = []
     for track in mid.tracks:
         abs_ticks = 0
         for msg in track:
@@ -59,6 +59,8 @@ def _build_tempo_map(mid: mido.MidiFile) -> list[tuple[int, int]]:
             if msg.type == "set_tempo":
                 changes.append((abs_ticks, msg.tempo))
     changes.sort()
+    if not changes or changes[0][0] != 0:
+        changes.insert(0, (0, 500_000))  # default 120 BPM
     return changes
 
 
