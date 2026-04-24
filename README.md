@@ -40,6 +40,11 @@ dangerous.**
 4. Configure the device using the web dashboard.
 5. Connect a MIDI source and play.
 
+## ⚠ Before connecting high-voltage hardware
+
+**Please read the [Configuration](http://projects.hnaderi.dev/teslasynth/configuration) page carefully before any
+high-voltage tests.**
+
 ## Python library
 
 ```sh
