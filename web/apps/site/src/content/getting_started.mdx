@@ -17,6 +17,9 @@ Each chip model has its own strapping pins, that are not safe to use for GPIO us
 Using these pins can cause sending pulses, uncontrolled by the firmware, during boot time,
 or other arbitrary times. Do a quick search like `strapping pins esp32s2` before choosing a pin.
 
+On **ESP32-S2**, GPIO 37 and GPIO 38 are reserved for the serial console
+(UART TX and RX respectively). Do not assign output channels to these pins.
+
 ## Installing the firmware
 
 The easiest way to install Teslasynth is directly from your browser — no

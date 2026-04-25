@@ -11,6 +11,13 @@ There are two ways to configure the device:
 - **Serial CLI** — connect via the serial console and use the `config` command.
   More powerful: supports wildcards, bulk updates, and scripting.
 
+> **ESP32-S2 note:** On the S2, the serial console is only available over UART
+> (GPIO 37 TX / GPIO 38 RX, 115200 baud), not over the native USB port. This is
+> because the ESP-IDF USB CDC console relies on the ROM CDC stack, which cannot
+> coexist with the TinyUSB stack that Teslasynth uses for USB MIDI. The ESP32-S3
+> is not affected — it has a dedicated USB Serial/JTAG peripheral that is
+> independent of the USB OTG port used for MIDI.
+
 ## Maintenance mode
 
 The web dashboard and Wi-Fi AP are only active in **maintenance mode**. During
