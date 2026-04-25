@@ -337,6 +337,30 @@ void test_should_handle_pitch_bend(void) {
   }
 }
 
+void test_sample_all_should_write_each_output_to_its_own_buffer_slot(void) {
+  // Regression: `start = ch * BUFSIZE` was a uint8_t in sample_all, so for
+  // OUTPUTS=8, BUFSIZE=200 (the Python-binding configuration) ch * BUFSIZE
+  // overflowed for ch >= 2. Writes for those channels landed in the wrong
+  // slice of the buffer, while at(ch, i) (size_t arithmetic) read the
+  // never-written region — yielding default {on=0, off=0} pulses.
+  Teslasynth<8> tsynth;
+  PulseBuffer<8, 200> buf;
+
+  // Default routing maps MIDI ch N → output N for N=0..7. Trigger every output.
+  for (uint8_t ch = 0; ch < 8; ch++) {
+    tsynth.handle(MidiChannelMessage::note_on(ch, 69, 127), Duration::zero());
+  }
+
+  tsynth.sample_all(10_ms, buf);
+
+  for (uint8_t ch = 0; ch < 8; ch++) {
+    TEST_ASSERT_GREATER_THAN_UINT8(0, buf.written[ch]);
+    TEST_ASSERT_FALSE_MESSAGE(buf.at(ch, 0).is_zero(),
+                              "first pulse should be a synthesised pulse, not "
+                              "default-initialised");
+  }
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_note_pulse_empty);
@@ -356,6 +380,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_reload_config_should_adjust_note_sizes);
   RUN_TEST(test_should_handle_channel_volume);
   RUN_TEST(test_should_handle_pitch_bend);
+  RUN_TEST(test_sample_all_should_write_each_output_to_its_own_buffer_slot);
 
   UNITY_END();
 }
