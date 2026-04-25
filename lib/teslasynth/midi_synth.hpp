@@ -328,7 +328,8 @@ public:
     uint16_t now = max.micros();
     for (uint8_t ch = 0; ch < OUTPUTS; ch++) {
       uint16_t processed = 0;
-      uint8_t i = 0, start = ch * BUFSIZE;
+      uint8_t i = 0;
+      const size_t start = static_cast<size_t>(ch) * BUFSIZE;
       for (; processed < now && i < BUFSIZE; i++) {
         auto left = Duration16::micros(now - processed);
         output.pulses[start + i] = sample(ch, left);
