@@ -54,3 +54,13 @@ pip install teslasynth
 Render MIDI files offline, visualise pulse signals, and tune safety parameters
 before connecting any hardware. See the
 [Python docs](http://projects.hnaderi.dev/teslasynth/python) for details.
+
+
+## Gallery
+Get a feeling of what Teslasynth can do before committing your time:
+1. [Dashboard screenshot](https://raw.githubusercontent.com/hnaderi/teslasynth/assets/Teslasynth%20dashboard.png)
+2. [Example Plot 1](https://raw.githubusercontent.com/hnaderi/teslasynth/assets/plot-1-screenshot.png)
+3. [Example Plot 2](https://raw.githubusercontent.com/hnaderi/teslasynth/assets/plot-2-screenshot.png)
+4. [Multi-channel wav file render](https://raw.githubusercontent.com/hnaderi/teslasynth/assets/simulated-music-output-multi-channel.zip)
+5. [Single-channel wav file render](https://raw.githubusercontent.com/hnaderi/teslasynth/assets/simulated-music-output-single-channel.zip)
+6. [DRSSTC Playing Beetlejuice theme<br> ![](https://img.youtube.com/vi/sDNqZdVtxII/0.jpg)](https://youtu.be/sDNqZdVtxII)
