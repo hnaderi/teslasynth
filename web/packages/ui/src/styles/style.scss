@@ -83,6 +83,21 @@
     width: auto;
 }
 
+.gallery {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    margin-top: 1rem;
+
+    img {
+        width: 100%;
+        border-radius: 4px;
+        max-height: 300px;
+        object-fit: cover;
+        object-position: top;
+    }
+}
+
 .channel-grid {
     display: grid;
     gap: 1rem;
