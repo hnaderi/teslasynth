@@ -16,3 +16,6 @@ dist
 /lib/app/assets/
 *.pyc
 .direnv
+*.wav
+*.flac
+*.zip

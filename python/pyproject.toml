@@ -46,10 +46,10 @@ Repository    = "https://github.com/hnaderi/teslasynth"
 
 [project.optional-dependencies]
 plot = ["plotly>=5.0"]
-wav  = ["scipy>=1.7"]
+wav  = ["soundfile>=0.12"]
 
 [dependency-groups]
-dev = ["plotly>=5.0", "scipy>=1.7", "jupyter", "pytest>=8.0", "ruff>=0.1"]
+dev = ["plotly>=5.0", "jupyter", "pytest>=8.0", "ruff>=0.1", "soundfile>=0.12"]
 
 [project.scripts]
 teslasynth = "teslasynth.__main__:main"

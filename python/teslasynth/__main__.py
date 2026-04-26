@@ -6,13 +6,33 @@ CLI entry point for the teslasynth package.
 
 Usage
 -----
-    teslasynth render      <midi> <wav>  [--config FILE] [--sample-rate HZ] [--step-us US]
-    teslasynth plot        <midi>        [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS]
-    teslasynth signal      <midi>        [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS]
+    teslasynth render      <midi> <out>   [--config FILE] [--sample-rate HZ] [--step-us US]
+                                          [--channel CH [CH ...]]
+    teslasynth plot        <midi>         [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS] [--channel N]
+    teslasynth signal      <midi>         [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS] [--channel N]
     teslasynth version
     teslasynth config      [--config FILE] [key=value ...]
     teslasynth instruments
+    teslasynth percussions
     teslasynth envelope    <instrument|percussion>  [--out FILE.html] [--duration-ms MS]
+
+Output formats (render)
+-----------------------
+The output file extension selects the format:
+
+  .wav    16-bit PCM, uncompressed.  Suitable for short single-channel clips.
+          Multichannel WAV files can be very large — use .flac instead.
+  .flac   Lossless FLAC, ~10–15× smaller than WAV for coil signals.
+          Recommended for multichannel exports or long recordings.
+          Requires: pip install teslasynth[wav]
+
+Channel selection (render)
+--------------------------
+  --channel 0             Single channel (default)
+  --channel 0,1,3         Three-channel file with output channels 0, 1, and 3
+  --channel 0-4           Channels 0 through 4
+  --channel 0,2,4-7       Mix of individual channels and ranges
+  --channel all           All 8 output channels (alias: '*')
 """
 
 from __future__ import annotations
@@ -117,9 +137,35 @@ def _save_or_show(fig, out: str | None) -> None:
         fig.show()
 
 
+def _parse_channels(value: str | None) -> int | list[int]:
+    """Parse a channel expression into a single index or a list of indices.
+
+    Supports:
+      "0"       → 0
+      "0,1,3"   → [0, 1, 3]
+      "0-4"     → [0, 1, 2, 3, 4]
+      "0,2,4-7" → [0, 2, 4, 5, 6, 7]
+      "all"/"*" → [0, 1, 2, 3, 4, 5, 6, 7]
+    """
+    if value is None:
+        return 0
+    if value in ("all", "*"):
+        return list(range(8))
+    result: list[int] = []
+    for part in value.split(","):
+        part = part.strip()
+        if "-" in part:
+            lo, hi = part.split("-", 1)
+            result.extend(range(int(lo), int(hi) + 1))
+        else:
+            result.append(int(part))
+    return result[0] if len(result) == 1 else result
+
+
 def _cmd_render(args: argparse.Namespace) -> None:
     from teslasynth import wav
 
+    channels = _parse_channels(args.channel)
     try:
         synth = _load_synth(args.config)
         print(f"Rendering {args.midi} → {args.wav} …", file=sys.stderr)
@@ -129,7 +175,7 @@ def _cmd_render(args: argparse.Namespace) -> None:
             synth=synth,
             sample_rate=args.sample_rate,
             step_us=args.step_us,
-            channel=args.channel,
+            channels=channels,
         )
         print(f"Written: {args.wav}")
     except FileNotFoundError as exc:
@@ -266,9 +312,9 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
 
     # ── render ────────────────────────────────────────────────────────────────
-    r = sub.add_parser("render", help="Render a MIDI file to WAV")
+    r = sub.add_parser("render", help="Render a MIDI file to WAV or FLAC")
     r.add_argument("midi", help="Input .mid file")
-    r.add_argument("wav", help="Output .wav file")
+    r.add_argument("wav", help="Output file (.wav or .flac)")
     _add_config_arg(r)
     r.add_argument(
         "--sample-rate",
@@ -284,7 +330,14 @@ def main() -> None:
         metavar="US",
         help="Synthesis window size in µs (default: 10000)",
     )
-    _add_channel_arg(r)
+    r.add_argument(
+        "--channel",
+        default=None,
+        metavar="CHANNELS",
+        help="Channel(s) to render.  Single index: '0'.  "
+             "Comma list: '0,1,3'.  Range: '0-4'.  Combined: '0,2,4-7'.  "
+             "All 8 channels: 'all' or '*'.  Default: 0",
+    )
 
     # ── plot ──────────────────────────────────────────────────────────────────
     p = sub.add_parser(

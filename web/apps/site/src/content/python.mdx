@@ -19,7 +19,7 @@ Optional extras:
 
 ```
 pip install "teslasynth[plot]"   # Plotly visualizations
-pip install "teslasynth[wav]"    # WAV export (requires scipy)
+pip install "teslasynth[wav]"    # WAV/FLAC export (requires soundfile)
 ```
 
 Requires Python 3.8+ and NumPy.
@@ -35,8 +35,11 @@ rec = ts.render.from_file("song.mid")
 # Visualize: piano roll + frequency + duty cycle overview
 ts.plot.plot_overview(rec).show()
 
-# Export to WAV
-ts.wav.write(rec, "out.wav")
+# Export to FLAC (recommended — ~10–15× smaller than WAV)
+ts.wav.write("song.mid", "out.flac")
+
+# Export all 8 output channels into a single multichannel FLAC
+ts.wav.write("song.mid", "all.flac", channels=list(range(8)))
 ```
 
 ## CLI
@@ -47,11 +50,11 @@ The package installs a `teslasynth` command. All subcommands accept
 
 | Command | Description |
 |---------|-------------|
-| `teslasynth render <midi> <out.wav>` | Render MIDI to WAV |
+| `teslasynth render <midi> <out>` | Render MIDI to WAV or FLAC |
 | `teslasynth plot <midi>` | Full overview plot (piano roll + signal) |
 | `teslasynth signal <midi>` | Zoomed coil signal view |
 | `teslasynth config [--config FILE.json] [key=value ...]` | Print or modify configuration as JSON |
-| `teslasynth instruments` | List all 28 built-in instruments |
+| `teslasynth instruments` | List all built-in instruments |
 | `teslasynth percussions` | List all built-in percussion presets |
 | `teslasynth envelope <name\|index>` | Plot an instrument or percussion envelope |
 | `teslasynth version` | Print engine version and build info |
@@ -59,8 +62,20 @@ The package installs a `teslasynth` command. All subcommands accept
 **Examples:**
 
 ```sh
-# Render with a custom config and 192 kHz sample rate
-teslasynth render song.mid out.wav --config my.json --sample-rate 192000
+# Render to FLAC with a custom config (single channel, default 0)
+teslasynth render song.mid out.flac --config my.json
+
+# Render channels 0, 1, and 2 into a 3-channel FLAC
+teslasynth render song.mid out.flac --channel 0,1,2
+
+# Render a range of channels
+teslasynth render song.mid out.flac --channel 0-3
+
+# Mix ranges and individual channels
+teslasynth render song.mid out.flac --channel 0,2,4-7
+
+# Render all 8 output channels
+teslasynth render song.mid all.flac --channel all
 
 # Overview plot for the first 5 seconds, output channel 1
 teslasynth plot song.mid --end-ms 5000 --channel 1
@@ -123,7 +138,7 @@ teslasynth config --config my.json output.1.max-duty=8 synth.tuning=432hz
 ## Rendering
 
 `teslasynth.render.from_file` runs the synthesizer against a MIDI file and
-returns a `Recording` containing all output pulses.
+returns a `Recording` containing all output pulses for a single channel.
 
 ```python
 import teslasynth as ts
@@ -179,28 +194,41 @@ fig = ts.plot.plot_overview(rec)
 fig.write_html("overview.html")
 ```
 
-## WAV export
+## WAV / FLAC export
 
-Requires the `wav` extra (`scipy`).
+Requires the `wav` extra (`pip install "teslasynth[wav]"`).
+
+The output format is selected from the file extension. FLAC is strongly
+recommended — it is lossless and typically 10–15× smaller than WAV for coil
+signals (which are sparse binary 0/1 data).
 
 ```python
 import teslasynth as ts
 
-ts.wav.write("song.mid", "out.wav", sample_rate=192_000)
+# Single channel FLAC (default: channel 0)
+ts.wav.write("song.mid", "out.flac")
+
+# Specific channels → multichannel file
+ts.wav.write("song.mid", "out.flac", channels=[0, 1, 2])
+
+# All 8 output channels
+ts.wav.write("song.mid", "all.flac", channels=list(range(8)))
+
+# WAV is also supported (larger files, no extra dependencies beyond soundfile)
+ts.wav.write("song.mid", "out.wav", channels=0)
 ```
 
-Or from an existing `Recording`:
+Or export a pre-built `Recording`:
 
 ```python
 rec = ts.render.from_file("song.mid")
-ts.wav.write(rec, "out.wav")
+ts.wav.write_recording(rec, "out.flac")
 ```
 
-The output is a mono WAV file at the requested sample rate. The firmware
-synthesises at 1 MHz (1 µs precision), but 192 kHz is a practical default: it
-gives ~5 µs resolution and happens to match the Nyquist frequency of a coil
-with a 100 kHz resonant frequency, making the waveform meaningful for signal
-analysis. Higher rates give finer resolution at the cost of file size.
+The firmware synthesises at 1 MHz (1 µs precision). 192 kHz is the recommended
+sample rate: it gives ~5 µs resolution and covers the Nyquist frequency of a
+coil with a 100 kHz resonant frequency, making the waveform meaningful for
+signal analysis.
 
 ## Instruments
 

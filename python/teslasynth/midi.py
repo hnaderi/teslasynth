@@ -79,35 +79,21 @@ def _ticks_to_us(
     return us
 
 
-def render_file(
+def _drive_synth(
     synth: Teslasynth,
     path: str,
     step_us: int = 10_000,
-    channel: int = 0,
 ) -> Generator[tuple[int, list], None, None]:
-    """Drive *synth* with the events in a Standard MIDI File.
+    """Core MIDI driver: yields ``(time_us, all_channels)`` for each step.
 
-    Yields ``(time_us, pulses)`` where *time_us* is the absolute position of
-    the synthesis window start and *pulses* is the list of ``[on_us, off_us]``
-    pairs for the requested output *channel*.
-
-    Parameters
-    ----------
-    synth:
-        A :class:`Teslasynth` instance (will be silenced at start).
-    path:
-        Path to the ``.mid`` file.
-    step_us:
-        Synthesis window size in microseconds (default 10 ms).
-    channel:
-        Output channel index to extract from the 8-channel result (default 0).
+    *all_channels* is the raw ``list[list[Pulse]]`` from
+    :meth:`~Teslasynth.sample_all` — 8 output channels, each a list of
+    :class:`~teslasynth.Pulse` objects.
     """
     synth.off()
     mid = mido.MidiFile(path)
     tempo_map = _build_tempo_map(mid)
 
-    # Collect all channel events from every track with absolute tick times,
-    # then convert to microseconds using the single global tempo map.
     raw: list[tuple[int, MidiChannelMessage]] = []
     for track in mid.tracks:
         abs_ticks = 0
@@ -136,9 +122,42 @@ def render_file(
             synth.handle(msg, t)
             event_idx += 1
 
-        pulses = synth.sample_all(step_us)[channel]
-        yield time_us, pulses
+        yield time_us, synth.sample_all(step_us)
         time_us += step_us
+
+
+def render_file(
+    synth: Teslasynth,
+    path: str,
+    step_us: int = 10_000,
+    channel: int = 0,
+) -> Generator[tuple[int, list], None, None]:
+    """Drive *synth* with the events in a Standard MIDI File.
+
+    Yields ``(time_us, pulses)`` where *time_us* is the absolute position of
+    the synthesis window start and *pulses* is the list of
+    :class:`~teslasynth.Pulse` objects for the requested output *channel*.
+
+    Parameters
+    ----------
+    channel:
+        Output channel index to extract from the 8-channel result (default 0).
+    """
+    for time_us, all_channels in _drive_synth(synth, path, step_us):
+        yield time_us, all_channels[channel]
+
+
+def render_file_all_channels(
+    synth: Teslasynth,
+    path: str,
+    step_us: int = 10_000,
+) -> Generator[tuple[int, list], None, None]:
+    """Like :func:`render_file` but yields all 8 output channels per step.
+
+    Yields ``(time_us, all_channels)`` where *all_channels* is
+    ``list[list[Pulse]]`` — one inner list per output channel.
+    """
+    return _drive_synth(synth, path, step_us)
 
 
 def pulse_stream(

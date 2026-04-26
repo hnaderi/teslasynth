@@ -13,7 +13,7 @@ from typing import Generator, Iterable
 import numpy as np
 
 from ._teslasynth import Teslasynth
-from .midi import pulse_stream, render_file
+from .midi import pulse_stream, render_file, render_file_all_channels
 
 
 @dataclass
@@ -155,22 +155,44 @@ def signal_stream(
         Output channel index to render (default 0).
     """
     spus = sample_rate / 1_000_000  # samples per microsecond
+    n_step = int(step_us * spus) + 1
 
     for _, pulses in render_file(synth, path, step_us=step_us, channel=channel):
-        if not pulses:
-            yield np.zeros(int(step_us * spus), dtype=np.uint8)
-            continue
-
-        total_us = sum(p.on_us + p.off_us for p in pulses)
-        n = int(total_us * spus) + 1
-        chunk = np.zeros(n, dtype=np.uint8)
+        chunk = np.zeros(n_step, dtype=np.uint8)
         pos = 0
         for p in pulses:
             if p.on_us > 0:
                 s = int(pos * spus)
-                e = min(int((pos + p.on_us) * spus), n)
+                e = min(int((pos + p.on_us) * spus), n_step)
                 chunk[s:e] = 1
             pos += p.on_us + p.off_us
+        yield chunk
+
+
+def signal_stream_all_channels(
+    synth: Teslasynth,
+    path: str,
+    sample_rate: int = 192_000,
+    step_us: int = 10_000,
+) -> Generator[np.ndarray, None, None]:
+    """Yield signal chunks of shape ``(n_samples, 8)`` — one column per output channel.
+
+    All 8 channels are synthesised simultaneously, making this more efficient
+    than calling :func:`signal_stream` eight times.
+    """
+    spus = sample_rate / 1_000_000
+    n_step = int(step_us * spus) + 1
+
+    for _, all_channels in render_file_all_channels(synth, path, step_us=step_us):
+        chunk = np.zeros((n_step, 8), dtype=np.uint8)
+        for ch_idx, pulses in enumerate(all_channels):
+            pos = 0
+            for p in pulses:
+                if p.on_us > 0:
+                    s = int(pos * spus)
+                    e = min(int((pos + p.on_us) * spus), n_step)
+                    chunk[s:e, ch_idx] = 1
+                pos += p.on_us + p.off_us
         yield chunk
 
 

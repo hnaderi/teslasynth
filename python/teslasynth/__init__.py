@@ -16,7 +16,7 @@ Quick start
 >>> ts.plot.plot_envelope(ts.InstrumentId.SynthPluck).show()
 >>>
 >>> # Export audio
->>> ts.wav.write(rec, "out.wav")
+>>> ts.wav.write("song.mid", "out.flac")
 """
 
 from . import (
