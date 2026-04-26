@@ -1,0 +1,87 @@
+{
+  "name": "Teslasynth Firmware",
+  "version": "v0.5.5",
+  "targets": {
+    "esp32s3": {
+      "flash_settings": {
+        "flash_mode": "dio",
+        "flash_size": "4MB",
+        "flash_freq": "80m"
+      },
+      "extra_esptool_args": {
+        "after": "hard-reset",
+        "before": "default-reset",
+        "stub": true,
+        "chip": "esp32s3"
+      },
+      "files": [
+        {
+          "offset": "0x0",
+          "path": "esp32s3-bootloader.bin"
+        },
+        {
+          "offset": "0x8000",
+          "path": "esp32s3-partitions.bin"
+        },
+        {
+          "offset": "0x10000",
+          "path": "esp32s3-firmware.bin"
+        }
+      ]
+    },
+    "esp32": {
+      "flash_settings": {
+        "flash_mode": "dio",
+        "flash_size": "4MB",
+        "flash_freq": "40m"
+      },
+      "extra_esptool_args": {
+        "after": "hard-reset",
+        "before": "default-reset",
+        "stub": true,
+        "chip": "esp32"
+      },
+      "files": [
+        {
+          "offset": "0x1000",
+          "path": "esp32-bootloader.bin"
+        },
+        {
+          "offset": "0x8000",
+          "path": "esp32-partitions.bin"
+        },
+        {
+          "offset": "0x10000",
+          "path": "esp32-firmware.bin"
+        }
+      ]
+    },
+    "esp32s2": {
+      "flash_settings": {
+        "flash_mode": "dio",
+        "flash_size": "4MB",
+        "flash_freq": "80m"
+      },
+      "extra_esptool_args": {
+        "after": "hard-reset",
+        "before": "default-reset",
+        "stub": true,
+        "chip": "esp32s2"
+      },
+      "files": [
+        {
+          "offset": "0x1000",
+          "path": "esp32s2-bootloader.bin"
+        },
+        {
+          "offset": "0x8000",
+          "path": "esp32s2-partitions.bin"
+        },
+        {
+          "offset": "0x10000",
+          "path": "esp32s2-firmware.bin"
+        }
+      ]
+    }
+  }
+}
