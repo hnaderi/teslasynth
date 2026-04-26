@@ -353,6 +353,32 @@ void test_off(void) {
   TEST_ASSERT_FALSE(note.is_active());
 }
 
+void test_sub_audible_frequency_rejected(void) {
+  Note n;
+  n.start(Hertz(10.0f), amplitude, 0_us, Envelope(amplitude), Vibrato::none());
+  TEST_ASSERT_FALSE(n.is_active());
+}
+
+void test_over_limit_frequency_rejected(void) {
+  Note n;
+  n.start(Hertz(6000.0f), amplitude, 0_us, Envelope(amplitude), Vibrato::none());
+  TEST_ASSERT_FALSE(n.is_active());
+}
+
+void test_out_of_range_deactivates_active_note(void) {
+  TEST_ASSERT_TRUE(note.is_active());
+  note.start(Hertz(10.0f), amplitude, 0_us, Envelope(amplitude), Vibrato::none());
+  TEST_ASSERT_FALSE(note.is_active());
+}
+
+void test_boundary_frequencies_are_valid(void) {
+  Note n;
+  n.start(Note::MIN_FREQUENCY, amplitude, 0_us, Envelope(amplitude), Vibrato::none());
+  TEST_ASSERT_TRUE(n.is_active());
+  n.start(Note::MAX_FREQUENCY, amplitude, 0_us, Envelope(amplitude), Vibrato::none());
+  TEST_ASSERT_TRUE(n.is_active());
+}
+
 void test_note_pitchbend(void) {
   ChannelState state;
   state.pitch_bend = PitchBend(0.5);
@@ -390,6 +416,10 @@ extern "C" void app_main(void) {
   RUN_TEST(test_note_vibrato);
   RUN_TEST(test_off);
   RUN_TEST(test_note_pitchbend);
+  RUN_TEST(test_sub_audible_frequency_rejected);
+  RUN_TEST(test_over_limit_frequency_rejected);
+  RUN_TEST(test_out_of_range_deactivates_active_note);
+  RUN_TEST(test_boundary_frequencies_are_valid);
   UNITY_END();
 }
 

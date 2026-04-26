@@ -61,6 +61,9 @@ public:
   static constexpr Hertz frequency_for(uint8_t number, Hertz tuning = 440_hz) {
     return tuning * exp2f((number - 69) / 12.0f);
   }
+
+  static constexpr Hertz MIN_FREQUENCY = 20_hz;
+  static constexpr Hertz MAX_FREQUENCY = 5000_hz;
 };
 
 } // namespace teslasynth::synth

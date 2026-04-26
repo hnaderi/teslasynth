@@ -18,6 +18,10 @@ namespace teslasynth::synth {
 
 void Note::start(Hertz prf, EnvelopeLevel amplitude, Duration time, const Envelope &env,
                  const Vibrato &vibrato, const ChannelState *channel) {
+  if (prf < MIN_FREQUENCY || prf > MAX_FREQUENCY) {
+    off();
+    return;
+  }
   if (_active && amplitude.is_zero())
     return release(time);
   _current_freq = _freq = prf;
