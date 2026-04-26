@@ -11,6 +11,7 @@ import pytest
 from .conftest import requires_extension
 
 
+@requires_extension
 class TestIsFlac:
     def test_flac_extension(self):
         from teslasynth.wav import _is_flac
@@ -39,6 +40,7 @@ class TestIsFlac:
         assert _is_flac("/some/path/recording.wav") is False
 
 
+@requires_extension
 class TestToInt16:
     def test_zero_stays_zero(self):
         from teslasynth.wav import _to_int16
