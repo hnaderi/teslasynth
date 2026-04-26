@@ -335,8 +335,8 @@ def main() -> None:
         default=None,
         metavar="CHANNELS",
         help="Channel(s) to render.  Single index: '0'.  "
-             "Comma list: '0,1,3'.  Range: '0-4'.  Combined: '0,2,4-7'.  "
-             "All 8 channels: 'all' or '*'.  Default: 0",
+        "Comma list: '0,1,3'.  Range: '0-4'.  Combined: '0,2,4-7'.  "
+        "All 8 channels: 'all' or '*'.  Default: 0",
     )
 
     # ── plot ──────────────────────────────────────────────────────────────────

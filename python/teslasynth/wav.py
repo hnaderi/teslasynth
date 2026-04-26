@@ -36,7 +36,8 @@ def _soundfile(path: str, sample_rate: int, n_channels: int, is_flac: bool):
             "Install it with: pip install teslasynth[wav]"
         ) from None
     return sf.SoundFile(
-        path, "w",
+        path,
+        "w",
         samplerate=sample_rate,
         channels=n_channels,
         format="FLAC" if is_flac else "WAV",
@@ -89,13 +90,19 @@ def write(
     with _soundfile(path_out, sample_rate, len(ch_list), flac) as sf:
         if len(ch_list) == 1:
             for chunk in signal_stream(
-                synth, path_mid, sample_rate=sample_rate,
-                step_us=step_us, channel=ch_list[0],
+                synth,
+                path_mid,
+                sample_rate=sample_rate,
+                step_us=step_us,
+                channel=ch_list[0],
             ):
                 sf.write(_to_int16(chunk))
         else:
             for chunk in signal_stream_all_channels(
-                synth, path_mid, sample_rate=sample_rate, step_us=step_us,
+                synth,
+                path_mid,
+                sample_rate=sample_rate,
+                step_us=step_us,
             ):
                 sf.write(_to_int16(chunk[:, ch_list]))
 
