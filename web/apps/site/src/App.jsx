@@ -79,6 +79,14 @@ export default function App() {
                     <li>
                         <a href={console_url}>Console</a>
                     </li>
+                    <li>
+                        <a
+                            href="https://github.com/hnaderi/teslasynth"
+                            target="_blank"
+                        >
+                            GitHub
+                        </a>
+                    </li>
                 </ul>
                 <details class="nav-mobile">
                     <summary>Menu</summary>
@@ -103,6 +111,14 @@ export default function App() {
                         </li>
                         <li>
                             <a href={console_url}>Console</a>
+                        </li>
+                        <li>
+                            <a
+                                href="https://github.com/hnaderi/teslasynth"
+                                target="_blank"
+                            >
+                                GitHub
+                            </a>
                         </li>
                     </ul>
                 </details>

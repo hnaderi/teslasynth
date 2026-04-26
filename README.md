@@ -18,6 +18,8 @@ high-power lasers — into musical instruments.
 
 **Full documentation:** http://projects.hnaderi.dev/teslasynth/
 
+If you find Teslasynth useful, a [GitHub star](https://github.com/hnaderi/teslasynth) helps others discover the project.
+
 ## ⚠ Safety
 
 **This firmware controls high-voltage and high-power devices. These are
