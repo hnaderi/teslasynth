@@ -10,6 +10,10 @@
   <title>Teslasynth home page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/jpeg" href="favicon.png" />
+  <script>
+    if (!crossOriginIsolated && 'serviceWorker' in navigator)
+      navigator.serviceWorker.register('./coi-serviceworker.js').then(() => location.reload());
+  </script>
 </head>
 <body>
   <main class="container">

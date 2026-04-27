@@ -15,6 +15,7 @@ import Python from './content/python.mdx';
 import Building from './content/building.mdx';
 import { Console } from './WebConsole';
 import { FirmwareFlasher } from './Flasher';
+import { MidiPlayer } from './MidiPlayer';
 
 export default function App() {
     const BASE_URL = import.meta.env.BASE_URL;
@@ -26,6 +27,7 @@ export default function App() {
     const building_url = BASE_URL + 'building';
     const console_url = BASE_URL + 'console';
     const flasher_url = BASE_URL + 'flasher';
+    const midi_player_url = BASE_URL + 'midi-player';
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -80,6 +82,9 @@ export default function App() {
                         <a href={console_url}>Console</a>
                     </li>
                     <li>
+                        <a href={midi_player_url}>MIDI Player</a>
+                    </li>
+                    <li>
                         <a
                             href="https://github.com/hnaderi/teslasynth"
                             target="_blank"
@@ -113,6 +118,9 @@ export default function App() {
                             <a href={console_url}>Console</a>
                         </li>
                         <li>
+                            <a href={midi_player_url}>MIDI Player</a>
+                        </li>
+                        <li>
                             <a
                                 href="https://github.com/hnaderi/teslasynth"
                                 target="_blank"
@@ -134,6 +142,7 @@ export default function App() {
                     <Building path={building_url} />
                     <Console path={console_url} />
                     <FirmwareFlasher path={flasher_url} />
+                    <MidiPlayer path={midi_player_url} />
                 </Router>
             </main>
         </MDXProvider>

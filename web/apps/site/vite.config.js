@@ -33,6 +33,9 @@ export default defineConfig({
         },
         preact(),
     ],
+    server: {
+        fs: { allow: ['../../../..'] }, // allow reading firmware source files
+    },
     build: {
         target: 'es2017',
         minify: 'esbuild',

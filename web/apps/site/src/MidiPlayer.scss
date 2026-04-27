@@ -1,0 +1,138 @@
+/**
+ * Copyright Hossein Naderi 2025, 2026
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
+.midi-player {
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+
+        h2 {
+            margin: 0;
+        }
+    }
+
+    &__status {
+        color: var(--pico-muted-color);
+
+        &--ok {
+            color: var(--pico-ins-color);
+        }
+
+        &--err {
+            color: var(--pico-del-color);
+        }
+    }
+
+    &__drop-zone {
+        border: 2px dashed var(--pico-muted-border-color);
+        border-radius: var(--pico-border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: var(--pico-spacing);
+        transition: border-color 0.15s;
+
+        &--over {
+            border-color: var(--pico-primary);
+        }
+
+        .hint {
+            color: var(--pico-muted-color);
+        }
+    }
+
+    &__transport {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: var(--pico-spacing);
+    }
+
+    &__play-btn {
+        min-width: 7rem;
+    }
+
+    &__seek {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: var(--pico-spacing);
+
+        input[type='range'] {
+            flex: 1;
+            margin: 0;
+        }
+
+        .total {
+            color: var(--pico-muted-color);
+        }
+    }
+
+    &__track {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid var(--pico-muted-border-color);
+
+        input[type='checkbox'] {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        &-led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--pico-muted-border-color);
+            flex-shrink: 0;
+            transition: background 0.1s;
+        }
+
+        &-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        &-ch {
+            color: var(--pico-muted-color);
+            flex-shrink: 0;
+        }
+
+        &-program {
+            flex-shrink: 0;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.4rem;
+            margin: 0;
+        }
+    }
+
+    &__channel-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid var(--pico-muted-border-color);
+
+        select {
+            flex: 1;
+            margin: 0;
+            font-size: 0.85rem;
+            padding-top: 0.3rem;
+            padding-bottom: 0.3rem;
+        }
+    }
+
+    &__footer {
+        color: var(--pico-muted-color);
+        display: block;
+        margin-top: var(--pico-spacing);
+    }
+}
