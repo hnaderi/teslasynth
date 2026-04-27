@@ -47,6 +47,13 @@ dangerous.**
 **Please read the [Configuration](https://teslasynth.hnaderi.dev/configuration) page carefully before any
 high-voltage tests.**
 
+## Web tools
+
+Open [teslasynth.hnaderi.dev/tools](https://teslasynth.hnaderi.dev/tools) in
+Chrome or Edge for a browser-based MIDI file player (with per-channel instrument
+overrides, track mute, tempo and transpose controls) and a serial console — both
+accessible side-by-side without installing anything.
+
 ## Python library
 
 ```sh
