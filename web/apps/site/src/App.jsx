@@ -17,6 +17,7 @@ import { Console } from './WebConsole';
 import { FirmwareFlasher } from './Flasher';
 import { MidiPlayer } from './MidiPlayer';
 import { Tools } from './Tools';
+import { PwaInstallButton } from './components/PwaInstallButton';
 
 export default function App() {
     const BASE_URL = import.meta.env.BASE_URL;
@@ -91,6 +92,9 @@ export default function App() {
                             GitHub
                         </a>
                     </li>
+                    <li>
+                        <PwaInstallButton />
+                    </li>
                 </ul>
                 <details class="nav-mobile">
                     <summary>Menu</summary>
@@ -123,6 +127,9 @@ export default function App() {
                             >
                                 GitHub
                             </a>
+                        </li>
+                        <li>
+                            <PwaInstallButton />
                         </li>
                     </ul>
                 </details>
