@@ -10,7 +10,6 @@ import remarkGfm from 'remark-gfm';
 import rehypePrettyCode from 'rehype-pretty-code';
 
 export default defineConfig({
-    base: '/teslasynth',
     plugins: [
         {
             enforce: 'pre',
