@@ -16,6 +16,7 @@ import Building from './content/building.mdx';
 import { Console } from './WebConsole';
 import { FirmwareFlasher } from './Flasher';
 import { MidiPlayer } from './MidiPlayer';
+import { Tools } from './Tools';
 
 export default function App() {
     const BASE_URL = import.meta.env.BASE_URL;
@@ -28,6 +29,7 @@ export default function App() {
     const console_url = BASE_URL + 'console';
     const flasher_url = BASE_URL + 'flasher';
     const midi_player_url = BASE_URL + 'midi-player';
+    const tools_url = BASE_URL + 'tools';
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -79,10 +81,7 @@ export default function App() {
                         <a href={building_url}>Building</a>
                     </li>
                     <li>
-                        <a href={console_url}>Console</a>
-                    </li>
-                    <li>
-                        <a href={midi_player_url}>MIDI Player</a>
+                        <a href={tools_url}>Tools</a>
                     </li>
                     <li>
                         <a
@@ -115,10 +114,7 @@ export default function App() {
                             <a href={building_url}>Building</a>
                         </li>
                         <li>
-                            <a href={console_url}>Console</a>
-                        </li>
-                        <li>
-                            <a href={midi_player_url}>MIDI Player</a>
+                            <a href={tools_url}>Tools</a>
                         </li>
                         <li>
                             <a
@@ -143,6 +139,7 @@ export default function App() {
                     <Console path={console_url} />
                     <FirmwareFlasher path={flasher_url} />
                     <MidiPlayer path={midi_player_url} />
+                    <Tools path={tools_url} />
                 </Router>
             </main>
         </MDXProvider>

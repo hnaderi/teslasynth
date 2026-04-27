@@ -15,7 +15,7 @@ function fmtTime(secs) {
     return `${m}:${s}`;
 }
 
-export function MidiPlayer() {
+export function MidiPlayer({ collapsible = false }) {
     const midiAccessRef = useRef(null);
     const [midiStatus, setMidiStatus] = useState('—');
     const [ports, setPorts] = useState([]);
@@ -32,18 +32,21 @@ export function MidiPlayer() {
     const [tempoScale, setTempoScale] = useState(100);
     const [transpose, setTranspose] = useState(0);
     const [mutedTracks, setMutedTracks] = useState(new Set());
-    const [channelPrograms, setChannelPrograms] = useState({}); // ch → program, absent = auto
+    const [channelPrograms, setChannelPrograms] = useState({});
 
     const [engineMode, setEngineMode] = useState('—');
     const [stats, setStats] = useState({ sent: 0, dropped: 0 });
 
-    // DOM refs updated directly in the rAF loop — no setState at 60 fps
+    // Start collapsed when used inside the Tools page
+    const [collapsed, setCollapsed] = useState(
+        () => collapsible && localStorage.getItem('tool:midi') !== 'open'
+    );
+
     const seekRef = useRef(null);
     const timeRef = useRef(null);
     const trackLedRefs = useRef([]);
     const activityTimesRef = useRef([]);
     const seekingRef = useRef(false);
-
     const engineRef = useRef(null);
     const midiFileRef = useRef(null);
     const onEventRef = useRef(null);
@@ -74,7 +77,10 @@ export function MidiPlayer() {
         };
     }, []);
 
+    // Defer MIDI access request until the player is actually opened
     useEffect(() => {
+        if (collapsed) return;
+        if (midiAccessRef.current) return; // already granted
         if (!navigator.requestMIDIAccess) {
             setMidiStatus('N/A');
             return;
@@ -88,7 +94,7 @@ export function MidiPlayer() {
                 refreshPorts();
             })
             .catch(() => setMidiStatus('DENIED'));
-    }, []);
+    }, [collapsed]);
 
     useEffect(() => {
         const onKey = (e) => {
@@ -119,13 +125,11 @@ export function MidiPlayer() {
                 rafRef.current = null;
                 return;
             }
-
             const pos = eng.getPositionUs();
             if (!seekingRef.current && seekRef.current)
                 seekRef.current.value = (pos / file.endUs) * 1000;
             if (timeRef.current)
                 timeRef.current.textContent = fmtTime(pos / 1e6);
-
             const now = performance.now();
             trackLedRefs.current.forEach((el, i) => {
                 if (!el) return;
@@ -134,12 +138,19 @@ export function MidiPlayer() {
                     ? 'var(--pico-primary)'
                     : 'var(--pico-muted-border-color)';
             });
-
             rafRef.current = requestAnimationFrame(frame);
         }
         if (isPlaying && !rafRef.current)
             rafRef.current = requestAnimationFrame(frame);
     }, [isPlaying]);
+
+    function onToggle(e) {
+        const isOpen = e.currentTarget.open;
+        if (isOpen === !collapsed) return;
+        setCollapsed(!isOpen);
+        if (collapsible)
+            localStorage.setItem('tool:midi', isOpen ? 'open' : 'closed');
+    }
 
     function refreshPorts() {
         const access = midiAccessRef.current;
@@ -230,30 +241,25 @@ export function MidiPlayer() {
               ? ''
               : 'midi-player__status--err';
 
-    return (
-        <article>
-            <header>
-                <div class="midi-player__header">
-                    <h2>MIDI Player</h2>
-                    <small class="midi-player__status">
-                        MIDI&nbsp;
-                        <strong class={statusClass}>{midiStatus}</strong>
-                        {' · '}
-                        Engine&nbsp;<strong>{engineMode}</strong>
-                        {stats.sent > 0 && <> · {stats.sent}&nbsp;sent</>}
-                        {stats.dropped > 0 && (
-                            <>
-                                {' '}
-                                ·{' '}
-                                <span class="midi-player__status--err">
-                                    {stats.dropped}&nbsp;dropped
-                                </span>
-                            </>
-                        )}
-                    </small>
-                </div>
-            </header>
+    const statusLine = (
+        <small class="midi-player__status">
+            MIDI&nbsp;<strong class={statusClass}>{midiStatus}</strong>
+            {' · '}Engine&nbsp;<strong>{engineMode}</strong>
+            {stats.sent > 0 && <> · {stats.sent}&nbsp;sent</>}
+            {stats.dropped > 0 && (
+                <>
+                    {' '}
+                    ·{' '}
+                    <span class="midi-player__status--err">
+                        {stats.dropped}&nbsp;dropped
+                    </span>
+                </>
+            )}
+        </small>
+    );
 
+    const body = (
+        <>
             <div
                 class={`midi-player__drop-zone${isDragging ? ' midi-player__drop-zone--over' : ''}`}
                 onDragOver={(e) => {
@@ -523,6 +529,32 @@ export function MidiPlayer() {
                 channels. Web MIDI requires HTTPS or localhost. &ensp;Space =
                 play/pause · Esc = stop · ← = rewind
             </small>
+        </>
+    );
+
+    if (collapsible) {
+        return (
+            <article>
+                <details open={!collapsed} onToggle={onToggle}>
+                    <summary class="midi-player__summary">
+                        MIDI Player
+                        {!collapsed && statusLine}
+                    </summary>
+                    {body}
+                </details>
+            </article>
+        );
+    }
+
+    return (
+        <article>
+            <header>
+                <div class="midi-player__header">
+                    <h2>MIDI Player</h2>
+                    <div class="midi-player__header-end">{statusLine}</div>
+                </div>
+            </header>
+            {body}
         </article>
     );
 }

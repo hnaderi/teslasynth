@@ -38,20 +38,16 @@ export function SerialTerminal({ onInit }) {
     }, []);
 
     return (
-        <article>
-            <header>
-                <strong>Console</strong>
-            </header>
-            <div
-                ref={containerRef}
-                style={{
-                    height: '300px',
-                    width: '100%',
-                    background: 'black',
-                    borderRadius: '0.5rem',
-                    overflow: 'hidden',
-                }}
-            />
-        </article>
+        <div
+            ref={containerRef}
+            style={{
+                height: '300px',
+                width: '100%',
+                marginTop: '10px',
+                background: 'black',
+                borderRadius: '0.5rem',
+                overflow: 'hidden',
+            }}
+        />
     );
 }
