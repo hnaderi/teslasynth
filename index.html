@@ -10,8 +10,12 @@
   <title>Teslasynth home page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/jpeg" href="favicon.png" />
-  <script type="module" crossorigin src="/assets/index-Cd18d6m9.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-D8wNIafN.css">
+  <script>
+    if (!crossOriginIsolated && 'serviceWorker' in navigator)
+      navigator.serviceWorker.register('./coi-serviceworker.js').then(() => location.reload());
+  </script>
+  <script type="module" crossorigin src="/assets/index-CqQEtdXa.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-D_3DjKzM.css">
 </head>
 <body>
   <main class="container">
