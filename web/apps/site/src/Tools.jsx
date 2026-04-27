@@ -19,9 +19,7 @@ export function Tools() {
                 <summary>
                     <strong>CLI Reference</strong>
                 </summary>
-                <article>
-                    <CliReference />
-                </article>
+                <CliReference />
             </details>
         </>
     );

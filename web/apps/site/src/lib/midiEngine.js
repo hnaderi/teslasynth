@@ -399,7 +399,6 @@ export function createMidiEngine({ onEvent, onActivity }) {
 
         getPositionUs,
         isPlayingNow: () => isPlaying,
-        getMode: () => mode,
 
         dispose() {
             stop();

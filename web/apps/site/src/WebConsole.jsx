@@ -55,51 +55,45 @@ export function Console({ collapsible = false }) {
 
     if (!(navigator.serial || navigator.usb)) {
         return (
-            <>
-                <article>
-                    <header>
-                        <h2>Console</h2>
-                    </header>
-                    <p>
-                        Web Serial is not supported in this browser. Please use
-                        Chrome or Edge.
-                    </p>
-                </article>
-            </>
+            <article>
+                <header>
+                    <h2>Console</h2>
+                </header>
+                <p>
+                    Web Serial is not supported in this browser. Please use
+                    Chrome or Edge.
+                </p>
+            </article>
         );
     }
 
     if (collapsible) {
         return (
-            <>
-                <article>
-                    <details open={!collapsed} onToggle={onToggle}>
-                        <summary>Console</summary>
-                        <div class="grid">
-                            <button onClick={onConnectClick}>
-                                {isConnected ? 'Disconnect' : 'Connect'}
-                            </button>
-                        </div>
-                        <SerialTerminal onInit={setTerm} />
-                    </details>
-                </article>
-            </>
+            <article>
+                <details open={!collapsed} onToggle={onToggle}>
+                    <summary>Console</summary>
+                    <div class="grid">
+                        <button onClick={onConnectClick}>
+                            {isConnected ? 'Disconnect' : 'Connect'}
+                        </button>
+                    </div>
+                    <SerialTerminal onInit={setTerm} />
+                </details>
+            </article>
         );
     }
 
     return (
-        <>
-            <article>
-                <header>
-                    <h2>Console</h2>
-                </header>
-                <div class="grid">
-                    <button onClick={onConnectClick}>
-                        {isConnected ? 'Disconnect' : 'Connect'}
-                    </button>
-                </div>
-                <SerialTerminal onInit={setTerm} />
-            </article>
-        </>
+        <article>
+            <header>
+                <h2>Console</h2>
+            </header>
+            <div class="grid">
+                <button onClick={onConnectClick}>
+                    {isConnected ? 'Disconnect' : 'Connect'}
+                </button>
+            </div>
+            <SerialTerminal onInit={setTerm} />
+        </article>
     );
 }
