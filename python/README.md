@@ -1,7 +1,7 @@
 # teslasynth Python library
 
 Python bindings and offline analysis tools for the
-[Teslasynth](http://projects.hnaderi.dev/teslasynth/) MIDI synthesizer firmware.
+[Teslasynth](https://teslasynth.hnaderi.dev/) MIDI synthesizer firmware.
 
 The library exposes the same synthesis engine used by the ESP32 firmware so you
 can render MIDI files, visualise pulse signals, and tune safety parameters
@@ -72,4 +72,4 @@ teslasynth render song.mid out.flac --channel all
 
 ## Documentation
 
-Full documentation at **http://projects.hnaderi.dev/teslasynth/python**
+Full documentation at **https://teslasynth.hnaderi.dev/python**
