@@ -10,7 +10,7 @@ const CATALOG_BASE = 'https://cdn.jsdelivr.net/gh/hnaderi/teslasynth@firmware';
 
 export function LatestFirmwareInstall() {
     const BASE_URL = import.meta.env.BASE_URL;
-    const flasher_url = BASE_URL + '/flasher';
+    const flasher_url = BASE_URL + 'flasher';
 
     const [version, setVersion] = useState(null);
     const [manifest, setManifest] = useState(null);

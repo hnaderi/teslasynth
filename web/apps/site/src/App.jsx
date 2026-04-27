@@ -19,13 +19,13 @@ import { FirmwareFlasher } from './Flasher';
 export default function App() {
     const BASE_URL = import.meta.env.BASE_URL;
     const home_url = BASE_URL;
-    const getting_started_url = BASE_URL + '/getting-started';
-    const midi_url = BASE_URL + '/midi';
-    const configuration_url = BASE_URL + '/configuration';
-    const python_url = BASE_URL + '/python';
-    const building_url = BASE_URL + '/building';
-    const console_url = BASE_URL + '/console';
-    const flasher_url = BASE_URL + '/flasher';
+    const getting_started_url = BASE_URL + 'getting-started';
+    const midi_url = BASE_URL + 'midi';
+    const configuration_url = BASE_URL + 'configuration';
+    const python_url = BASE_URL + 'python';
+    const building_url = BASE_URL + 'building';
+    const console_url = BASE_URL + 'console';
+    const flasher_url = BASE_URL + 'flasher';
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
