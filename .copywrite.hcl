@@ -19,5 +19,6 @@ project {
     "wheelhouse/**",
     "dist/**",
     "web/**/dist/**",
+    "pnpm-lock.yaml",
   ]
 }

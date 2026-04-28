@@ -8,6 +8,7 @@ import preact from '@preact/preset-vite';
 import mdx from '@mdx-js/rollup';
 import remarkGfm from 'remark-gfm';
 import rehypePrettyCode from 'rehype-pretty-code';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
     base: '/',
@@ -32,6 +33,17 @@ export default defineConfig({
             }),
         },
         preact(),
+        VitePWA({
+            strategies: 'injectManifest',
+            srcDir: 'src',
+            filename: 'sw.js',
+            manifest: false, // we have our own manifest.webmanifest in public/
+            injectRegister: null, // we register manually in index.html
+            devOptions: {
+                enabled: true,
+                type: 'module',
+            },
+        }),
     ],
     server: {
         fs: { allow: ['../../../..'] }, // allow reading firmware source files
