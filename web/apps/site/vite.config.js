@@ -39,14 +39,14 @@ export default defineConfig({
             filename: 'sw.js',
             manifest: false, // we have our own manifest.webmanifest in public/
             injectRegister: null, // we register manually in index.html
-            devOptions: {
-                enabled: true,
-                type: 'module',
-            },
         }),
     ],
     server: {
         fs: { allow: ['../../../..'] }, // allow reading firmware source files
+        headers: {
+            'Cross-Origin-Opener-Policy': 'same-origin',
+            'Cross-Origin-Embedder-Policy': 'require-corp',
+        },
     },
     build: {
         target: 'es2017',

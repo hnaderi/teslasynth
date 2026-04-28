@@ -43,35 +43,34 @@ self.addEventListener('fetch', (e) => {
     const url = new URL(e.request.url);
     if (url.origin !== self.location.origin) return;
 
+    const isNavigation = e.request.mode === 'navigate';
+
+    // Only intercept navigation and JS/CSS/WASM — everything else (manifest,
+    // favicon, icons) flows through to the browser without SW-initiated fetches.
+    // COI headers are only required on the HTML document, not same-origin subresources.
+    if (!isNavigation && !/\.(js|css|wasm)(\?|$)/.test(url.pathname)) return;
+
     e.respondWith(
         (async () => {
-            // Serve navigation (any URL) from the precached index.html
-            const cacheKey =
-                e.request.mode === 'navigate'
-                    ? precache.getCacheKeyForURL('/index.html')
-                    : precache.getCacheKeyForURL(url.pathname);
+            const cacheKey = isNavigation
+                ? precache.getCacheKeyForURL('/index.html')
+                : precache.getCacheKeyForURL(url.pathname);
 
             if (cacheKey) {
                 const cached = await caches.match(cacheKey, {
                     cacheName: 'teslasynth',
                 });
-                if (cached) return withCoi(cached);
+                if (cached) return isNavigation ? withCoi(cached) : cached;
             }
 
-            // Runtime network fallback — cache for subsequent offline use
             try {
-                const response = await fetch(e.request);
-                if (response.ok) {
-                    const cache = await caches.open('teslasynth-runtime');
-                    cache.put(e.request, response.clone());
-                }
-                return withCoi(response);
+                const req = isNavigation
+                    ? new Request('/index.html')
+                    : e.request;
+                const response = await fetch(req);
+                return isNavigation ? withCoi(response) : response;
             } catch {
-                const runtime = await caches.open('teslasynth-runtime');
-                const cached = await runtime.match(e.request);
-                return (
-                    withCoi(cached) ?? new Response('Offline', { status: 503 })
-                );
+                return new Response('Offline', { status: 503 });
             }
         })()
     );
