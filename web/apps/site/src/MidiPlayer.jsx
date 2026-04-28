@@ -525,9 +525,7 @@ export function MidiPlayer({ collapsible = false }) {
             )}
 
             <small class="midi-player__footer">
-                All-notes-off sent on stop, pause, and page unload across all 16
-                channels. Web MIDI requires HTTPS or localhost. &ensp;Space =
-                play/pause · Esc = stop · ← = rewind
+                Space = play/pause · Esc = stop · ← = rewind
             </small>
         </>
     );
