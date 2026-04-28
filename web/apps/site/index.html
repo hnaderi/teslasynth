@@ -19,9 +19,13 @@
         for (const r of regs)
           if (r.active?.scriptURL.includes('coi-serviceworker')) r.unregister();
       });
-      navigator.serviceWorker.register('/sw.js').then(() => {
-        if (!crossOriginIsolated) location.reload();
-      });
+      navigator.serviceWorker.register('/sw.js');
+      // Reload once when the SW first takes control so COI headers are active.
+      // Using controllerchange (not register().then) avoids an infinite reload loop:
+      // register() resolves on every page load, but controllerchange only fires
+      // when the SW actually activates and claims the page.
+      if (!crossOriginIsolated)
+        navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
     }
   </script>
 </head>
