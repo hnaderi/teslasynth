@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-only
  */
 
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { Logo } from '@teslasynth/ui/components/Logo';
 import { Router, route } from 'preact-router';
 import { MDXProvider } from '@mdx-js/preact';
@@ -20,6 +20,8 @@ import { Tools } from './Tools';
 import { PwaInstallButton } from './components/PwaInstallButton';
 
 export default function App() {
+    const [mobileOpen, setMobileOpen] = useState(false);
+
     const BASE_URL = import.meta.env.BASE_URL;
     const home_url = BASE_URL;
     const getting_started_url = BASE_URL + 'getting-started';
@@ -67,19 +69,30 @@ export default function App() {
                         <a href={home_url}>Home</a>
                     </li>
                     <li>
-                        <a href={getting_started_url}>Getting started</a>
-                    </li>
-                    <li>
-                        <a href={midi_url}>MIDI setup</a>
-                    </li>
-                    <li>
-                        <a href={configuration_url}>Configuration</a>
-                    </li>
-                    <li>
-                        <a href={python_url}>Python</a>
-                    </li>
-                    <li>
-                        <a href={building_url}>Building</a>
+                        <details class="dropdown">
+                            <summary>Docs</summary>
+                            <ul dir="rtl">
+                                <li dir="ltr">
+                                    <a href={getting_started_url}>
+                                        Getting started
+                                    </a>
+                                </li>
+                                <li dir="ltr">
+                                    <a href={midi_url}>MIDI setup</a>
+                                </li>
+                                <li dir="ltr">
+                                    <a href={configuration_url}>
+                                        Configuration
+                                    </a>
+                                </li>
+                                <li dir="ltr">
+                                    <a href={python_url}>Python</a>
+                                </li>
+                                <li dir="ltr">
+                                    <a href={building_url}>Building</a>
+                                </li>
+                            </ul>
+                        </details>
                     </li>
                     <li>
                         <a href={tools_url}>Tools</a>
@@ -96,9 +109,21 @@ export default function App() {
                         <PwaInstallButton />
                     </li>
                 </ul>
-                <details class="nav-mobile">
-                    <summary>Menu</summary>
-                    <ul>
+                <div class="nav-mobile">
+                    <button
+                        class="outline secondary nav-hamburger"
+                        onClick={() => setMobileOpen((o) => !o)}
+                        aria-label="Menu"
+                        aria-expanded={mobileOpen}
+                    >
+                        {mobileOpen ? '✕' : '☰'}
+                    </button>
+                </div>
+            </nav>
+
+            {mobileOpen && (
+                <nav class="nav-mobile-expanded">
+                    <ul onClick={() => setMobileOpen(false)}>
                         <li>
                             <a href={home_url}>Home</a>
                         </li>
@@ -132,8 +157,8 @@ export default function App() {
                             <PwaInstallButton />
                         </li>
                     </ul>
-                </details>
-            </nav>
+                </nav>
+            )}
 
             <main class="container">
                 <Router>

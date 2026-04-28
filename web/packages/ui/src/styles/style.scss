@@ -11,42 +11,35 @@
     display: none;
 }
 
+.nav-hamburger {
+    font-size: 1.2rem;
+    padding: 0.25rem 0.6rem;
+    margin: 0;
+    line-height: 1;
+}
+
+.nav-mobile-expanded {
+    display: none;
+    border-top: 1px solid var(--pico-muted-border-color);
+
+    ul {
+        flex-direction: column;
+        padding: 0.25rem 0;
+    }
+}
+
 @media (max-width: 768px) {
     .nav-links {
         display: none;
     }
 
-    nav {
-        position: relative;
-    }
-
     .nav-mobile {
         display: block;
         margin-left: auto;
+    }
 
-        summary {
-            cursor: pointer;
-        }
-
-        ul {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            z-index: 99;
-            background: var(--pico-background-color);
-            border-bottom: 1px solid var(--pico-muted-border-color);
-            display: flex;
-            flex-direction: column;
-            list-style: none;
-            margin: 0;
-            padding: 0.5rem 1rem 1rem;
-
-            li a {
-                display: block;
-                padding: 0.75rem 0;
-            }
-        }
+    .nav-mobile-expanded {
+        display: block;
     }
 }
 
