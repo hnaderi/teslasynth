@@ -13,7 +13,7 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="manifest" href="manifest.webmanifest" />
   <script>
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
       // Remove the old COI-only SW if still registered
       navigator.serviceWorker.getRegistrations().then(regs => {
         for (const r of regs)
