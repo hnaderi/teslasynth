@@ -2,7 +2,7 @@
   "name": "Teslasynth",
   "short_name": "Teslasynth",
   "description": "MIDI synthesizer firmware tools for Tesla coils and high-voltage devices",
-  "start_url": "/",
+  "start_url": "/tools",
   "display": "standalone",
   "background_color": "#13171f",
   "theme_color": "#13171f",

@@ -13,8 +13,16 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="manifest" href="manifest.webmanifest" />
   <script>
-    if (!crossOriginIsolated && 'serviceWorker' in navigator)
-      navigator.serviceWorker.register('./coi-serviceworker.js').then(() => location.reload());
+    if ('serviceWorker' in navigator) {
+      // Remove the old COI-only SW if still registered
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        for (const r of regs)
+          if (r.active?.scriptURL.includes('coi-serviceworker')) r.unregister();
+      });
+      navigator.serviceWorker.register('/sw.js').then(() => {
+        if (!crossOriginIsolated) location.reload();
+      });
+    }
   </script>
   <script type="module" crossorigin src="/assets/index-BkAM3inB.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-C7buNB25.css">
