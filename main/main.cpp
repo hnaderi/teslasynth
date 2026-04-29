@@ -20,11 +20,15 @@ static Application app;
 extern "C" void app_main(void) {
   devices::storage::init();
   ESP_ERROR_CHECK(esp_event_loop_create_default());
-  if (!app.reload_config())
-    ESP_LOGW(TAG, "Synth config fallbacks to factory settings.");
-
+  const bool is_configured = app.reload_config();
   const bool is_provisioned = configuration::hardware::read(hconfig);
-  if (!is_provisioned || helpers::maintenance::check()) {
+
+  if (!is_provisioned || !is_configured || helpers::maintenance::check()) {
+    if (!is_provisioned)
+      ESP_LOGW(TAG, "Hardware is not provisioned.");
+    if (!is_configured)
+      ESP_LOGW(TAG, "Synth config fallbacks to factory settings.");
+
     ESP_LOGI(TAG, "Entering maintenance mode.");
     devices::wifi::init();
     web::server::start(app.ui());

@@ -104,11 +104,18 @@ template <std::uint8_t OUTPUTS = 1> struct MidiRoutingConfig final {
 };
 
 template <std::uint8_t OUTPUTS = 1> class Configuration {
+public:
+  static constexpr uint32_t current_version = 1;
+
+private:
+  uint32_t version_ = current_version;
   SynthConfig synth_;
   std::array<ChannelConfig, OUTPUTS> channels_{};
   MidiRoutingConfig<OUTPUTS> routing_{};
 
 public:
+  constexpr uint32_t version() const { return version_; }
+
   constexpr Configuration() {}
   constexpr Configuration(const SynthConfig &synth_config,
                           const std::array<ChannelConfig, OUTPUTS> &channel_configs)

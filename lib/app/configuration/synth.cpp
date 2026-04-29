@@ -30,8 +30,9 @@ bool read(AppConfig &config) {
 
   size_t read_size = sizeof(config);
   auto err = nvs_get_blob(handle, KEY, &config, &read_size);
-  if (err != ESP_OK || read_size != sizeof(config)) {
-    ESP_LOGE(TAG, "Corrupted configuration!");
+  if (err != ESP_OK || read_size != sizeof(config) ||
+      config.version() != AppConfig::current_version) {
+    ESP_LOGW(TAG, "Outdated or corrupted configuration; resetting to defaults");
     success = false;
     config = AppConfig();
   }
