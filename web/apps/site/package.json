@@ -7,7 +7,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@mdx-js/preact": "^3.1.1",
@@ -29,6 +31,7 @@
     "sass": "^1.95.1",
     "vite": "^7.2.7",
     "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.1.5",
     "workbox-precaching": "^7.4.0"
   }
 }
