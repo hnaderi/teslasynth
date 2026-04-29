@@ -6,9 +6,10 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import { mockApi } from './dev-mocks.js';
 
 export default defineConfig({
-    plugins: [preact(), viteSingleFile()],
+    plugins: [preact(), viteSingleFile(), mockApi()],
     build: {
         target: 'es2017',
         minify: 'esbuild',
