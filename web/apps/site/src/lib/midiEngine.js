@@ -328,7 +328,7 @@ export function createMidiEngine({ onEvent, onActivity }) {
         onEvent('stop', null);
     }
 
-    function seek(fraction) {
+    function seek(us) {
         if (!file) return;
         const wasPlaying = isPlaying;
         if (wasPlaying) {
@@ -336,7 +336,7 @@ export function createMidiEngine({ onEvent, onActivity }) {
             flushWorklet();
             allNotesOff();
         }
-        offsetUs = Math.max(0, Math.min(file.endUs, fraction * file.endUs));
+        offsetUs = Math.max(0, Math.min(file.endUs, us));
         if (wasPlaying) {
             isPlaying = true;
             startTime = audioCtx.currentTime;

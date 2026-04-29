@@ -379,11 +379,11 @@ export function MidiPlayer({ collapsible = false }) {
                     }}
                     onMouseUp={(e) => {
                         seekingRef.current = false;
-                        eng?.seek(e.target.value / 1000);
+                        eng?.seek((e.target.value / 1000) * midiFile.endUs);
                     }}
                     onTouchEnd={(e) => {
                         seekingRef.current = false;
-                        eng?.seek(e.target.value / 1000);
+                        eng?.seek((e.target.value / 1000) * midiFile.endUs);
                     }}
                 />
                 <code ref={timeRef}>{fmtTime(0)}</code>
