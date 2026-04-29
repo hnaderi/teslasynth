@@ -162,9 +162,21 @@ jobs:
       - name: Format check
         run: pnpm format:check
 
+  web-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          cache: true
+      - run: pnpm install
+      - name: Run web tests
+        run: pnpm test
+
   website:
     runs-on: ubuntu-latest
-    needs: [web-lint]
+    needs: [web-lint, web-test]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v6

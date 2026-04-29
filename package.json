@@ -9,6 +9,7 @@
     "dev:site": "pnpm --filter site dev",
     "build:dashboard": "pnpm --filter dashboard build",
     "build:site": "pnpm --filter site build",
+    "test": "pnpm -r --if-present test",
     "lint": "eslint 'web/**/*.{js,jsx,ts,tsx}'",
     "format": "prettier --write 'web/**/*.{js,jsx,ts,tsx,css,scss}'",
     "format:check": "prettier --check 'web/**/*.{js,jsx,ts,tsx,css,scss}'"
