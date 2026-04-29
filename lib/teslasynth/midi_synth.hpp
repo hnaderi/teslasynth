@@ -310,7 +310,7 @@ public:
     }
 
     if (!_limiters[ch].can_use(res.on)) {
-      res.off += res.on;
+      res.off.add_saturating(res.on);
       res.on = 0_us;
     }
 

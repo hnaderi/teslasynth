@@ -264,6 +264,26 @@ void test_must_not_be_limited_when_no_duty_limit(void) {
   samples_all_bps(tsynth, 4975);
 }
 
+void test_duty_rejection_saturates_off(void) {
+  // min_deadtime near Duration16::max() and zero duty: when limiter rejects,
+  // res.off += res.on must saturate, not wrap to a tiny value (which would
+  // cause the coil to fire almost immediately).
+  constexpr ChannelConfig cfg{
+      .max_on_time = 1000_us,
+      .min_deadtime = Duration16::micros(65000),
+      .notes = 1,
+      .max_duty = DutyCycle(0),
+  };
+  Configuration<> conf(SynthConfig{.tuning = 100_hz}, {cfg});
+  Teslasynth<> tsynth(conf);
+
+  tsynth.note_on(0, 69, 127, 0_ms);
+  Pulse p = tsynth.sample(0, Duration16::max());
+
+  assert_duration_equal(p.on, 0_us);
+  assert_duration_equal(p.off, Duration16::max());
+}
+
 void test_must_not_exceed_duty_limit(void) {
   Configuration<> conf(SynthConfig{.tuning = 2_khz}, {ChannelConfig{.max_duty = DutyCycle(10)}});
   Teslasynth<> tsynth(conf);
@@ -298,6 +318,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_sequence_polyphonic_out_of_phase_multichannel_note_off);
   RUN_TEST(test_must_not_be_limited_when_no_duty_limit);
   RUN_TEST(test_must_not_exceed_duty_limit);
+  RUN_TEST(test_duty_rejection_saturates_off);
   UNITY_END();
 }
 int main(int argc, char **argv) {
