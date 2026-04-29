@@ -10,7 +10,9 @@ describe('withCoi', () => {
     it('adds COOP same-origin and COEP require-corp', () => {
         const r = withCoi(new Response('hi', { status: 200 }));
         expect(r.headers.get('Cross-Origin-Opener-Policy')).toBe('same-origin');
-        expect(r.headers.get('Cross-Origin-Embedder-Policy')).toBe('require-corp');
+        expect(r.headers.get('Cross-Origin-Embedder-Policy')).toBe(
+            'require-corp'
+        );
     });
 
     it('preserves status, statusText, body, and other headers', async () => {

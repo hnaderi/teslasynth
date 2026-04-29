@@ -22,8 +22,26 @@ function makeStubFile(overrides = {}) {
         initBPM: 120,
         endUs: 1_000_000,
         events: [
-            { type: 'midi', tick: 0, status: 0x90, ch: 0, b1: 60, b2: 100, msgType: 0x90, us: 0 },
-            { type: 'midi', tick: 480, status: 0x80, ch: 0, b1: 60, b2: 0, msgType: 0x80, us: 1_000_000 },
+            {
+                type: 'midi',
+                tick: 0,
+                status: 0x90,
+                ch: 0,
+                b1: 60,
+                b2: 100,
+                msgType: 0x90,
+                us: 0,
+            },
+            {
+                type: 'midi',
+                tick: 480,
+                status: 0x80,
+                ch: 0,
+                b1: 60,
+                b2: 0,
+                msgType: 0x80,
+                us: 1_000_000,
+            },
         ],
         tempoEvents: [],
         ...overrides,
@@ -130,12 +148,17 @@ describe('createMidiEngine', () => {
         });
     });
 
-    it('seek before play updates the offset without entering playback', () => {
+    it('seek(us) before play parks the offset within [0, endUs]', () => {
         engine.load(makeStubFile({ endUs: 1_000_000 }));
         engine.seek(500_000);
         expect(engine.isPlayingNow()).toBe(false);
-        // getPositionUs returns the parked offset when not playing.
         expect(engine.getPositionUs()).toBe(500_000);
+
+        engine.seek(2_000_000); // beyond end → clamps to endUs
+        expect(engine.getPositionUs()).toBe(1_000_000);
+
+        engine.seek(-100); // before start → clamps to 0
+        expect(engine.getPositionUs()).toBe(0);
     });
 
     it('allNotesOff is a no-op when no MIDI output is set', () => {

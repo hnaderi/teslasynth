@@ -51,7 +51,9 @@ describe('toEspWebToolsManifest', () => {
     it('builds absolute file paths from the CDN base + version', () => {
         const out = toEspWebToolsManifest(sampleManifest, '2.3.4');
         const paths = out.builds.flatMap((b) => b.parts.map((p) => p.path));
-        expect(paths.every((p) => p.includes('/teslasynth@firmware/2.3.4/'))).toBe(true);
+        expect(
+            paths.every((p) => p.includes('/teslasynth@firmware/2.3.4/'))
+        ).toBe(true);
         expect(paths).toContain(
             'https://cdn.jsdelivr.net/gh/hnaderi/teslasynth@firmware/2.3.4/esp32s2/bootloader.bin'
         );
@@ -62,7 +64,9 @@ describe('toEspWebToolsManifest', () => {
         const offsets = out.builds.flatMap((b) => b.parts.map((p) => p.offset));
         expect(offsets).toContain(0x10000);
         expect(offsets).toContain(0x1000);
-        expect(offsets.every((o) => typeof o === 'number' && !Number.isNaN(o))).toBe(true);
+        expect(
+            offsets.every((o) => typeof o === 'number' && !Number.isNaN(o))
+        ).toBe(true);
     });
 
     it('sets new_install_prompt_erase: true', () => {

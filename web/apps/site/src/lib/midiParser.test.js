@@ -28,7 +28,12 @@ describe('parseMidi', () => {
         expect(r.ticksPerQN).toBe(480);
         const midi = r.events.filter((e) => e.type === 'midi');
         expect(midi).toHaveLength(2);
-        expect(midi[0]).toMatchObject({ ch: 0, b1: 60, b2: 100, msgType: 0x90 });
+        expect(midi[0]).toMatchObject({
+            ch: 0,
+            b1: 60,
+            b2: 100,
+            msgType: 0x90,
+        });
         expect(midi[1]).toMatchObject({ ch: 0, b1: 60, msgType: 0x80 });
     });
 
@@ -53,7 +58,9 @@ describe('parseMidi', () => {
             ])
         );
         const r = parseMidi(buf);
-        const ticks = r.events.filter((e) => e.type === 'midi').map((e) => e.tick);
+        const ticks = r.events
+            .filter((e) => e.type === 'midi')
+            .map((e) => e.tick);
         expect(ticks).toEqual([0x40, 0x40 + 128, 0x40 + 128 + 1048576]);
     });
 

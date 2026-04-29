@@ -20,16 +20,24 @@ function chunk(magic, payload) {
     const out = [];
     for (const c of magic) out.push(c.charCodeAt(0));
     const len = payload.length;
-    out.push((len >>> 24) & 0xff, (len >>> 16) & 0xff, (len >>> 8) & 0xff, len & 0xff);
+    out.push(
+        (len >>> 24) & 0xff,
+        (len >>> 16) & 0xff,
+        (len >>> 8) & 0xff,
+        len & 0xff
+    );
     out.push(...payload);
     return out;
 }
 
 export function header({ format = 0, nTracks = 1, ticksPerQN = 480 } = {}) {
     return chunk('MThd', [
-        (format >>> 8) & 0xff, format & 0xff,
-        (nTracks >>> 8) & 0xff, nTracks & 0xff,
-        (ticksPerQN >>> 8) & 0xff, ticksPerQN & 0xff,
+        (format >>> 8) & 0xff,
+        format & 0xff,
+        (nTracks >>> 8) & 0xff,
+        nTracks & 0xff,
+        (ticksPerQN >>> 8) & 0xff,
+        ticksPerQN & 0xff,
     ]);
 }
 
@@ -64,8 +72,14 @@ export function track(events) {
                 out.push(0xb0 | (e.ch & 0xf), e.ctrl, e.val);
                 break;
             case 'tempo':
-                out.push(0xff, 0x51, 0x03,
-                    (e.uspq >>> 16) & 0xff, (e.uspq >>> 8) & 0xff, e.uspq & 0xff);
+                out.push(
+                    0xff,
+                    0x51,
+                    0x03,
+                    (e.uspq >>> 16) & 0xff,
+                    (e.uspq >>> 8) & 0xff,
+                    e.uspq & 0xff
+                );
                 break;
             case 'trackName': {
                 const bytes = [...e.name].map((c) => c.charCodeAt(0));
