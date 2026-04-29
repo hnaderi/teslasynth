@@ -64,6 +64,13 @@ public:
     _value += b._value;
     return *this;
   }
+
+  SimpleDuration &add_saturating(const SimpleDuration &b) {
+    uint64_t sum = static_cast<uint64_t>(_value) + static_cast<uint64_t>(b._value);
+    uint64_t max = static_cast<uint64_t>(std::numeric_limits<T>::max());
+    _value = static_cast<T>(sum > max ? max : sum);
+    return *this;
+  }
   SimpleDuration &operator*=(const SimpleDuration &b) {
     _value *= b._value;
     return *this;

@@ -99,6 +99,28 @@ void test_duration_arithmetics() {
   assert_duration_equal(1_us + 100_s, 100_s + 1_us);
 }
 
+void test_duration_add_saturating(void) {
+  Duration16 a = 100_us;
+  a.add_saturating(200_us);
+  assert_duration_equal(a, 300_us);
+
+  Duration16 b = Duration16::max();
+  b.add_saturating(1_us);
+  assert_duration_equal(b, Duration16::max());
+
+  Duration16 c = Duration16::micros(60000);
+  c.add_saturating(Duration16::micros(10000));
+  assert_duration_equal(c, Duration16::max());
+
+  Duration16 d = 100_us;
+  d.add_saturating(Duration16::zero());
+  assert_duration_equal(d, 100_us);
+
+  Duration32 e = Duration32::max();
+  e.add_saturating(1_us);
+  assert_duration_equal(e, Duration32::max());
+}
+
 void test_duration_minus(void) {
   auto a = 1_s - 900_ms;
   TEST_ASSERT_TRUE(a);
@@ -294,6 +316,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_duration16_constants);
   RUN_TEST(test_duration32_constants);
   RUN_TEST(test_duration_arithmetics);
+  RUN_TEST(test_duration_add_saturating);
   RUN_TEST(test_duration_minus);
 
   RUN_TEST(test_hertz);
