@@ -89,34 +89,36 @@ teslasynth config output.1.max-duty=5 output.1.max-on-time=80us > safe.json
 
 ## Configuration
 
-The configuration format used by the Python library matches the firmware's
-key/value syntax. `teslasynth config` reads and writes JSON:
+The Python library reads and writes the same JSON schema served by the
+firmware HTTP API (`GET/PUT /api/config/synth`). A file exported from the
+dashboard loads in Python; a config saved here can be uploaded to a device.
 
 ```json
 {
-  "synth": { "tuning_hz": 440.0, "instrument": null },
+  "tuning":     440.0,
+  "instrument": null,
   "channels": [
     {
-      "max_on_time_us": 100,
-      "min_deadtime_us": 100,
-      "duty_window_us": 10000,
-      "max_duty_percent": 10.0,
-      "pulse_resolution_us": 0,
-      "notes": 4,
-      "instrument": null
+      "notes":            4,
+      "max-on-time":      100,
+      "min-deadtime":     100,
+      "max-duty":         10.0,
+      "duty-window":      10000,
+      "pulse-resolution": 0,
+      "instrument":       null
     }
   ],
   "routing": {
-    "mapping": [0, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null],
-    "percussion": false
+    "percussion": false,
+    "mapping":    [0, 1, -1, -1, -1, -1, -1, -1,
+                   -1, -1, -1, -1, -1, -1, -1, -1]
   }
 }
 ```
 
-`channels` is a list of up to 8 entries, one per output channel. `routing.mapping`
-is a 16-element list (one per MIDI channel 0–15); each entry is an output index
-(0–7) or `null` to ignore that channel.
+`channels` is a list of up to 8 entries, one per output. `routing.mapping`
+is a 16-element list (one per MIDI channel 0–15); each entry is an output
+index (0–7) or `-1` to ignore that channel.
 
 Load and modify a config in Python:
 

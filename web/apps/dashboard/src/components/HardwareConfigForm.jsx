@@ -7,6 +7,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { InputConfigSection } from './InputConfig';
 import { LedConfigSection } from './LEDConfig';
 import { OutputConfigSection } from './OutputConfig';
+import { ImportExportButtons } from './ImportExport';
 
 export function HardwareConfigForm({
     config,
@@ -82,6 +83,12 @@ export function HardwareConfigForm({
                     >
                         Reset
                     </button>
+                    <ImportExportButtons
+                        filename="hardware-config.json"
+                        data={draft}
+                        onImport={setDraft}
+                        busy={busy}
+                    />
                 </div>
             </footer>
         </form>

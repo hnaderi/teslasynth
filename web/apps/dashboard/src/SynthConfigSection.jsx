@@ -8,6 +8,7 @@ import { NumberInput } from './components/NumberInput';
 import { ConfirmDialog } from './components/confirmation';
 import { InstrumentSelect } from './components/InstrumentSelect';
 import { RoutingConfigSection } from './components/RoutingConfigSection';
+import { ImportExportButtons } from './components/ImportExport';
 const synthConfig = (init) => fetch('/api/config/synth', init);
 
 function SynthChannelConfigSection({
@@ -201,6 +202,12 @@ function SynthConfigForm({
                     >
                         Reset
                     </button>
+                    <ImportExportButtons
+                        filename="synth-config.json"
+                        data={draft}
+                        onImport={setDraft}
+                        busy={busy}
+                    />
                     <ConfirmDialog
                         open={confirmOpen}
                         title="Reset configuration?"
