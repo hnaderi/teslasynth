@@ -93,6 +93,9 @@ Decoder<AppConfig> parse_appconfig(helpers::JSONParser &parser) {
     ch.min_deadtime = TRY(parse_duration(chobj.get(keys::min_deadtime)));
     ch.duty_window = TRY(parse_duration(chobj.get(keys::duty_window)));
     ch.max_duty = TRY(parse_duty(chobj.get(keys::max_duty)));
+    auto pulse_res = chobj.get(keys::pulse_resolution);
+    if (pulse_res.is_number())
+      ch.pulse_resolution = TRY(parse_duration(pulse_res));
 
     idx++;
   }
@@ -142,6 +145,7 @@ JSONEncoder encode(const AppConfig &config) {
     obj.add(keys::min_deadtime, ch.min_deadtime.micros());
     obj.add(keys::max_duty, ch.max_duty.percent());
     obj.add(keys::duty_window, ch.duty_window.micros());
+    obj.add(keys::pulse_resolution, ch.pulse_resolution.micros());
     if (ch.instrument.has_value())
       obj.add(keys::instrument, *ch.instrument);
     else

@@ -76,6 +76,23 @@ void test_channel_config_error(void) {
   ASSERT_NO_UPDATES("output.4.instrument=3 ", config);
 }
 
+void test_channel_pulse_resolution(void) {
+  Configuration<3> config;
+
+  ASSERT_UPDATES("output.1.pulse-resolution=5us", config);
+  assert_duration_equal(5_us, config.channel(0).pulse_resolution);
+
+  ASSERT_UPDATES("output.2.pulse-resolution=0us", config);
+  assert_duration_equal(0_us, config.channel(1).pulse_resolution);
+}
+
+void test_channel_pulse_resolution_invalid(void) {
+  Configuration<3> config;
+
+  ASSERT_NO_UPDATES("output.1.pulse-resolution=garbage", config);
+  assert_duration_equal(0_us, config.channel(0).pulse_resolution);
+}
+
 void test_channel_config_multiple(void) {
   Configuration<3> config;
 
@@ -133,6 +150,8 @@ extern "C" void app_main(void) {
   RUN_TEST(test_channel_config_multiple);
   RUN_TEST(test_channel_config_wildcard);
   RUN_TEST(test_channel_config_error);
+  RUN_TEST(test_channel_pulse_resolution);
+  RUN_TEST(test_channel_pulse_resolution_invalid);
   RUN_TEST(test_routing);
   RUN_TEST(test_routing_wildcard);
   UNITY_END();

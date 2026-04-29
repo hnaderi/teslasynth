@@ -85,6 +85,17 @@ function SynthChannelConfigSection({
                 step="1"
                 onChange={(n) => onChange(channelIdx, 'duty-window', n)}
             />
+
+            <NumberInput
+                id={`pulse-resolution-${channelIdx}`}
+                title="Pulse Resolution (us)"
+                help="Smallest on-time the bridge can actually deliver. For DRSSTC coils, set to half the resonant period (rounded up) so the duty limiter charges for what the bridge really fires, not what was requested. 0 disables the correction."
+                value={channel['pulse-resolution']}
+                min="0"
+                max="65535"
+                step="1"
+                onChange={(n) => onChange(channelIdx, 'pulse-resolution', n)}
+            />
         </article>
     );
 }

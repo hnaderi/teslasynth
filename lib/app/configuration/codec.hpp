@@ -15,6 +15,7 @@ constexpr char max_on_time[] = "max-on-time";
 constexpr char min_deadtime[] = "min-deadtime";
 constexpr char max_duty[] = "max-duty";
 constexpr char duty_window[] = "duty-window";
+constexpr char pulse_resolution[] = "pulse-resolution";
 constexpr char tuning[] = "tuning";
 constexpr char notes[] = "notes";
 constexpr char channels[] = "channels";

@@ -303,7 +303,13 @@ NB_MODULE(_teslasynth, m) {
           "duty_window_us", [](const ChannelConfig &c) { return c.duty_window.micros(); },
           [](ChannelConfig &c, uint16_t v) { c.duty_window = Duration16::micros(v); },
           "Duty-cycle averaging window in microseconds (default 10000 = 10 ms)")
-      .def_rw("notes", &ChannelConfig::notes, "Polyphony limit (1–4)")
+      .def_prop_rw(
+          "pulse_resolution_us", [](const ChannelConfig &c) { return c.pulse_resolution.micros(); },
+          [](ChannelConfig &c, uint16_t v) { c.pulse_resolution = Duration16::micros(v); },
+          "Effective pulse on-time quantum at the bridge output (microseconds). "
+          "Set to half the resonant period for DRSSTC coils to make the duty "
+          "limiter charge for what the bridge actually delivers. 0 = no quantization.")
+      .def_rw("notes", &ChannelConfig::notes, "Polyphony limit (1-4)")
       .def_prop_rw(
           "instrument",
           [](const ChannelConfig &c) -> std::optional<uint8_t> { return c.instrument; },

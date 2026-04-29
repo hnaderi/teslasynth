@@ -264,6 +264,80 @@ void test_must_not_be_limited_when_no_duty_limit(void) {
   samples_all_bps(tsynth, 4975);
 }
 
+void test_pulse_resolution_compensates_deadtime(void) {
+  // 1us request with 5us quantum: emitted on=1us, off compensated by 4us.
+  constexpr ChannelConfig cfg{
+      .max_on_time = 1_us,
+      .min_deadtime = 100_us,
+      .pulse_resolution = 5_us,
+      .notes = 1,
+  };
+  Configuration<> conf(SynthConfig{.tuning = 100_hz}, {cfg});
+  Teslasynth<> tsynth(conf);
+
+  tsynth.note_on(0, 69, 127, 0_ms);
+  Pulse p = tsynth.sample(0, 10_ms);
+
+  assert_duration_equal(p.on, 1_us);
+  assert_duration_equal(p.off, 104_us);
+}
+
+void test_pulse_resolution_at_quantum_boundary(void) {
+  // Request exactly equal to quantum: no compensation.
+  constexpr ChannelConfig cfg{
+      .max_on_time = 5_us,
+      .min_deadtime = 100_us,
+      .pulse_resolution = 5_us,
+      .notes = 1,
+  };
+  Configuration<> conf(SynthConfig{.tuning = 100_hz}, {cfg});
+  Teslasynth<> tsynth(conf);
+
+  tsynth.note_on(0, 69, 127, 0_ms);
+  Pulse p = tsynth.sample(0, 10_ms);
+
+  assert_duration_equal(p.on, 5_us);
+  assert_duration_equal(p.off, 100_us);
+}
+
+void test_pulse_resolution_charges_limiter_for_effective_on(void) {
+  // Budget is 4us, requested on-time is 1us, effective on-time is 5us.
+  // With pulse_resolution charging the limiter, 5us > 4us and the pulse
+  // is rejected. Without it, 1us would fit and the pulse would fire.
+  constexpr ChannelConfig cfg{
+      .max_on_time = 1_us,
+      .min_deadtime = 1_us,
+      .duty_window = Duration16::micros(100),
+      .pulse_resolution = 5_us,
+      .notes = 1,
+      .max_duty = DutyCycle(4),
+  };
+  Configuration<> conf(SynthConfig{.tuning = 100_hz}, {cfg});
+  Teslasynth<> tsynth(conf);
+
+  tsynth.note_on(0, 69, 127, 0_ms);
+  Pulse p = tsynth.sample(0, 10_ms);
+
+  assert_duration_equal(p.on, 0_us);
+}
+
+void test_pulse_resolution_saturates_at_max_off(void) {
+  // min_deadtime + compensation > Duration16::max(): off must saturate, not wrap.
+  constexpr ChannelConfig cfg{
+      .max_on_time = 1_us,
+      .min_deadtime = Duration16::micros(65535),
+      .pulse_resolution = 100_us,
+      .notes = 1,
+  };
+  Configuration<> conf(SynthConfig{.tuning = 100_hz}, {cfg});
+  Teslasynth<> tsynth(conf);
+
+  tsynth.note_on(0, 69, 127, 0_ms);
+  Pulse p = tsynth.sample(0, Duration16::max());
+
+  assert_duration_equal(p.off, Duration16::max());
+}
+
 void test_duty_rejection_saturates_off(void) {
   // min_deadtime near Duration16::max() and zero duty: when limiter rejects,
   // res.off += res.on must saturate, not wrap to a tiny value (which would
@@ -319,6 +393,10 @@ extern "C" void app_main(void) {
   RUN_TEST(test_must_not_be_limited_when_no_duty_limit);
   RUN_TEST(test_must_not_exceed_duty_limit);
   RUN_TEST(test_duty_rejection_saturates_off);
+  RUN_TEST(test_pulse_resolution_compensates_deadtime);
+  RUN_TEST(test_pulse_resolution_at_quantum_boundary);
+  RUN_TEST(test_pulse_resolution_charges_limiter_for_effective_on);
+  RUN_TEST(test_pulse_resolution_saturates_at_max_off);
   UNITY_END();
 }
 int main(int argc, char **argv) {

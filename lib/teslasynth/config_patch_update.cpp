@@ -159,6 +159,11 @@ Parser<Unit> update(const ConfigPath &path, const ConfigValue value, ChannelConf
     if (!_r)
       return _r.error();
     config.max_duty = _r.value();
+  } else if (key == "pulse-resolution") {
+    auto _r = duration16(path, value);
+    if (!_r)
+      return _r.error();
+    config.pulse_resolution = _r.value();
   } else {
     return invalid_key(path, 2);
   }

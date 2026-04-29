@@ -299,17 +299,26 @@ public:
     }
 
     Duration target = _track.played_time(ch) + max;
+    Duration16 effective_on = 0_us;
     if (!note->is_active() || next_edge > target || !_track.is_playing()) {
       res.off = max;
     } else if (next_edge == _track.played_time(ch)) {
       res.on = note->current().volume * config_.channel(ch).max_on_time;
       res.off = config_.channel(ch).min_deadtime;
+      effective_on = res.on;
+      const auto resolution = config_.channel(ch).pulse_resolution;
+      if (!resolution.is_zero() && !res.on.is_zero()) {
+        const uint16_t units = (res.on.micros() + resolution.micros() - 1) / resolution.micros();
+        effective_on = Duration16::micros(units * resolution.micros());
+        Duration16 compensation = Duration16::micros(effective_on.micros() - res.on.micros());
+        res.off.add_saturating(compensation);
+      }
       note->next();
     } else if (next_edge <= target && next_edge >= _track.played_time(ch)) {
       res.off = Duration16::micros(next_edge.micros() - _track.played_time(ch).micros());
     }
 
-    if (!_limiters[ch].can_use(res.on)) {
+    if (!_limiters[ch].can_use(effective_on)) {
       res.off.add_saturating(res.on);
       res.on = 0_us;
     }

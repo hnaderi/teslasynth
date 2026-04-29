@@ -102,6 +102,27 @@ class TestRoundTrip:
         # Remaining outputs keep defaults
         assert cfg.channel(2).max_on_time_us == 100  # firmware default
 
+    def test_pulse_resolution_round_trip(self):
+        from teslasynth.config import from_dict, to_dict
+
+        cfg = from_dict({"channels": [{"pulse_resolution_us": 5}]})
+        assert cfg.channel(0).pulse_resolution_us == 5
+        d = to_dict(cfg)
+        assert d["channels"][0]["pulse_resolution_us"] == 5
+
+    def test_pulse_resolution_default_is_zero(self):
+        from teslasynth import Configuration
+        from teslasynth.config import to_dict
+
+        d = to_dict(Configuration())
+        assert d["channels"][0]["pulse_resolution_us"] == 0
+
+    def test_pulse_resolution_missing_keeps_default(self):
+        from teslasynth.config import from_dict
+
+        cfg = from_dict({"channels": [{}]})
+        assert cfg.channel(0).pulse_resolution_us == 0
+
 
 @requires_extension
 class TestValidation:
@@ -122,6 +143,12 @@ class TestValidation:
 
         with pytest.raises(ValueError, match="max_on_time_us"):
             from_dict({"channels": [{"max_on_time_us": 0}]})
+
+    def test_invalid_pulse_resolution(self):
+        from teslasynth.config import from_dict
+
+        with pytest.raises(ValueError, match="pulse_resolution_us"):
+            from_dict({"channels": [{"pulse_resolution_us": 65536}]})
 
     def test_invalid_duty_percent(self):
         from teslasynth.config import from_dict

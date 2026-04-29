@@ -63,14 +63,15 @@ struct ChannelConfig {
   static constexpr float default_max_duty = CONFIG_DEFAULT_MAX_DUTY;
 
   Duration16 max_on_time = 100_us, min_deadtime = 100_us, duty_window = 10_ms;
+  Duration16 pulse_resolution = 0_us;
   uint8_t notes = max_notes;
   DutyCycle max_duty = DutyCycle(CONFIG_DEFAULT_MAX_DUTY);
   std::optional<uint8_t> instrument = {};
 
   constexpr bool operator==(const ChannelConfig &other) const {
     return max_on_time == other.max_on_time && min_deadtime == other.min_deadtime &&
-           duty_window == other.duty_window && notes == other.notes && max_duty == other.max_duty &&
-           instrument == other.instrument;
+           duty_window == other.duty_window && pulse_resolution == other.pulse_resolution &&
+           notes == other.notes && max_duty == other.max_duty && instrument == other.instrument;
   }
 
   inline operator std::string() const {
@@ -78,6 +79,7 @@ struct ChannelConfig {
            "\nMax on time: " + std::string(max_on_time) +
            "\nMin deadtime: " + std::string(min_deadtime) + "\nMax duty: " + std::string(max_duty) +
            "\nDuty window: " + std::string(duty_window) +
+           "\nPulse resolution: " + std::string(pulse_resolution) +
            "\nInstrument: " + (instrument ? std::to_string(*instrument) : "-");
   }
 };

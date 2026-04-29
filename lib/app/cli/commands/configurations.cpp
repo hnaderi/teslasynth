@@ -26,6 +26,7 @@ constexpr char max_on_time[] = "max-on-time";
 constexpr char min_deadtime[] = "min-deadtime";
 constexpr char max_duty[] = "max-duty";
 constexpr char duty_window[] = "duty-window";
+constexpr char pulse_resolution[] = "pulse-resolution";
 constexpr char tuning[] = "tuning";
 constexpr char notes[] = "notes";
 constexpr char instrument[] = "instrument";
@@ -58,10 +59,12 @@ void print_output_config(uint8_t nr, const ChannelConfig &config) {
          "\t%s = %s\n"
          "\t%s = %s\n"
          "\t%s = %s\n"
+         "\t%s = %s\n"
          "\t%s = <%s>\n",
          nr + 1, keys::notes, config.notes, keys::max_on_time, cstr(config.max_on_time),
          keys::min_deadtime, cstr(config.min_deadtime), keys::max_duty, cstr(config.max_duty),
-         keys::duty_window, cstr(config.duty_window), keys::instrument, instrument_value(config));
+         keys::duty_window, cstr(config.duty_window), keys::pulse_resolution,
+         cstr(config.pulse_resolution), keys::instrument, instrument_value(config));
 }
 
 void print_routing_config(const AppMidiRoutingConfig &config) {

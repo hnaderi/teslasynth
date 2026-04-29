@@ -18,9 +18,10 @@ Schema
           "max_on_time_us":  100,
           "min_deadtime_us": 100,
           "duty_window_us":  10000,
+          "pulse_resolution_us": 0,
           "notes":           4,
           "max_duty_percent": 100.0,
-          "instrument":      null   // or 0–27
+          "instrument":      null   // or 0-27
         },
         ...                         // up to 8 entries (one per output channel)
       ],
@@ -60,6 +61,7 @@ def to_dict(cfg: Configuration) -> dict:
                 "max_on_time_us": cfg.channel(i).max_on_time_us,
                 "min_deadtime_us": cfg.channel(i).min_deadtime_us,
                 "duty_window_us": cfg.channel(i).duty_window_us,
+                "pulse_resolution_us": cfg.channel(i).pulse_resolution_us,
                 "notes": cfg.channel(i).notes,
                 "max_duty_percent": cfg.channel(i).max_duty_percent,
                 "instrument": cfg.channel(i).instrument,
@@ -107,12 +109,13 @@ def _load_channel(ch, c: dict) -> None:
         ("max_on_time_us", "max_on_time_us", 1, 65535),
         ("min_deadtime_us", "min_deadtime_us", 0, 65535),
         ("duty_window_us", "duty_window_us", 1, 65535),
+        ("pulse_resolution_us", "pulse_resolution_us", 0, 65535),
         ("notes", "notes", 1, 255),
     ]:
         if key in c:
             v = int(c[key])
             if not (lo <= v <= hi):
-                raise ValueError(f"channel.{key} must be {lo}–{hi}, got {v}")
+                raise ValueError(f"channel.{key} must be {lo}-{hi}, got {v}")
             setattr(ch, attr, v)
     if "max_duty_percent" in c:
         v = float(c["max_duty_percent"])

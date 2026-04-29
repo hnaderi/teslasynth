@@ -119,6 +119,7 @@ all outputs at once.
 | `output.<ch>.min-deadtime` | `<n>[us\|ms]` | `100us` | Minimum dead time between pulses |
 | `output.<ch>.max-duty` | `0–100` (float) | `100` | Maximum duty cycle (%) |
 | `output.<ch>.duty-window` | `<n>[us\|ms]` | `10ms` | Time window for duty cycle enforcement |
+| `output.<ch>.pulse-resolution` | `<n>[us\|ms]` | `0us` | Smallest on-time the bridge can actually deliver (`0` disables correction) |
 | `output.<ch>.notes` | `1–4` | `4` | Maximum concurrent notes |
 | `output.<ch>.instrument` | `<1–28>` or `-` | — | Instrument override for this output |
 
@@ -146,6 +147,38 @@ a stuck note or a firmware bug.
 critical: the tank circuit current must ring down to zero before the next burst,
 or the bridge switches under load — set it conservatively until you have
 confirmed safe operation on your specific coil.
+
+**Pulse resolution** corrects the duty limiter for coils that can't actually
+deliver the on-time the firmware requests.
+
+A DRSSTC bridge fires with zero-current switching: once triggered, it has to
+complete at least one half-cycle of the resonant tank before it can turn off.
+So a 1µs trigger sent to a 100 kHz coil produces a real 5µs burst — five times
+longer than asked for. Without telling the firmware about this, the duty limiter
+charges only the 1µs it requested, undercounts what the coil actually does, and
+a stream of tiny pulses can quietly drive the real duty cycle several times past
+your configured `max-duty` before anything intervenes. That is the kind of
+mismatch that destroys IGBTs.
+
+Setting `pulse-resolution` to **half the resonant period** of the coil tells the
+firmware to charge the duty limiter for what the bridge really delivers, and to
+extend the off-time so `min-deadtime` is still measured against the real
+switch-off — not the firmware's request.
+
+| Resonant frequency | `T/2` | `pulse-resolution` |
+|---|---|---|
+| 100 kHz | 5.00 µs | `5us` |
+| 150 kHz | 3.33 µs | `4us` |
+| 200 kHz | 2.50 µs | `3us` |
+| 300 kHz | 1.67 µs | `2us` |
+
+The general rule: `pulse-resolution = 1 / (2 × fres)`, rounded **up** to the
+nearest microsecond. Rounding up keeps the duty limiter conservative — it
+will charge for slightly more than the bridge actually delivers, never less.
+
+Leave at `0` for hard-switched outputs — LEDs, speakers, simulation, or any
+non-resonant interrupter — where the firmware's requested on-time matches the
+delivered on-time exactly.
 
 ---
 
