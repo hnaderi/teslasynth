@@ -28,7 +28,7 @@ export function MidiPlayer({ collapsible = false }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [loop, setLoop] = useState(false);
 
-    const [volume, setVolume] = useState(100);
+    const [volume, setVolume] = useState(127);
     const [tempoScale, setTempoScale] = useState(100);
     const [transpose, setTranspose] = useState(0);
     const [mutedTracks, setMutedTracks] = useState(new Set());

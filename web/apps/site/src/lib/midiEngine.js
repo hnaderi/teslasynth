@@ -102,7 +102,7 @@ export function createMidiEngine({ onEvent, onActivity }) {
 
     const mutedTracks = new Set();
     const programOverrides = new Map(); // ch → program number (0-based instrument id)
-    let volume = 100;
+    let volume = 127;
     let tempoScale = 1.0;
     let transpose = 0;
 
