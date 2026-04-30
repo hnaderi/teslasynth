@@ -15,10 +15,10 @@ export function createSerialController(transport, { onData, onDisconnect }) {
                 : null;
 
             for await (const data of transport.rawRead()) {
-                if (closed || !data || data.length === 0) {
-                    break;
-                }
-                onData?.(data);
+                if (closed) break;
+                // Empty chunks can appear during idle, USB buffer flushes, or
+                // brief driver hiccups — they are NOT a disconnect signal.
+                if (data && data.length > 0) onData?.(data);
             }
         } catch (e) {
             if (!closed) {

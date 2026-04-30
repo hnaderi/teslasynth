@@ -97,8 +97,15 @@ export function MidiPlayer({ collapsible = false }) {
     }, [collapsed]);
 
     useEffect(() => {
+        const isEditable = (el) =>
+            el?.isContentEditable ||
+            el?.tagName === 'INPUT' ||
+            el?.tagName === 'TEXTAREA' ||
+            el?.tagName === 'SELECT';
         const onKey = (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')
+            // Skip when typing into any editable element — covers form inputs and
+            // the xterm.js terminal (which uses a hidden <textarea> for IME).
+            if (isEditable(e.target) || isEditable(document.activeElement))
                 return;
             const eng = engineRef.current;
             if (!eng) return;
