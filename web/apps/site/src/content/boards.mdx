@@ -1,0 +1,60 @@
+# Choosing a development board
+
+Teslasynth runs on any ESP32, ESP32-S2, or ESP32-S3 dev board with at least
+4 MB of flash. But not every board is equally pleasant to work with — this
+page lists what to look for and what to avoid.
+
+## What to look for
+
+**A USB-to-UART bridge chip.** Boards with a CP210x, CH340, or FT232 between
+the chip and the USB connector flash reliably from the [web installer](/) and
+have predictable auto-reset. Avoid boards where the chip's native USB pins
+(D+/D−) are wired straight to the USB connector — they require manual
+button presses or a workaround for every flash.
+
+**At least 5 usable GPIO pins.** Teslasynth uses 4 output channels plus 1
+optional status LED by default. Make sure the board exposes that many pins
+that aren't strapping pins, aren't reserved for the on-board USB-UART, and
+aren't already wired to a built-in LED, button, or peripheral.
+
+**3.3 V logic.** All ESP32 family chips are 3.3 V. Confirm your interrupter
+input accepts 3.3 V logic, or plan for a level shifter / opto-isolator
+between the board and your high-voltage hardware.
+
+**Through-hole pin headers.** Easier to wire to interrupter boards and
+breadboards than tiny castellated edge pads.
+
+## What to skip
+
+- **Boards with native-USB-only wiring** (no UART bridge IC). The web
+  installer can't put these into download mode — see the
+  [troubleshooting note](/getting-started#esp32-s2-boards-with-native-usb-s2-mini-s2-saola).
+  ESP32-S2-Mini and S2-Saola fall into this category.
+- **2 MB flash variants.** The firmware fits but leaves no room for OTA
+  updates or future growth.
+- **Modules with sub-20 exposed pins.** Once you subtract strapping pins,
+  USB pins, and the boot/reset buttons, you may not have enough free GPIOs.
+
+## Recommended boards
+
+> Recommended boards with purchase links go here.
+
+### ESP32
+
+- LOLIN32
+- LOLIN D32
+
+### ESP32-S2
+
+- devkit (two USB C variant)
+
+### ESP32-S3
+
+- devkit (two USB C variant)
+
+## Connection options recap
+
+See the [main page](/) for the connection options table per chip family
+(USB MIDI vs Bluetooth MIDI). USB MIDI is recommended for any serious coil
+ensemble — Bluetooth introduces jitter on fast note runs and is unreliable
+near strong electric fields.

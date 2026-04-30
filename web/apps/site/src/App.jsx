@@ -9,6 +9,7 @@ import { Router, route } from 'preact-router';
 import { MDXProvider } from '@mdx-js/preact';
 import { Home } from './Home';
 import GettingStarted from './content/getting_started.mdx';
+import Boards from './content/boards.mdx';
 import Midi from './content/midi.mdx';
 import Configuration from './content/configuration.mdx';
 import Python from './content/python.mdx';
@@ -25,6 +26,7 @@ export default function App() {
     const BASE_URL = import.meta.env.BASE_URL;
     const home_url = BASE_URL;
     const getting_started_url = BASE_URL + 'getting-started';
+    const boards_url = BASE_URL + 'boards';
     const midi_url = BASE_URL + 'midi';
     const configuration_url = BASE_URL + 'configuration';
     const python_url = BASE_URL + 'python';
@@ -76,6 +78,9 @@ export default function App() {
                                     <a href={getting_started_url}>
                                         Getting started
                                     </a>
+                                </li>
+                                <li dir="ltr">
+                                    <a href={boards_url}>Choosing a board</a>
                                 </li>
                                 <li dir="ltr">
                                     <a href={midi_url}>MIDI setup</a>
@@ -131,6 +136,9 @@ export default function App() {
                             <a href={getting_started_url}>Getting started</a>
                         </li>
                         <li>
+                            <a href={boards_url}>Choosing a board</a>
+                        </li>
+                        <li>
                             <a href={midi_url}>MIDI setup</a>
                         </li>
                         <li>
@@ -164,6 +172,7 @@ export default function App() {
                 <Router>
                     <Home path={home_url} />
                     <GettingStarted path={getting_started_url} />
+                    <Boards path={boards_url} />
                     <Midi path={midi_url} />
                     <Configuration path={configuration_url} />
                     <Python path={python_url} />
