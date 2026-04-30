@@ -18,3 +18,8 @@ CONFIG_ESP_CONSOLE_ROM_SERIAL_PORT_NUM=0
 CONFIG_ESP_CONSOLE_UART_TX_GPIO=37
 CONFIG_ESP_CONSOLE_UART_RX_GPIO=38
 CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
+
+# WPA3 SAE password-element derivation hogs CPU 0 long enough to starve
+# IDLE on this single-core target and trip the 1 s TWDT. Drop SAE on S2
+# only; the AP falls back to WPA2-PSK via the #ifdef in wifi.cpp.
+CONFIG_ESP_WIFI_SOFTAP_SAE_SUPPORT=n
