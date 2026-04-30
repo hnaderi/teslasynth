@@ -49,6 +49,9 @@ software installation required.
 To install a specific firmware version, use the
 [version selector](/flasher) instead.
 
+If the web installer doesn't work for your board or operating system, see
+[Troubleshooting](#troubleshooting) at the bottom of this page.
+
 ## Connecting to the device
 
 The web dashboard and Wi-Fi access point are only active in **maintenance
@@ -104,3 +107,61 @@ prompt waiting for input.
 Once your device is playing MIDI, you can also use the **MIDI Player** panel on
 the same page to load a `.mid` file and play it directly from the browser,
 with the serial console open alongside it.
+
+## Troubleshooting
+
+### ESP32-S2 boards with native USB (S2-Mini, S2-Saola)
+
+Boards where the chip's USB-OTG pins are wired directly to the USB connector
+(no USB-to-UART bridge chip) **cannot be flashed through the web installer**.
+The web installer relies on toggling the DTR/RTS control lines to put the chip
+into download mode, but USB-OTG CDC doesn't expose those signals — the call
+fails with `Failed to set control signals` and the flash aborts before sync.
+
+`esptool.py` works around this with a magic-baud-rate reset that triggers the
+chip's USB stack to reboot into download mode. The JavaScript port of esptool
+hasn't implemented that path yet, so for now use the command line:
+
+```sh
+idf.py -p /dev/ttyACM0 flash
+```
+
+Or wire a USB-to-UART adapter to the chip's UART0 pins and use that port with
+the web installer instead.
+
+### Linux: ModemManager interferes with the serial port
+
+On most Linux distributions, **ModemManager** automatically probes any new
+USB-CDC device looking for AT-command modems. When you plug in an ESP32, it
+sends junk into the serial port for several seconds — long enough to break
+flashing and corrupt console output. Symptoms include:
+
+- The web installer times out at "Connecting…"
+- Random bytes appearing in the serial console after plug-in
+- `idf.py flash` failing the first time but succeeding on retry
+
+The cleanest fix is to tell ModemManager to ignore Espressif's USB IDs:
+
+```sh
+sudo nano /etc/udev/rules.d/99-esp32.rules
+```
+
+```
+# Tell ModemManager not to probe Espressif USB devices
+SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", ENV{ID_MM_DEVICE_IGNORE}="1"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ENV{ID_MM_DEVICE_IGNORE}="1"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ENV{ID_MM_DEVICE_IGNORE}="1"
+```
+
+Then reload:
+
+```sh
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+If you don't use a modem at all, the simpler option is to disable
+ModemManager entirely:
+
+```sh
+sudo systemctl disable --now ModemManager
+```
