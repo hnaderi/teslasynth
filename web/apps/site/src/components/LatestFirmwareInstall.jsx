@@ -56,6 +56,7 @@ export function LatestFirmwareInstall() {
                 version={version}
                 label="Install firmware"
             />
+            <small>Latest is {version}</small>
             <a href={flasher_url}>
                 <small>Install a different version</small>
             </a>
