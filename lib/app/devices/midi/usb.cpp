@@ -10,6 +10,7 @@
 #include "../midi.hpp"
 #include "esp_log.h"
 #include "esp_mac.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "tinyusb.h"
 #include "tinyusb_default_config.h"
@@ -20,6 +21,7 @@ namespace teslasynth::app::devices::midi::usb {
 namespace {
 constexpr char TAG[] = "USB_MIDI";
 StreamBufferHandle_t midi_buffer;
+SemaphoreHandle_t midi_rx_sem;
 
 enum interface_count {
 #if CFG_TUD_MIDI
@@ -106,7 +108,7 @@ void midi_read(void *) {
   uint8_t packet[4];
   bool read = false;
   for (;;) {
-    vTaskDelay(1);
+    xSemaphoreTake(midi_rx_sem, portMAX_DELAY);
     while (tud_midi_available()) {
       read = tud_midi_packet_read(packet);
       if (read) {
@@ -122,6 +124,8 @@ void midi_read(void *) {
 void init(StreamBufferHandle_t sbuf) {
   assert(sbuf != nullptr);
   midi_buffer = sbuf;
+  midi_rx_sem = xSemaphoreCreateBinary();
+  assert(midi_rx_sem != nullptr);
 
   ESP_LOGI(TAG, "USB initialization");
 
@@ -149,5 +153,12 @@ void init(StreamBufferHandle_t sbuf) {
   xTaskCreate(midi_read, "usb_midi_read", 2 * 1024, NULL, 5, NULL);
 }
 } // namespace teslasynth::app::devices::midi::usb
+
+extern "C" void tud_midi_rx_cb(uint8_t itf) {
+  (void)itf;
+  auto sem = teslasynth::app::devices::midi::usb::midi_rx_sem;
+  if (sem != nullptr)
+    xSemaphoreGive(sem);
+}
 
 #endif
