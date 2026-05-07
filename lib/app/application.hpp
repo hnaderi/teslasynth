@@ -8,6 +8,7 @@
 #include "freertos/idf_additions.h"
 #include "midi_synth.hpp"
 #include "synthesizer_events.hpp"
+#include <cassert>
 #include <configuration/synth.hpp>
 
 namespace teslasynth::app {
@@ -26,51 +27,61 @@ void on_track_play(bool playing) {
 }; // namespace
 
 class PlaybackHandle {
-  AppSynth *impl;
-  SemaphoreHandle_t lock;
+  AppSynth *impl = nullptr;
+  SemaphoreHandle_t lock = nullptr;
 
 public:
-  PlaybackHandle() {}
+  PlaybackHandle() = default;
   PlaybackHandle(AppSynth *impl, SemaphoreHandle_t lock) : impl(impl), lock(lock) {}
 
-  inline void acquire() { xSemaphoreTake(lock, portMAX_DELAY); }
-  inline void release() { xSemaphoreGive(lock); }
+  inline void acquire() {
+    assert(lock != nullptr);
+    xSemaphoreTake(lock, portMAX_DELAY);
+  }
+  inline void release() {
+    assert(lock != nullptr);
+    xSemaphoreGive(lock);
+  }
 
-  inline void handle(MidiChannelMessage msg, Duration time) { impl->handle(msg, time); }
+  inline void handle(MidiChannelMessage msg, Duration time) {
+    assert(impl != nullptr);
+    impl->handle(msg, time);
+  }
   template <size_t BUFSIZE>
   inline void
   sample_all(Duration16 max,
              PulseBuffer<configuration::hardware::OutputConfig::size, BUFSIZE> &output) {
+    assert(impl != nullptr);
     impl->sample_all(max, output);
   };
 };
 
 class UIHandle {
   AppSynth *impl;
-  SemaphoreHandle_t write_lock, read_lock;
+  SemaphoreHandle_t synth_lock, config_lock;
 
 public:
   UIHandle() {}
-  UIHandle(AppSynth *impl, SemaphoreHandle_t write, SemaphoreHandle_t read)
-      : impl(impl), write_lock(write), read_lock(read) {}
+  UIHandle(AppSynth *impl, SemaphoreHandle_t synth, SemaphoreHandle_t config)
+      : impl(impl), synth_lock(synth), config_lock(config) {}
 
   inline AppConfig config_read() const {
-    xSemaphoreTake(read_lock, portMAX_DELAY);
+    xSemaphoreTake(config_lock, portMAX_DELAY);
     auto res = impl->configuration();
-    xSemaphoreGive(read_lock);
+    xSemaphoreGive(config_lock);
     return res;
   }
 
   inline void config_set(const AppConfig &config, bool reload = false, bool persist = false) {
-    xSemaphoreTake(read_lock, portMAX_DELAY);
+    xSemaphoreTake(config_lock, portMAX_DELAY);
 
-    xSemaphoreTake(write_lock, portMAX_DELAY);
+    xSemaphoreTake(synth_lock, portMAX_DELAY);
     impl->configuration() = config;
     if (reload)
       impl->reload_config();
-    xSemaphoreGive(write_lock);
+    xSemaphoreGive(synth_lock);
 
-    xSemaphoreGive(read_lock);
+    xSemaphoreGive(config_lock);
     ESP_ERROR_CHECK(
         esp_event_post(EVENT_SYNTHESIZER_BASE, SYNTHESIZER_CONFIG_UPDATED, NULL, 0, portMAX_DELAY));
     if (persist)
@@ -84,21 +95,21 @@ public:
   }
 
   inline void playback_off() {
-    xSemaphoreTake(write_lock, portMAX_DELAY);
+    xSemaphoreTake(synth_lock, portMAX_DELAY);
     impl->off();
-    xSemaphoreGive(write_lock);
+    xSemaphoreGive(synth_lock);
   }
 };
 
 class Application {
   AppSynth impl;
-  SemaphoreHandle_t write_lock, read_lock;
+  SemaphoreHandle_t synth_lock, config_lock;
 
 public:
-  Application() : write_lock(xSemaphoreCreateMutex()), read_lock(xSemaphoreCreateMutex()) {}
+  Application() : synth_lock(xSemaphoreCreateMutex()), config_lock(xSemaphoreCreateMutex()) {}
   Application(const AppConfig &config)
-      : impl(config, on_track_play), write_lock(xSemaphoreCreateMutex()),
-        read_lock(xSemaphoreCreateMutex()) {}
+      : impl(config, on_track_play), synth_lock(xSemaphoreCreateMutex()),
+        config_lock(xSemaphoreCreateMutex()) {}
   void load(const AppConfig &config) {
     impl.configuration() = config;
     impl.reload_config();
@@ -110,7 +121,7 @@ public:
       load(config);
     return res;
   }
-  PlaybackHandle playback() { return PlaybackHandle(&impl, write_lock); }
-  UIHandle ui() { return UIHandle(&impl, write_lock, read_lock); }
+  PlaybackHandle playback() { return PlaybackHandle(&impl, synth_lock); }
+  UIHandle ui() { return UIHandle(&impl, synth_lock, config_lock); }
 };
 }; // namespace teslasynth::app

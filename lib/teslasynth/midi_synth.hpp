@@ -243,7 +243,9 @@ public:
   }
 
   inline void change_instrument(MidiChannelNumber ch, uint8_t n) {
-    current_instrument_[ch] = std::min<uint8_t>(_instruments_size, std::max<uint8_t>(0, n));
+    if (_instruments_size == 0)
+      return;
+    current_instrument_[ch] = std::min<uint8_t>(_instruments_size - 1, n);
   }
 
   inline constexpr uint8_t instrument_number(MidiChannelNumber ch) const {
