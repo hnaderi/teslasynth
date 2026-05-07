@@ -15,7 +15,7 @@ namespace teslasynth::app::cli {
 static int print_instruments(int argc, char **argv) {
   printf("id\tname\n==============================\n");
   for (size_t i = 0; i < synth::instruments_size; i++) {
-    printf("%d\t%s\n", i + 1, synth::instrument_names[i]);
+    printf("%zu\t%s\n", i + 1, synth::instrument_names[i]);
   }
   return 0;
 }
