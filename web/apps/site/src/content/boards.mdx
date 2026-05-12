@@ -12,7 +12,7 @@ have predictable auto-reset. Avoid boards where the chip's native USB pins
 (D+/D−) are wired straight to the USB connector — they require manual
 button presses or a workaround for every flash.
 
-**At least 5 usable GPIO pins.** Teslasynth uses 4 output channels plus 1
+**At least 4 usable GPIO pins.** Teslasynth uses 4 output channels plus 1
 optional status LED by default. Make sure the board exposes that many pins
 that aren't strapping pins, aren't reserved for the on-board USB-UART, and
 aren't already wired to a built-in LED, button, or peripheral.
@@ -30,14 +30,11 @@ breadboards than tiny castellated edge pads.
   installer can't put these into download mode — see the
   [troubleshooting note](/getting-started#esp32-s2-boards-with-native-usb-s2-mini-s2-saola).
   ESP32-S2-Mini and S2-Saola fall into this category.
-- **2 MB flash variants.** The firmware fits but leaves no room for OTA
-  updates or future growth.
+- **2 MB flash variants.** The firmware fits but leaves no room for future growth.
 - **Modules with sub-20 exposed pins.** Once you subtract strapping pins,
   USB pins, and the boot/reset buttons, you may not have enough free GPIOs.
 
 ## Recommended boards
-
-> Recommended boards with purchase links go here.
 
 ### ESP32
 
