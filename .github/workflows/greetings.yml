@@ -1,0 +1,16 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: "Thank you for opening this issue! We'll take a look as soon as we can. If this is a bug, make sure to include the firmware version and any serial logs — they go a long way toward a quick fix."
+        pr-message: "Thanks for the contribution! We appreciate it and will review it shortly."
