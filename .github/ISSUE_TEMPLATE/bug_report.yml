@@ -1,0 +1,74 @@
+name: Bug Report
+description: Report a problem with building, flashing, or runtime behavior
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please fill in as much detail as you can. Serial monitor logs are the single most useful thing you can provide for runtime issues.
+
+  - type: input
+    id: firmware-version
+    attributes:
+      label: Firmware version / commit
+      placeholder: "e.g. v0.6.1 or commit abc1234"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target
+    attributes:
+      label: Target chip
+      options:
+        - ESP32
+        - ESP32-S2
+        - ESP32-S3
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: input
+    id: host-os
+    attributes:
+      label: Host OS
+      description: This is required if you encounter a connection problem or build/flash issue.
+      placeholder: "e.g. NixOS 24.05, Ubuntu 22.04, macOS 14.5"
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Configure with ...
+        2. Flash to ...
+        3. Send MIDI note ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Serial monitor logs
+      description: Paste the full output from serial monitor around the time of the issue.
+      render: text
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Hardware setup, DAW, midi program, anything else relevant
