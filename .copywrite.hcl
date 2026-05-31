@@ -20,5 +20,6 @@ project {
     "dist/**",
     "web/**/dist/**",
     "pnpm-lock.yaml",
+    ".github/**",
   ]
 }
