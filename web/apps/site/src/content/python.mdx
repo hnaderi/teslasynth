@@ -18,8 +18,9 @@ pip install teslasynth
 Optional extras:
 
 ```
-pip install "teslasynth[plot]"   # Plotly visualizations
-pip install "teslasynth[wav]"    # WAV/FLAC export (requires soundfile)
+pip install "teslasynth[plot]"    # Plotly visualizations
+pip install "teslasynth[wav]"     # WAV/FLAC export (requires soundfile)
+pip install "teslasynth[listen]"  # Live MIDI input -> audio (requires sounddevice + python-rtmidi)
 ```
 
 Requires Python 3.8+ and NumPy.
@@ -51,6 +52,7 @@ The package installs a `teslasynth` command. All subcommands accept
 | Command | Description |
 |---------|-------------|
 | `teslasynth render <midi> <out>` | Render MIDI to WAV or FLAC |
+| `teslasynth listen` | Live MIDI input → synthesise → audio output |
 | `teslasynth plot <midi>` | Full overview plot (piano roll + signal) |
 | `teslasynth signal <midi>` | Zoomed coil signal view |
 | `teslasynth config [--config FILE.json] [key=value ...]` | Print or modify configuration as JSON |
@@ -232,6 +234,38 @@ The firmware synthesises at 1 MHz (1 µs precision). 192 kHz is the recommended
 sample rate: it gives ~5 µs resolution and covers the Nyquist frequency of a
 coil with a 100 kHz resonant frequency, making the waveform meaningful for
 signal analysis.
+
+## Live MIDI playback
+
+Requires the `listen` extra (`pip install "teslasynth[listen]"`).
+
+`teslasynth listen` opens a virtual MIDI port named `teslasynth` that any DAW
+or sequencer can connect to, synthesises incoming notes in real time using the
+same engine as the firmware, and streams the result to your audio output device.
+
+```sh
+# Open virtual port "teslasynth", stream channel 0 to default audio device
+teslasynth listen
+
+# Stream all 8 output channels (audio device must support 8 outputs)
+teslasynth listen --channel all
+
+# Connect to a specific physical MIDI device instead of a virtual port
+teslasynth listen --midi-port "My Keyboard"
+
+# List available MIDI ports and audio output devices
+teslasynth listen --list-ports
+
+# Lower latency: 256-frame buffer (~5.3 ms at 48 kHz)
+teslasynth listen --blocksize 256
+
+# Use a custom config and stream channels 0 and 1
+teslasynth listen --config safe.json --channel 0,1
+```
+
+The `--channel` argument accepts the same expressions as `render`:
+a single index (`0`), a comma list (`0,1,3`), a range (`0-3`), or `all`.
+Each selected channel maps to one audio output channel in order.
 
 ## Instruments
 

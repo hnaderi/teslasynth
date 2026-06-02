@@ -10,6 +10,9 @@ Usage
                                           [--channel CH [CH ...]]
     teslasynth plot        <midi>         [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS] [--channel N]
     teslasynth signal      <midi>         [--config FILE] [--out FILE.html] [--start-ms MS] [--end-ms MS] [--channel N]
+    teslasynth listen                     [--config FILE] [--midi-port NAME] [--channel CHANNELS]
+                                          [--sample-rate HZ] [--blocksize N] [--audio-device NAME|ID]
+                                          [--list-ports]
     teslasynth version
     teslasynth config      [--config FILE] [key=value ...]
     teslasynth instruments
@@ -277,6 +280,30 @@ def _cmd_percussions(args: argparse.Namespace) -> None:
         )
 
 
+def _cmd_listen(args: argparse.Namespace) -> None:
+    from teslasynth import listen as tslist
+
+    if args.list_ports:
+        try:
+            tslist.list_ports()
+        except ImportError as exc:
+            _die(str(exc))
+        return
+
+    try:
+        synth = _load_synth(args.config)
+        tslist.listen(
+            synth,
+            midi_port=args.midi_port,
+            sample_rate=args.sample_rate,
+            blocksize=args.blocksize,
+            channels=_parse_channels(args.channel),
+            audio_device=args.audio_device,
+        )
+    except (ImportError, RuntimeError) as exc:
+        _die(str(exc))
+
+
 def _cmd_envelope(args: argparse.Namespace) -> None:
     from teslasynth import plot
 
@@ -375,6 +402,52 @@ def main() -> None:
     )
     _add_channel_arg(sg)
 
+    # ── listen ────────────────────────────────────────────────────────────────
+    li = sub.add_parser(
+        "listen",
+        help="Live MIDI input -> synthesise -> audio output (requires teslasynth[listen])",
+    )
+    _add_config_arg(li)
+    li.add_argument(
+        "--midi-port",
+        metavar="NAME",
+        default=None,
+        help="MIDI input port name (default: first available; see --list-ports)",
+    )
+    li.add_argument(
+        "--audio-device",
+        metavar="NAME|ID",
+        default=None,
+        help="Audio output device name or index (default: system default; see --list-ports)",
+    )
+    li.add_argument(
+        "--sample-rate",
+        type=int,
+        default=48_000,
+        metavar="HZ",
+        help="Audio sample rate in Hz (default: 48000)",
+    )
+    li.add_argument(
+        "--blocksize",
+        type=int,
+        default=512,
+        metavar="N",
+        help="Audio buffer size in frames (default: 512; smaller = lower latency)",
+    )
+    li.add_argument(
+        "--channel",
+        default=None,
+        metavar="CHANNELS",
+        help="Channel(s) to stream.  Single index: '0'.  "
+        "Comma list: '0,1,3'.  Range: '0-4'.  Combined: '0,2,4-7'.  "
+        "All 8 channels: 'all' or '*'.  Default: 0",
+    )
+    li.add_argument(
+        "--list-ports",
+        action="store_true",
+        help="List available MIDI input ports and audio output devices, then exit",
+    )
+
     # ── config ────────────────────────────────────────────────────────────────
     c = sub.add_parser(
         "config",
@@ -424,6 +497,8 @@ def main() -> None:
 
     if args.command == "version":
         _cmd_version(args)
+    elif args.command == "listen":
+        _cmd_listen(args)
     elif args.command == "render":
         _cmd_render(args)
     elif args.command == "plot":

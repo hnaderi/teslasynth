@@ -37,6 +37,11 @@
             pkgs.ninja
             pkgs.gcc
 
+            # Runtime/build deps for the listen extras
+            pkgs.pkg-config  # meson needs this to locate alsa and portaudio
+            pkgs.portaudio   # sounddevice links against this
+            pkgs.alsa-lib    # python-rtmidi links against libasound (Linux)
+
             # Python interpreter (uv will use this via UV_PYTHON)
             python
 
@@ -46,6 +51,7 @@
             python.pkgs.scikit-build-core
             python.pkgs.nanobind
             python.pkgs.setuptools-scm
+            python.pkgs.meson-python
           ];
 
           env = {
@@ -56,7 +62,8 @@
 
           shellHook = ''
             echo "teslasynth dev environment"
-            uv sync --group dev 
+            export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [pkgs.portaudio pkgs.alsa-lib]}:$LD_LIBRARY_PATH"
+            uv sync --group dev
             . .venv/bin/activate
             export PATH="${pkgs.ruff}/bin:$PATH"
           '';

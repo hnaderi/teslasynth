@@ -18,8 +18,9 @@ pip install teslasynth
 Optional extras:
 
 ```sh
-pip install "teslasynth[plot]"   # Plotly visualisations
-pip install "teslasynth[wav]"    # WAV/FLAC export (requires soundfile)
+pip install "teslasynth[plot]"    # Plotly visualisations
+pip install "teslasynth[wav]"     # WAV/FLAC export (requires soundfile)
+pip install "teslasynth[listen]"  # Live MIDI input -> audio (requires sounddevice + python-rtmidi)
 ```
 
 ## Quick start
@@ -43,7 +44,10 @@ wav.write("song.mid", "all.flac", synth=synth, channels=list(range(8)))
 ## CLI
 
 ```
-teslasynth render   <midi> <out>    [--config FILE] [--sample-rate HZ] [--channel CH [CH ...]]
+teslasynth render   <midi> <out>    [--config FILE] [--sample-rate HZ] [--channel CHANNELS]
+teslasynth listen                   [--config FILE] [--midi-port NAME] [--channel CHANNELS]
+                                    [--sample-rate HZ] [--blocksize N] [--audio-device NAME|ID]
+                                    [--list-ports]
 teslasynth plot     <midi>          [--config FILE] [--out FILE.html] [--channel N]
 teslasynth signal   <midi>          [--config FILE] [--out FILE.html] [--channel N]
 teslasynth config   [--config FILE] [key=value ...]
@@ -68,6 +72,29 @@ teslasynth render song.mid out.flac --channel 0-3
 
 # All 8 channels
 teslasynth render song.mid out.flac --channel all
+```
+
+### Live MIDI playback
+
+`listen` opens a virtual MIDI port named `teslasynth` that any DAW or sequencer
+can connect to, synthesises incoming notes in real time, and streams the result
+to your audio output.  Requires `teslasynth[listen]`.
+
+```sh
+# Open virtual port "teslasynth", stream channel 0 to default audio device
+teslasynth listen
+
+# Stream all 8 output channels (audio device must support 8 outputs)
+teslasynth listen --channel all
+
+# Connect to a specific physical MIDI device instead of creating a virtual port
+teslasynth listen --midi-port "My Keyboard"
+
+# List available MIDI ports and audio devices
+teslasynth listen --list-ports
+
+# Lower latency (256-frame buffer ~= 5.3 ms at 48 kHz)
+teslasynth listen --blocksize 256
 ```
 
 ## Documentation

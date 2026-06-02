@@ -45,11 +45,12 @@ Repository    = "https://github.com/hnaderi/teslasynth"
 "Bug Tracker" = "https://github.com/hnaderi/teslasynth/issues"
 
 [project.optional-dependencies]
-plot = ["plotly>=5.0"]
-wav  = ["soundfile>=0.12"]
+plot   = ["plotly>=5.0"]
+wav    = ["soundfile>=0.12"]
+listen = ["sounddevice>=0.5", "python-rtmidi>=1.5"]
 
 [dependency-groups]
-dev = ["plotly>=5.0", "jupyter", "pytest>=8.0", "ruff>=0.1", "soundfile>=0.12"]
+dev = ["plotly>=5.0", "jupyter", "pytest>=8.0", "ruff>=0.1", "soundfile>=0.12", "sounddevice>=0.5", "python-rtmidi>=1.5"]
 
 [project.scripts]
 teslasynth = "teslasynth.__main__:main"
