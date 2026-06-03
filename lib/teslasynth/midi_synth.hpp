@@ -196,8 +196,11 @@ public:
     case MidiMessageType::ControlChange:
       switch (static_cast<ControlChange>(msg.data0.value)) {
       case ControlChange::ALL_SOUND_OFF:
-      case ControlChange::RESET_ALL_CONTROLLERS:
       case ControlChange::ALL_NOTES_OFF:
+        off();
+        break;
+      case ControlChange::RESET_ALL_CONTROLLERS:
+        reset_channel(msg.channel);
         off();
         break;
       case ControlChange::CHANNEL_VOLUME_MSB:
@@ -233,6 +236,8 @@ public:
       _limiters[i] = DutyLimiter(config_.channel(i).max_duty, config_.channel(i).duty_window);
     }
   }
+
+  inline void reset_channel(MidiChannelNumber ch) { channels_[ch] = ChannelState{}; }
 
   inline void channel_volume(MidiChannelNumber ch, uint8_t volume) {
     channels_[ch].amplitude = EnvelopeLevel(volume / 127.f);

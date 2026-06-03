@@ -337,6 +337,86 @@ void test_should_handle_pitch_bend(void) {
   }
 }
 
+void test_reset_all_controllers_clears_pitch_bend(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &voice = tsynth.voice();
+  tsynth.configuration().routing().mapping[0] = 0;
+
+  tsynth.handle(MidiChannelMessage::pitchbend(0, 1000), 0_s);
+  tsynth.handle(MidiChannelMessage::control_change(0, ControlChange::RESET_ALL_CONTROLLERS, 0),
+                0_ms);
+  tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), 1_ms);
+
+  TEST_ASSERT_EQUAL(1, voice.started().size());
+  auto *state = voice.started().back().state;
+  TEST_ASSERT_NOT_NULL(state);
+  TEST_ASSERT_TRUE(state->pitch_bend == PitchBend());
+}
+
+void test_reset_all_controllers_clears_channel_volume(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &voice = tsynth.voice();
+  tsynth.configuration().routing().mapping[0] = 0;
+
+  tsynth.handle(MidiChannelMessage::control_change(0, ControlChange::CHANNEL_VOLUME_MSB, 64), 0_ms);
+  tsynth.handle(MidiChannelMessage::control_change(0, ControlChange::RESET_ALL_CONTROLLERS, 0),
+                0_ms);
+  tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), 1_ms);
+
+  TEST_ASSERT_EQUAL(1, voice.started().size());
+  auto *state = voice.started().back().state;
+  TEST_ASSERT_NOT_NULL(state);
+  assert_level_equal(state->amplitude, EnvelopeLevel::max());
+}
+
+void test_reset_all_controllers_only_affects_targeted_channel(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &voice = tsynth.voice();
+  tsynth.configuration().routing().mapping[0] = 0;
+  tsynth.configuration().routing().mapping[1] = 0;
+
+  tsynth.handle(MidiChannelMessage::pitchbend(0, 1000), 0_s);
+  tsynth.handle(MidiChannelMessage::pitchbend(1, 2000), 0_s);
+  tsynth.handle(MidiChannelMessage::control_change(0, ControlChange::RESET_ALL_CONTROLLERS, 0),
+                0_ms);
+  tsynth.handle(MidiChannelMessage::note_on(1, 69, 127), 1_ms);
+
+  TEST_ASSERT_EQUAL(1, voice.started().size());
+  auto *state = voice.started().back().state;
+  TEST_ASSERT_NOT_NULL(state);
+  TEST_ASSERT_TRUE(state->pitch_bend == PitchBend::midi(2000));
+}
+
+void test_all_sound_off_preserves_channel_state(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &voice = tsynth.voice();
+  tsynth.configuration().routing().mapping[0] = 0;
+
+  tsynth.handle(MidiChannelMessage::pitchbend(0, 1000), 0_s);
+  tsynth.handle(MidiChannelMessage::control_change(0, ControlChange::ALL_SOUND_OFF, 0), 0_ms);
+  tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), 1_ms);
+
+  TEST_ASSERT_EQUAL(1, voice.started().size());
+  auto *state = voice.started().back().state;
+  TEST_ASSERT_NOT_NULL(state);
+  TEST_ASSERT_TRUE(state->pitch_bend == PitchBend::midi(1000));
+}
+
+void test_all_notes_off_preserves_channel_state(void) {
+  Teslasynth<1, FakeNotes> tsynth;
+  auto &voice = tsynth.voice();
+  tsynth.configuration().routing().mapping[0] = 0;
+
+  tsynth.handle(MidiChannelMessage::control_change(0, ControlChange::CHANNEL_VOLUME_MSB, 64), 0_ms);
+  tsynth.handle(MidiChannelMessage::control_change(0, ControlChange::ALL_NOTES_OFF, 0), 0_ms);
+  tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), 1_ms);
+
+  TEST_ASSERT_EQUAL(1, voice.started().size());
+  auto *state = voice.started().back().state;
+  TEST_ASSERT_NOT_NULL(state);
+  assert_level_equal(state->amplitude, EnvelopeLevel(64 / 127.f));
+}
+
 void test_sample_all_should_write_each_output_to_its_own_buffer_slot(void) {
   // Regression: `start = ch * BUFSIZE` was a uint8_t in sample_all, so for
   // OUTPUTS=8, BUFSIZE=200 (the Python-binding configuration) ch * BUFSIZE
@@ -380,6 +460,11 @@ extern "C" void app_main(void) {
   RUN_TEST(test_reload_config_should_adjust_note_sizes);
   RUN_TEST(test_should_handle_channel_volume);
   RUN_TEST(test_should_handle_pitch_bend);
+  RUN_TEST(test_reset_all_controllers_clears_pitch_bend);
+  RUN_TEST(test_reset_all_controllers_clears_channel_volume);
+  RUN_TEST(test_reset_all_controllers_only_affects_targeted_channel);
+  RUN_TEST(test_all_sound_off_preserves_channel_state);
+  RUN_TEST(test_all_notes_off_preserves_channel_state);
   RUN_TEST(test_sample_all_should_write_each_output_to_its_own_buffer_slot);
 
   UNITY_END();
