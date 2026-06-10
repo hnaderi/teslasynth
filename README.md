@@ -22,14 +22,7 @@ If you find Teslasynth useful, a [GitHub star](https://github.com/hnaderi/teslas
 
 ## ⚠ Safety
 
-**This firmware controls high-voltage and high-power devices. These are
-dangerous.**
-
-- Tesla coils and flyback transformers produce lethal voltages.
-- High-power lasers can cause permanent eye damage and fire.
-- Never work on live circuits. Always discharge capacitors first.
-- The firmware has no awareness of what it is connected to. Safe operation is
-  the responsibility of the builder and operator.
+The firmware has no awareness of what it is connected to. Safe operation is the responsibility of the builder and operator.
 
 ## Quick start
 
