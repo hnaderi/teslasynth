@@ -60,6 +60,9 @@ teslasynth = "teslasynth.__main__:main"
 cmake.build-type = "Release"
 wheel.packages = ["teslasynth"]
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+# sdist.force-include needs scikit-build-core>=1.0; the nix dev shell pins an
+# older one, so let it warn on the unknown key instead of erroring (exit 7).
+strict-config = false
 
 # The nanobind module builds from shared C++ sources in ../lib, which can't live
 # in an sdist rooted at python/. Vendor them under _vendor/ so source installs
