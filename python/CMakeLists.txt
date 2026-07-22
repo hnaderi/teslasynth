@@ -30,6 +30,10 @@ execute_process(
 find_package(nanobind CONFIG REQUIRED HINTS ${NB_CMAKE_DIR})
 
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../lib")
+if(NOT EXISTS "${LIB_DIR}/synthesizer/curve.cpp")
+  # Building from an sdist: sources were vendored into the package tree.
+  set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/_vendor")
+endif()
 
 nanobind_add_module(
     _teslasynth
