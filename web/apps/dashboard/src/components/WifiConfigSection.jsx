@@ -92,9 +92,7 @@ function WifiConfigForm({ config, busy, setBusy, onChange }) {
                     }
                     onInput={(e) => setPassword(e.target.value)}
                 />
-                <small>
-                    Leave it empty unless you are changing it.
-                </small>
+                <small>Leave it empty unless you are changing it.</small>
             </label>
 
             <label>
