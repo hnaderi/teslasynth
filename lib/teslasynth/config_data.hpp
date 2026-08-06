@@ -105,6 +105,7 @@ template <std::uint8_t OUTPUTS = 1> struct MidiRoutingConfig final {
 
 template <std::uint8_t OUTPUTS = 1> class Configuration {
 public:
+  using Output = OutputNumber<OUTPUTS>;
   static constexpr uint32_t current_version = 1;
 
 private:
@@ -133,8 +134,8 @@ public:
 
   SynthConfig &synth() { return synth_; }
   const SynthConfig &synth() const { return synth_; }
-  ChannelConfig &channel(uint8_t ch) { return channels_[ch]; }
-  const ChannelConfig &channel(uint8_t ch) const { return channels_[ch]; }
+  ChannelConfig &channel(Output out) { return channels_[out]; }
+  const ChannelConfig &channel(Output out) const { return channels_[out]; }
   std::array<ChannelConfig, OUTPUTS> &channels() { return channels_; }
   const std::array<ChannelConfig, OUTPUTS> &channels() const { return channels_; }
 

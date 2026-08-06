@@ -390,10 +390,11 @@ NB_MODULE(_teslasynth, m) {
       .def(
           "channel",
           [](Config &c, uint8_t ch) -> ChannelConfig & {
-            if (ch >= c.channels_size())
+            const auto out = Config::Output::from(ch);
+            if (!out)
               throw nb::index_error(
                   ("channel index " + std::to_string(ch) + " out of range (0–7)").c_str());
-            return c.channel(ch);
+            return c.channel(*out);
           },
           nb::rv_policy::reference_internal, "ch"_a,
           "Return the ChannelConfig for output channel *ch* (0–7).")

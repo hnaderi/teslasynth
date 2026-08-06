@@ -88,8 +88,8 @@ Parser<Unit> update_output(const ConfigPath &path, const ConfigValue value,
 
   const auto selector = path[1];
   if (selector == "*") {
-    for (auto i = 0; i < config.channels_size(); i++) {
-      auto _r = update(path, value, config.channel(i));
+    for (auto &channel : config.channels()) {
+      auto _r = update(path, value, channel);
       if (!_r)
         return _r.error();
     }
@@ -97,11 +97,13 @@ Parser<Unit> update_output(const ConfigPath &path, const ConfigValue value,
   }
 
   const auto idx = parser::parse_number<uint8_t>(selector);
-  if (idx && *idx <= config.channels_size()) {
-    auto _r = update(path, value, config.channel(*idx - 1));
-    if (!_r)
-      return _r.error();
-    return unit;
+  if (idx) {
+    if (const auto out = OutputNumber<OUTPUT>::from(*idx - 1)) {
+      auto _r = update(path, value, config.channel(*out));
+      if (!_r)
+        return _r.error();
+      return unit;
+    }
   }
   return invalid_key(path, 1);
 }

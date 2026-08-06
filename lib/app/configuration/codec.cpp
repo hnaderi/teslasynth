@@ -86,10 +86,11 @@ Decoder<AppConfig> parse_appconfig(helpers::JSONParser &parser) {
   auto channels = TRY(parse_array(root.get(keys::channels)));
   int idx = 0;
   for (const auto &chobj : channels) {
-    if (idx >= config.channels_size() || !chobj.is_obj())
+    const auto out = AppConfig::Output::from(idx);
+    if (!out || !chobj.is_obj())
       return "Invalid channel object";
 
-    auto &ch = config.channel(idx);
+    auto &ch = config.channel(*out);
 
     ch.notes = TRY(parse_notes(chobj.get(keys::notes)));
     ch.instrument = TRY(parse_instrument(chobj.get(keys::instrument)));
@@ -212,7 +213,7 @@ Decoder<OutputConfig> hardware_output(JSONParser::JSONObjectView obj) {
 
   uint8_t count = 0;
   for (const auto &i : channels.arr()) {
-    if (count > output.size)
+    if (count >= output.size)
       return "Cannot be more than max outputs!";
     output.channels[count].pin = TRY(gpio(i));
     count++;

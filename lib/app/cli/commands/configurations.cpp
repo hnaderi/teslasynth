@@ -91,8 +91,9 @@ int print_config(AppConfig &config) {
          keys::tuning, cstr(config.synth().tuning), keys::instrument,
          instrument_value(config.synth()));
 
-  for (auto i = 0; i < config.channels_size(); i++) {
-    print_output_config(i, config.channel(i));
+  uint8_t nr = 0;
+  for (const auto &channel : config.channels()) {
+    print_output_config(nr++, channel);
   }
   print_routing_config(config.routing());
 

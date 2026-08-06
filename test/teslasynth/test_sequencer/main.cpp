@@ -234,7 +234,7 @@ void samples_all_bps(Teslasynth<> &tsynth, int bps = 100) {
   const auto freq = Hertz(bps);
   const Duration16 sample_time = Duration16::micros(freq.period().micros());
   tsynth.configuration().synth().tuning = freq;
-  tsynth.configuration().channel(0).max_duty = DutyCycle::max();
+  tsynth.configuration().channels()[0].max_duty = DutyCycle::max();
 
   PulseBuffer<1, 64> buffer;
 

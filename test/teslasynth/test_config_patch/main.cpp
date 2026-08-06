@@ -65,9 +65,9 @@ void test_channel_config(void) {
                  "output.3.max-on-time=123us "
                  "output.2.max-duty=32.5",
                  config);
-  TEST_ASSERT_TRUE(config.channel(0).instrument == 2);
-  assert_duration_equal(123_us, config.channel(2).max_on_time);
-  TEST_ASSERT_TRUE(DutyCycle(32.5) == config.channel(1).max_duty);
+  TEST_ASSERT_TRUE(config.channels()[0].instrument == 2);
+  assert_duration_equal(123_us, config.channels()[2].max_on_time);
+  TEST_ASSERT_TRUE(DutyCycle(32.5) == config.channels()[1].max_duty);
 }
 
 void test_channel_config_error(void) {
@@ -76,21 +76,37 @@ void test_channel_config_error(void) {
   ASSERT_NO_UPDATES("output.4.instrument=3 ", config);
 }
 
+void test_channel_selector_out_of_range(void) {
+  Configuration<3> config;
+  const auto notes = config.channels()[0].notes;
+
+  ASSERT_NO_UPDATES("output.0.notes=2", config);
+  ASSERT_NO_UPDATES("output.255.notes=2", config);
+  TEST_ASSERT_EQUAL_UINT8(notes, config.channels()[0].notes);
+}
+
+void test_routing_selector_out_of_range(void) {
+  Configuration<3> config;
+
+  ASSERT_NO_UPDATES("routing.channel.0=1", config);
+  ASSERT_NO_UPDATES("routing.channel.17=1", config);
+}
+
 void test_channel_pulse_resolution(void) {
   Configuration<3> config;
 
   ASSERT_UPDATES("output.1.pulse-resolution=5us", config);
-  assert_duration_equal(5_us, config.channel(0).pulse_resolution);
+  assert_duration_equal(5_us, config.channels()[0].pulse_resolution);
 
   ASSERT_UPDATES("output.2.pulse-resolution=0us", config);
-  assert_duration_equal(0_us, config.channel(1).pulse_resolution);
+  assert_duration_equal(0_us, config.channels()[1].pulse_resolution);
 }
 
 void test_channel_pulse_resolution_invalid(void) {
   Configuration<3> config;
 
   ASSERT_NO_UPDATES("output.1.pulse-resolution=garbage", config);
-  assert_duration_equal(0_us, config.channel(0).pulse_resolution);
+  assert_duration_equal(0_us, config.channels()[0].pulse_resolution);
 }
 
 void test_channel_config_multiple(void) {
@@ -100,17 +116,17 @@ void test_channel_config_multiple(void) {
                  "output.2.instrument="
                  "output.3.instrument=3",
                  config);
-  TEST_ASSERT_TRUE(config.channel(0).instrument == 2);
-  TEST_ASSERT_TRUE(config.channel(1).instrument == 2);
-  TEST_ASSERT_TRUE(config.channel(2).instrument == 2);
+  TEST_ASSERT_TRUE(config.channels()[0].instrument == 2);
+  TEST_ASSERT_TRUE(config.channels()[1].instrument == 2);
+  TEST_ASSERT_TRUE(config.channels()[2].instrument == 2);
 }
 
 void test_channel_config_wildcard(void) {
   Configuration<10> config;
 
   ASSERT_UPDATES("output.*.instrument=5", config);
-  for (int i = 0; i < config.channels_size(); i++)
-    TEST_ASSERT_TRUE(config.channel(i).instrument == 4);
+  for (const auto &channel : config.channels())
+    TEST_ASSERT_TRUE(channel.instrument == 4);
 }
 
 void test_routing(void) {
@@ -150,6 +166,8 @@ extern "C" void app_main(void) {
   RUN_TEST(test_channel_config_multiple);
   RUN_TEST(test_channel_config_wildcard);
   RUN_TEST(test_channel_config_error);
+  RUN_TEST(test_channel_selector_out_of_range);
+  RUN_TEST(test_routing_selector_out_of_range);
   RUN_TEST(test_channel_pulse_resolution);
   RUN_TEST(test_channel_pulse_resolution_invalid);
   RUN_TEST(test_routing);

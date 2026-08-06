@@ -19,3 +19,4 @@ dist
 *.wav
 *.flac
 *.zip
+/python/build/

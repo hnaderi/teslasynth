@@ -232,8 +232,9 @@ public:
     if (_track.is_playing())
       off();
     for (auto i = 0; i < OUTPUTS; i++) {
-      _voices[i].adjust_size(config_.channel(i).notes);
-      _limiters[i] = DutyLimiter(config_.channel(i).max_duty, config_.channel(i).duty_window);
+      const auto &channel = config_.channels()[i];
+      _voices[i].adjust_size(channel.notes);
+      _limiters[i] = DutyLimiter(channel.max_duty, channel.duty_window);
     }
   }
 
@@ -254,8 +255,10 @@ public:
   }
 
   inline constexpr uint8_t instrument_number(MidiChannelNumber ch) const {
-    return config_.channel(ch).instrument.value_or(
-        config_.synth().instrument.value_or(current_instrument_[ch]));
+    const auto fallback = config_.synth().instrument.value_or(current_instrument_[ch]);
+    if (const auto output = config_.routing().mapping[ch].value())
+      return config_.channel(*output).instrument.value_or(fallback);
+    return fallback;
   }
 
   inline const Instrument &instrument(MidiChannelNumber ch) const {
@@ -310,10 +313,11 @@ public:
     if (!note->is_active() || next_edge > target || !_track.is_playing()) {
       res.off = max;
     } else if (next_edge == _track.played_time(ch)) {
-      res.on = note->current().volume * config_.channel(ch).max_on_time;
-      res.off = config_.channel(ch).min_deadtime;
+      const auto &channel = config_.channels()[ch];
+      res.on = note->current().volume * channel.max_on_time;
+      res.off = channel.min_deadtime;
       effective_on = res.on;
-      const auto resolution = config_.channel(ch).pulse_resolution;
+      const auto resolution = channel.pulse_resolution;
       if (!resolution.is_zero() && !res.on.is_zero()) {
         const uint16_t units = (res.on.micros() + resolution.micros() - 1) / resolution.micros();
         effective_on = Duration16::micros(units * resolution.micros());

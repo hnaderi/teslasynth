@@ -221,11 +221,36 @@ void test_config_instrument_overrides_runtime_instrument(void) {
   tsynth.configuration().synth().instrument = 2;
   TEST_ASSERT_EQUAL(2, tsynth.instrument_number(0));
 
-  tsynth.configuration().channel(0).instrument = 3;
+  tsynth.configuration().channels()[0].instrument = 3;
   TEST_ASSERT_EQUAL(3, tsynth.instrument_number(0));
 
   tsynth.configuration().synth().instrument = 4;
   TEST_ASSERT_EQUAL(3, tsynth.instrument_number(0));
+}
+
+void test_instrument_override_follows_the_routed_output(void) {
+  Teslasynth<2, FakeNotes> tsynth;
+  auto &config = tsynth.configuration();
+  config.channels()[1].instrument = 3;
+
+  config.routing().mapping[11] = 1;
+  TEST_ASSERT_EQUAL(3, tsynth.instrument_number(11));
+
+  config.routing().mapping[7] = 1;
+  TEST_ASSERT_EQUAL(3, tsynth.instrument_number(7));
+
+  config.routing().mapping[9] = 0;
+  TEST_ASSERT_EQUAL(0, tsynth.instrument_number(9));
+}
+
+void test_instrument_override_ignored_when_channel_is_unrouted(void) {
+  Teslasynth<2, FakeNotes> tsynth;
+  auto &config = tsynth.configuration();
+  config.channels()[1].instrument = 3;
+  config.synth().instrument = 5;
+
+  config.routing().mapping[11] = -1;
+  TEST_ASSERT_EQUAL(5, tsynth.instrument_number(11));
 }
 
 void test_non_existing_instrument_number_falls_back_to_default(void) {
@@ -292,7 +317,7 @@ void test_should_adjust_note_sizes(void) {
 void test_reload_config_should_adjust_note_sizes(void) {
   Teslasynth<1, FakeNotes> tsynth;
   auto &voice = tsynth.voice();
-  tsynth.configuration().channel(0).notes = 2;
+  tsynth.configuration().channels()[0].notes = 2;
   tsynth.reload_config();
 
   TEST_ASSERT_EQUAL(2, voice.adjusted().size());
@@ -452,6 +477,8 @@ extern "C" void app_main(void) {
   RUN_TEST(test_should_handle_instrument_change);
   RUN_TEST(test_should_ignore_instrument_change_when_config_has_instrument);
   RUN_TEST(test_config_instrument_overrides_runtime_instrument);
+  RUN_TEST(test_instrument_override_follows_the_routed_output);
+  RUN_TEST(test_instrument_override_ignored_when_channel_is_unrouted);
   RUN_TEST(test_non_existing_instrument_number_falls_back_to_default);
   RUN_TEST(test_should_turnoff_when_needed);
   RUN_TEST(test_should_start_playing_the_first_note_on_message);
