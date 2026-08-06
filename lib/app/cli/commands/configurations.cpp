@@ -6,6 +6,7 @@
 #include "config_data.hpp"
 #include "config_patch_update.hpp"
 #include "configuration/hardware.hpp"
+#include "configuration/wifi.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
 #include "soc/gpio_num.h"
@@ -181,6 +182,35 @@ int hwconfig_cmd(int, char **) {
            static_cast<bool>(hconfig.led.logic) ? "high" : "low");
   return 0;
 }
+
+struct {
+  struct arg_lit *reset;
+  struct arg_end *end;
+} wificonfig_args;
+
+int wificonfig_cmd(int argc, char **argv) {
+  int nerrors = arg_parse(argc, argv, (void **)&wificonfig_args);
+  if (nerrors != 0) {
+    arg_print_errors(stderr, wificonfig_args.end, argv[0]);
+    return 1;
+  }
+
+  configuration::wifi::WifiConfig wconfig;
+  if (wificonfig_args.reset->count > 0) {
+    if (configuration::wifi::persist(wconfig) != ESP_OK) {
+      printf("Couldn't reset WiFi configuration.\n");
+      return 1;
+    }
+    printf("WiFi configuration reset to factory defaults.\n");
+  } else {
+    configuration::wifi::read(wconfig);
+  }
+
+  printf("SSID: %s\n", wconfig.ssid);
+  printf("Channel: %d\n", wconfig.channel);
+  printf("Security: %s\n", wconfig.is_open() ? "open" : "protected");
+  return 0;
+}
 } // namespace
 
 void register_configuration_commands(UIHandle handle) {
@@ -192,6 +222,10 @@ void register_configuration_commands(UIHandle handle) {
   config_args.value =
       arg_strn(nullptr, nullptr, "<key[:ch]=value>", 0, 50, "Set configuration value");
   config_args.end = arg_end(20);
+
+  wificonfig_args.reset =
+      arg_lit0(nullptr, "reset", "Reset WiFi configuration to firmware defaults");
+  wificonfig_args.end = arg_end(2);
 
   const std::array commands = {
       esp_console_cmd_t{
@@ -214,6 +248,12 @@ void register_configuration_commands(UIHandle handle) {
           .command = "hwconfig",
           .help = "Print hardware configuration",
           .func = hwconfig_cmd,
+      },
+      esp_console_cmd_t{
+          .command = "wificonfig",
+          .help = "Print maintenance-mode WiFi access point configuration",
+          .func = wificonfig_cmd,
+          .argtable = &wificonfig_args,
       },
   };
   for (auto &cmd : commands)

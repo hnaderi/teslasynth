@@ -4,6 +4,8 @@
 #include "hardware.hpp"
 #include "sdkconfig.h"
 #include "soc/gpio_num.h"
+#include "wifi.hpp"
+#include <cstring>
 
 #define GPIO_CONFIG(sym) static_cast<gpio_num_t>(CONFIG_TESLASYNTH_##sym)
 namespace teslasynth::app::configuration::hardware {
@@ -35,3 +37,18 @@ LEDConfig::LEDConfig() : pin(GPIO_CONFIG(OUTPUT_GPIO_LED)), logic(default_led_lo
 HardwareConfig::HardwareConfig() : output(default_channels) {}
 
 } // namespace teslasynth::app::configuration::hardware
+
+namespace teslasynth::app::configuration::wifi {
+
+static_assert(sizeof(CONFIG_TESLASYNTH_DEVICE_NAME) <= WifiConfig::ssid_size,
+              "Default SSID does not fit in WifiConfig::ssid");
+static_assert(sizeof(CONFIG_TESLASYNTH_WIFI_PASSWORD) <= WifiConfig::password_size,
+              "Default password does not fit in WifiConfig::password");
+
+WifiConfig::WifiConfig() : channel(CONFIG_TESLASYNTH_WIFI_CHANNEL) {
+  // strncpy zero-fills the unused tail; persist() writes the whole object.
+  strncpy(ssid, CONFIG_TESLASYNTH_DEVICE_NAME, sizeof(ssid));
+  strncpy(password, CONFIG_TESLASYNTH_WIFI_PASSWORD, sizeof(password));
+}
+
+} // namespace teslasynth::app::configuration::wifi

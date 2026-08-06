@@ -6,6 +6,7 @@
 #include "esp_err.h"
 #include "hardware.hpp"
 #include "synth.hpp"
+#include "wifi.hpp"
 
 namespace teslasynth::app::configuration {
 using teslasynth::midisynth::ChannelConfig;
@@ -19,4 +20,9 @@ namespace hardware {
 bool read(HardwareConfig &config);
 esp_err_t persist(const HardwareConfig &config);
 } // namespace hardware
+
+namespace wifi {
+bool read(WifiConfig &config);
+esp_err_t persist(const WifiConfig &config);
+} // namespace wifi
 } // namespace teslasynth::app::configuration

@@ -36,6 +36,18 @@ const hardwareConfig = {
     led: { pin: 8, 'active-high': true },
 };
 
+// The firmware stores the password but never returns it; only `password-set`
+// is exposed.
+const wifiConfig = {
+    ssid: 'Teslasynth',
+    password: 'Wardenclyffe1891!',
+    channel: 1,
+};
+
+function wifiResponse({ ssid, channel, password }) {
+    return { ssid, channel, 'password-set': password !== '' };
+}
+
 const sysInfo = {
     model: 1,
     cores: 2,
@@ -89,6 +101,7 @@ const instruments = [
 // until vite restarts.
 let liveSynth = synthConfig;
 let liveHardware = hardwareConfig;
+let liveWifi = wifiConfig;
 
 function readJsonBody(req) {
     return new Promise((resolve, reject) => {
@@ -160,6 +173,24 @@ export function mockApi() {
                         if (req.method === 'DELETE') {
                             liveHardware = hardwareConfig;
                             return send(res, 200, liveHardware);
+                        }
+                    }
+
+                    if (req.url === '/api/config/wifi') {
+                        if (req.method === 'GET')
+                            return send(res, 200, wifiResponse(liveWifi));
+                        if (req.method === 'PUT') {
+                            const body = await readJsonBody(req);
+                            liveWifi = {
+                                ssid: body.ssid,
+                                channel: body.channel,
+                                password: body.password ?? liveWifi.password,
+                            };
+                            return send(res, 200, wifiResponse(liveWifi));
+                        }
+                        if (req.method === 'DELETE') {
+                            liveWifi = wifiConfig;
+                            return send(res, 200, wifiResponse(liveWifi));
                         }
                     }
 

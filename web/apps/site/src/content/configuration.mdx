@@ -217,3 +217,27 @@ To show compile-time limits (max notes, number of outputs):
 ```
 limits
 ```
+
+## Wi-Fi access point
+
+The network name, password and channel of the maintenance-mode acceess point can be
+changed from the **Wi-Fi Configuration** section of the dashboard. Changes are
+saved and applied the next time the device enters maintenance mode — the
+connection you are using stays up until you reboot.
+
+| Setting | Range | Default |
+|---------|-------|---------|
+| Network name (SSID) | 1–32 characters | `Teslasynth` |
+| Password | 8–63 characters, or empty for an open network | `Wardenclyffe1891!` |
+| Channel | 1–13 | `1` |
+
+The password is never sent back to the browser, so the dashboard cannot show you the current one.
+Leave the field empty to keep it; type a new value to replace it.
+
+If you lock yourself out — a forgotten password, or a channel your client
+cannot see — recover over the serial console:
+
+```
+wificonfig            # print SSID, channel and whether a password is set
+wificonfig --reset    # restore the factory network name, password and channel
+```

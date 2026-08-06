@@ -7,6 +7,7 @@
 #include "application.hpp"
 #include "configuration/hardware.hpp"
 #include "configuration/synth.hpp"
+#include "configuration/wifi.hpp"
 #include "result.hpp"
 
 namespace teslasynth::app::configuration::codec {
@@ -32,4 +33,8 @@ helpers::JSONEncoder encode(const AppConfig &config);
 
 Decoder<hardware::HardwareConfig> parse_hwconfig(helpers::JSONParser &parser);
 helpers::JSONEncoder encode(const hardware::HardwareConfig &config);
+
+Decoder<wifi::WifiConfig> parse_wificonfig(helpers::JSONParser &parser,
+                                           const wifi::WifiConfig &current);
+helpers::JSONEncoder encode(const wifi::WifiConfig &config);
 } // namespace teslasynth::app::configuration::codec

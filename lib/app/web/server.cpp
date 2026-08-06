@@ -8,6 +8,7 @@
 #include "configuration/codec.hpp"
 #include "configuration/hardware.hpp"
 #include "configuration/storage.hpp"
+#include "configuration/wifi.hpp"
 #include "esp_app_desc.h"
 #include "esp_check.h"
 #include "esp_err.h"
@@ -205,6 +206,57 @@ esp_err_t hardware_config_del_handler(httpd_req_t *req) {
   return res;
 }
 
+esp_err_t wifi_config_get_handler(httpd_req_t *req) {
+  configuration::wifi::WifiConfig config;
+  configuration::wifi::read(config);
+
+  httpd_resp_set_type(req, "application/json");
+  auto json = configuration::codec::encode(config).print();
+  httpd_resp_sendstr(req, json.value);
+  return ESP_OK;
+}
+
+esp_err_t wifi_config_put_handler(httpd_req_t *req) {
+  std::vector<char> body;
+  JSONParser parser;
+  ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
+
+  configuration::wifi::WifiConfig current;
+  configuration::wifi::read(current);
+
+  httpd_resp_set_type(req, "application/json");
+  auto parsed = configuration::codec::parse_wificonfig(parser, current);
+  if (parsed) {
+    const auto config = parsed.value();
+    auto res = configuration::wifi::persist(config);
+    if (res == ESP_OK) {
+      auto json = configuration::codec::encode(config).print();
+      httpd_resp_sendstr(req, json.value);
+    } else {
+      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                          "Error while setting configuration");
+    }
+    return res;
+  } else {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
+    return ESP_FAIL;
+  }
+}
+
+esp_err_t wifi_config_del_handler(httpd_req_t *req) {
+  httpd_resp_set_type(req, "application/json");
+
+  configuration::wifi::WifiConfig config;
+  auto res = configuration::wifi::persist(config);
+  if (res == ESP_OK) {
+    auto json = configuration::codec::encode(config).print();
+    httpd_resp_sendstr(req, json.value);
+  } else {
+    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error while setting configuration");
+  }
+  return res;
+}
+
 esp_err_t index_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "text/html");
   httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
@@ -293,6 +345,12 @@ constexpr Resource resources[] = {
         .get = hardware_config_get_handler,
         .put = hardware_config_put_handler,
         .del = hardware_config_del_handler,
+    },
+    {
+        .uri = "/api/config/wifi",
+        .get = wifi_config_get_handler,
+        .put = wifi_config_put_handler,
+        .del = wifi_config_del_handler,
     },
 };
 

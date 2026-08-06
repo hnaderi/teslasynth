@@ -12,6 +12,7 @@ idf_component_register(
     "configuration/factory_settings.cpp"
     "configuration/hardware.cpp"
     "configuration/synth.cpp"
+    "configuration/wifi.cpp"
     "devices/midi.cpp"
     "devices/signal_led.cpp"
     "devices/wifi.cpp"

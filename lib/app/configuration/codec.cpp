@@ -5,14 +5,18 @@
 #include "config_data.hpp"
 #include "configuration/hardware.hpp"
 #include "configuration/synth.hpp"
+#include "configuration/wifi.hpp"
 #include "core/duration.hpp"
 #include "core/hertz.hpp"
 #include "helpers/json.hpp"
 #include "result.hpp"
 #include "soc/gpio_num.h"
+#include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <limits>
 #include <optional>
+#include <string_view>
 #include <sys/types.h>
 
 namespace teslasynth::app::configuration::codec {
@@ -248,6 +252,76 @@ JSONEncoder encode(const HardwareConfig &config) {
   encode_hardware_output(root.add_object("output"), config.output);
   encode_hardware_input(root.add_object("input"), config.input);
   encode_hardware_led(root.add_object("led"), config.led);
+
+  return encoder;
+}
+
+namespace {
+using wifi::WifiConfig;
+
+Decoder<std::string_view> wifi_ssid(const JSONParser::JSONObjectView &j) {
+  auto str = j.string();
+  if (!str.has_value())
+    return "SSID is required!";
+
+  std::string_view ssid(*str);
+  if (ssid.empty())
+    return "SSID cannot be empty!";
+  if (ssid.size() >= WifiConfig::ssid_size)
+    return "SSID is too long!";
+
+  return ssid;
+}
+
+Decoder<std::string_view> wifi_password(const JSONParser::JSONObjectView &j) {
+  auto str = j.string();
+  if (!str.has_value())
+    return "Password must be a string!";
+
+  std::string_view password(*str);
+  if (password.size() >= WifiConfig::password_size)
+    return "Password is too long!";
+  if (!password.empty() && password.size() < WifiConfig::min_password_len)
+    return "Password must be at least 8 characters, or empty for an open network!";
+
+  return password;
+}
+
+Decoder<uint8_t> wifi_channel(const JSONParser::JSONObjectView &j) {
+  auto nn = j.number();
+  if (nn.has_value() && *nn >= WifiConfig::min_channel && *nn <= WifiConfig::max_channel)
+    return static_cast<uint8_t>(*nn);
+  else
+    return "Channel must be between 1 and 13!";
+}
+
+template <size_t N> void copy_string(char (&dest)[N], std::string_view src) {
+  const size_t len = std::min(src.size(), N - 1);
+  memcpy(dest, src.data(), len);
+  dest[len] = '\0';
+}
+} // namespace
+
+Decoder<WifiConfig> parse_wificonfig(JSONParser &parser, const WifiConfig &current) {
+  auto root = parser.root();
+
+  WifiConfig config = current;
+  copy_string(config.ssid, TRY(wifi_ssid(root.get("ssid"))));
+  config.channel = TRY(wifi_channel(root.get("channel")));
+
+  auto password = root.get("password");
+  if (password.value != nullptr && !password.is_null())
+    copy_string(config.password, TRY(wifi_password(password)));
+
+  return config;
+}
+
+JSONEncoder encode(const WifiConfig &config) {
+  JSONEncoder encoder;
+  auto root = encoder.object();
+  root.add("ssid", config.ssid);
+  root.add("channel", config.channel);
+  root.add_bool("password-set", !config.is_open());
 
   return encoder;
 }

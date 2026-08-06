@@ -10,6 +10,7 @@ import { ConfirmDialog } from './components/confirmation';
 import { SysInfoSection } from './SysInfo.jsx';
 import { About } from './About.jsx';
 import { HardwareConfigSection } from './components/HardwareConfigSection.jsx';
+import { WifiConfigSection } from './components/WifiConfigSection.jsx';
 
 function RebootingScreen() {
     return (
@@ -69,6 +70,7 @@ export default function App() {
             />
             <SynthConfigSection />
             <HardwareConfigSection />
+            <WifiConfigSection />
             <SysInfoSection />
             <About open={isAboutOpened} onClose={() => openAbout(false)} />
         </>

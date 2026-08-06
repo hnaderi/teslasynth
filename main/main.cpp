@@ -30,7 +30,9 @@ extern "C" void app_main(void) {
       ESP_LOGW(TAG, "Synth config fallbacks to factory settings.");
 
     ESP_LOGI(TAG, "Entering maintenance mode.");
-    devices::wifi::init();
+    configuration::wifi::WifiConfig wconfig;
+    configuration::wifi::read(wconfig);
+    devices::wifi::init(wconfig);
     web::server::start(app.ui());
   } else {
     helpers::maintenance::init(hconfig.input);

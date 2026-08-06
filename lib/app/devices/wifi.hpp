@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "configuration/wifi.hpp"
+
 namespace teslasynth::app::devices::wifi {
-void init();
+void init(const configuration::wifi::WifiConfig &config);
 } // namespace teslasynth::app::devices::wifi

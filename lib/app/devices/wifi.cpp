@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #include "wifi.hpp"
+#include "configuration/wifi.hpp"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_mac.h"
@@ -10,8 +11,12 @@
 #include "lwip/apps/netbiosns.h"
 #include "mdns.h"
 #include "sdkconfig.h"
+#include <algorithm>
+#include <cstring>
 
 namespace teslasynth::app::devices::wifi {
+using configuration::wifi::WifiConfig;
+
 namespace {
 constexpr char TAG[] = "WIFI";
 
@@ -38,7 +43,7 @@ void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id
   }
 }
 
-void wifi_init_softap(void) {
+void wifi_init_softap(const WifiConfig &config) {
   ESP_ERROR_CHECK(esp_netif_init());
   esp_netif_create_default_wifi_ap();
 
@@ -51,9 +56,6 @@ void wifi_init_softap(void) {
   wifi_config_t wifi_config = {
       .ap =
           {
-              .ssid = CONFIG_TESLASYNTH_DEVICE_NAME,
-              .password = CONFIG_TESLASYNTH_WIFI_PASSWORD,
-              .channel = CONFIG_TESLASYNTH_WIFI_CHANNEL,
 #ifdef CONFIG_ESP_WIFI_SOFTAP_SAE_SUPPORT
               .authmode = WIFI_AUTH_WPA3_PSK,
 #else /* CONFIG_ESP_WIFI_SOFTAP_SAE_SUPPORT */
@@ -74,22 +76,43 @@ void wifi_init_softap(void) {
               .sae_pwe_h2e = WPA3_SAE_PWE_HASH_TO_ELEMENT,
           },
   };
-  if (strlen(CONFIG_TESLASYNTH_WIFI_PASSWORD) == 0) {
+
+  const size_t ssid_len =
+      std::min(strnlen(config.ssid, WifiConfig::ssid_size), sizeof(wifi_config.ap.ssid));
+  memcpy(wifi_config.ap.ssid, config.ssid, ssid_len);
+  wifi_config.ap.ssid_len = ssid_len;
+
+  // wifi_config is zero initialised, so stopping one short keeps the password
+  // NUL-terminated.
+  const size_t password_len = std::min(strnlen(config.password, WifiConfig::password_size),
+                                       sizeof(wifi_config.ap.password) - 1);
+  memcpy(wifi_config.ap.password, config.password, password_len);
+  wifi_config.ap.channel = config.channel;
+
+  if (config.is_open()) {
     wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+    // esp_wifi_set_config rejects PMF-required on an open AP.
+    wifi_config.ap.pmf_cfg.required = false;
   }
 
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
   ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
 
-  ESP_LOGI(TAG, "WiFi started. SSID:%s password:%s channel:%d", CONFIG_TESLASYNTH_DEVICE_NAME,
-           CONFIG_TESLASYNTH_WIFI_PASSWORD, CONFIG_TESLASYNTH_WIFI_CHANNEL);
+  ESP_LOGI(TAG, "WiFi started. SSID:%s channel:%d security:%s", config.ssid, config.channel,
+           config.is_open() ? "open" : "protected");
 }
 
 } // namespace
 
-void init() {
-  wifi_init_softap();
+void init(const WifiConfig &config) {
+  if (config.is_valid()) {
+    wifi_init_softap(config);
+  } else {
+    ESP_LOGE(TAG, "Stored WiFi configuration is invalid; falling back to factory defaults.");
+    wifi_init_softap(WifiConfig());
+  }
+
   initialise_mdns();
   netbiosns_init();
   netbiosns_set_name(CONFIG_TESLASYNTH_DEVICE_NAME);
