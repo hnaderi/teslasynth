@@ -149,11 +149,14 @@ int config_cmd(int argc, char **argv) {
       return res;
   }
 
-  if (value_count > 0) {
+  if (reset || value_count > 0) {
     handle_.config_set(config, reload, save);
-    printf("Updated %d config values!\n", value_count);
+    if (value_count > 0)
+      printf("Updated %d config values!\n", value_count);
     if (save)
       printf("Saved!\n");
+    else
+      printf("Not saved; add -s to persist.\n");
   }
 
   print_config(config);
