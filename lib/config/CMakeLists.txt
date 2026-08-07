@@ -5,6 +5,7 @@ idf_component_register(
   SRCS
     "api.cpp"
     "codec.cpp"
+    "console.cpp"
     "factory_settings.cpp"
     "json.cpp"
     "persistence.cpp"
