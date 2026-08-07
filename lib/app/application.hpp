@@ -9,7 +9,7 @@
 #include "midi_synth.hpp"
 #include "synthesizer_events.hpp"
 #include <cassert>
-#include <configuration/synth.hpp>
+#include <synth.hpp>
 
 namespace teslasynth::app {
 using namespace midisynth;

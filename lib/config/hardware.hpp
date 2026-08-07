@@ -46,7 +46,20 @@ struct HardwareConfig {
 
   HardwareConfig();
 
-  bool is_valid() const;
+  bool is_valid() const {
+    constexpr auto valid_pin = [](gpio_num_t pin) {
+      return pin >= gpio_num_t::GPIO_NUM_NC && pin < gpio_num_t::GPIO_NUM_MAX;
+    };
+
+    for (const auto &channel : output.channels)
+      if (!valid_pin(channel.pin))
+        return false;
+
+    if (!valid_pin(input.maintenance) || !valid_pin(led.pin))
+      return false;
+
+    return led.logic == LogicType::active_high || led.logic == LogicType::active_low;
+  }
 };
 
 static_assert(std::has_unique_object_representations_v<HardwareConfig>,

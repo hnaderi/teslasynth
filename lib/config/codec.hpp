@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "../helpers/json.hpp"
-#include "configuration/hardware.hpp"
-#include "configuration/synth.hpp"
-#include "configuration/wifi.hpp"
+#include "json.hpp"
+#include "hardware.hpp"
+#include "synth.hpp"
+#include "wifi.hpp"
 #include "result.hpp"
 
 namespace teslasynth::app::configuration::codec {

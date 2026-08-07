@@ -8,19 +8,16 @@ idf_component_register(
     "cli/commands/configurations.cpp"
     "cli/commands/instruments.cpp"
     "cli/commands/system.cpp"
-    "configuration/codec.cpp"
-    "configuration/factory_settings.cpp"
     "configuration/guard.cpp"
     "configuration/hardware.cpp"
     "configuration/synth.cpp"
     "configuration/wifi.cpp"
     "devices/midi.cpp"
     "devices/signal_led.cpp"
-    "devices/wifi.cpp"
+    "devices/access_point.cpp"
     "devices/midi/ble.cpp"
     "devices/midi/usb.cpp"
     "events.cpp"
-    "helpers/json.cpp"
     "helpers/maintenance.cpp"
     "helpers/sysinfo.cpp"
     "output/rmt_driver.cpp"
@@ -29,6 +26,7 @@ idf_component_register(
     "web/server.cpp"
   INCLUDE_DIRS "."
   REQUIRES
+    config
     teslasynth
     midi
     synthesizer

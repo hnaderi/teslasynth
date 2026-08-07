@@ -23,20 +23,6 @@ esp_err_t init(nvs_handle_t &handle) {
 }
 } // namespace
 
-bool WifiConfig::is_valid() const {
-  const size_t ssid_len = strnlen(ssid, ssid_size);
-  if (ssid_len == 0 || ssid_len >= ssid_size)
-    return false;
-
-  const size_t password_len = strnlen(password, password_size);
-  if (password_len >= password_size)
-    return false;
-  if (password_len != 0 && password_len < min_password_len)
-    return false;
-
-  return channel >= min_channel && channel <= max_channel;
-}
-
 bool read(WifiConfig &config) {
   bool success = true;
   nvs_handle_t handle;

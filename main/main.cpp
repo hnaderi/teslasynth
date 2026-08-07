@@ -4,7 +4,7 @@
 #include "application.hpp"
 #include "configuration/storage.hpp"
 #include "devices/signal_led.hpp"
-#include "devices/wifi.hpp"
+#include "devices/access_point.hpp"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "helpers/maintenance.hpp"
@@ -34,7 +34,7 @@ extern "C" void app_main(void) {
     ESP_LOGI(TAG, "Entering maintenance mode.");
     configuration::wifi::WifiConfig wconfig;
     configuration::wifi::read(wconfig);
-    devices::wifi::init(wconfig);
+    devices::access_point::init(wconfig);
     web::server::start(app.ui());
   } else {
     helpers::maintenance::init(hconfig.input);

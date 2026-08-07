@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "configuration/wifi.hpp"
+#include "wifi.hpp"
 
-namespace teslasynth::app::devices::wifi {
+namespace teslasynth::app::devices::access_point {
 void init(const configuration::wifi::WifiConfig &config);
-} // namespace teslasynth::app::devices::wifi
+} // namespace teslasynth::app::devices::access_point

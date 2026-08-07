@@ -5,7 +5,7 @@
 
 #ifdef CONFIG_SOC_RMT_SUPPORTED
 
-#include "configuration/hardware.hpp"
+#include "hardware.hpp"
 #include "driver/rmt_common.h"
 #include "driver/rmt_encoder.h"
 #include "driver/rmt_tx.h"

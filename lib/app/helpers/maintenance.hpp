@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../configuration/hardware.hpp"
+#include "hardware.hpp"
 #include "esp_event_base.h"
 
 namespace teslasynth::app::helpers::maintenance {

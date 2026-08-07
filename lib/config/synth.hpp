@@ -4,7 +4,7 @@
 #pragma once
 
 #include "config_data.hpp"
-#include "configuration/hardware.hpp"
+#include "hardware.hpp"
 #include "midi_synth.hpp"
 
 using AppConfig = teslasynth::midisynth::Configuration<

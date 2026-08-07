@@ -1,0 +1,8 @@
+# Copyright Hossein Naderi 2025, 2026
+# SPDX-License-Identifier: GPL-3.0-only
+
+dependencies:
+  idf:
+    version: ">=6.0.0"
+
+  espressif/cjson: ^1.7.19

@@ -1,8 +1,8 @@
 // Copyright Hossein Naderi 2025, 2026
 // SPDX-License-Identifier: GPL-3.0-only
 
+#include "access_point.hpp"
 #include "wifi.hpp"
-#include "configuration/wifi.hpp"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_mac.h"
@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace teslasynth::app::devices::wifi {
+namespace teslasynth::app::devices::access_point {
 using configuration::wifi::WifiConfig;
 
 namespace {
@@ -117,4 +117,4 @@ void init(const WifiConfig &config) {
   netbiosns_init();
   netbiosns_set_name(CONFIG_TESLASYNTH_DEVICE_NAME);
 }
-} // namespace teslasynth::app::devices::wifi
+} // namespace teslasynth::app::devices::access_point

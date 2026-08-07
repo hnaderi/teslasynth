@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #include "application.hpp"
-#include "configuration/hardware.hpp"
+#include "hardware.hpp"
 #include "esp_log.h"
 #include "esp_task_wdt.h"
 #include "esp_timer.h"

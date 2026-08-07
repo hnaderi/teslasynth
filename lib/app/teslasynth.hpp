@@ -4,7 +4,7 @@
 #pragma once
 
 #include "application.hpp"
-#include "configuration/hardware.hpp"
+#include "hardware.hpp"
 #include "freertos/idf_additions.h"
 
 namespace teslasynth::app {

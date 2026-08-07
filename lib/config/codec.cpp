@@ -3,12 +3,12 @@
 
 #include "codec.hpp"
 #include "config_data.hpp"
-#include "configuration/hardware.hpp"
-#include "configuration/synth.hpp"
-#include "configuration/wifi.hpp"
+#include "hardware.hpp"
+#include "synth.hpp"
+#include "wifi.hpp"
 #include "core/duration.hpp"
 #include "core/hertz.hpp"
-#include "helpers/json.hpp"
+#include "json.hpp"
 #include "result.hpp"
 #include "soc/gpio_num.h"
 #include <algorithm>
