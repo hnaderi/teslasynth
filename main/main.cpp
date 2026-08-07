@@ -23,7 +23,9 @@ extern "C" void app_main(void) {
   const bool is_configured = app.reload_config();
   const bool is_provisioned = configuration::hardware::read(hconfig);
 
-  if (!is_provisioned || !is_configured || helpers::maintenance::check()) {
+  const bool maintenance = !is_provisioned || !is_configured || helpers::maintenance::check();
+
+  if (maintenance) {
     if (!is_provisioned)
       ESP_LOGW(TAG, "Hardware is not provisioned.");
     if (!is_configured)
@@ -42,7 +44,7 @@ extern "C" void app_main(void) {
     devices::midi::init(sbuf);
   }
 
-  cli::init(app.ui());
+  cli::init(app.ui(), maintenance);
 
   while (1) {
     vTaskDelay(portMAX_DELAY);

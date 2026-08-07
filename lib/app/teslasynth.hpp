@@ -33,7 +33,7 @@ void init();
 }
 
 namespace cli {
-void init(UIHandle handle);
+void init(UIHandle handle, bool maintenance);
 }
 
 } // namespace teslasynth::app

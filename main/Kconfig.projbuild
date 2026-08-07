@@ -70,7 +70,7 @@ endmenu
 
 menu "Synth"
 
-config CONFIG_MAX_NOTES
+config TESLASYNTH_MAX_NOTES
     int "Max notes"
     default 4
     range 1 8
@@ -78,13 +78,14 @@ config CONFIG_MAX_NOTES
         This is the maximum size possible for notes.
         You can configure max concurrent notes up to this value.
 
-config CONFIG_DEFAULT_MAX_DUTY
+config TESLASYNTH_DEFAULT_MAX_DUTY
     int "Default max duty for all channels"
-    default 10
+    default 5
     range 1 100
     help
-        This is the maximum size possible for notes.
-        You can configure max concurrent notes up to this value.
+        Duty cycle applied to every output when no configuration is stored.
+        Keep it conservative: it is what an unprovisioned device and
+        `config --reset` fall back to.
 endmenu
 
 menu "Log"

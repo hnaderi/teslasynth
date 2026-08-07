@@ -33,7 +33,7 @@ using helpers::JSONParser;
 namespace {
 
 constexpr char TAG[] = "WEBSERVER";
-constexpr size_t max_body_length = 1024;
+constexpr size_t max_body_length = 4096;
 static UIHandle ui;
 
 #define cstr(value) std::string(value).c_str()

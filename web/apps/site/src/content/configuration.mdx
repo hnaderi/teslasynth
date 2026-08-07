@@ -117,7 +117,7 @@ all outputs at once.
 |-----|--------|---------|-------------|
 | `output.<ch>.max-on-time` | `<n>[us\|ms]` | `100us` | Maximum continuous on-time per pulse |
 | `output.<ch>.min-deadtime` | `<n>[us\|ms]` | `100us` | Minimum dead time between pulses |
-| `output.<ch>.max-duty` | `0–100` (float) | `100` | Maximum duty cycle (%) |
+| `output.<ch>.max-duty` | `0–100` (float) | `5` | Maximum duty cycle (%) |
 | `output.<ch>.duty-window` | `<n>[us\|ms]` | `10ms` | Time window for duty cycle enforcement |
 | `output.<ch>.pulse-resolution` | `<n>[us\|ms]` | `0us` | Smallest on-time the bridge can actually deliver (`0` disables correction) |
 | `output.<ch>.notes` | `1–4` | `4` | Maximum concurrent notes |
@@ -128,9 +128,14 @@ all outputs at once.
 **Duty cycle** is the fraction of time the output is on within the duty window.
 It is the primary safety limit for your device.
 
-The default of **100%** is intentional: it imposes no limit, which is safe for
-passive loads (speakers, LEDs) and Python simulations. **Before connecting any
-high-voltage device, set this to a value appropriate for your hardware:**
+The firmware default is **5%**, set by `TESLASYNTH_DEFAULT_MAX_DUTY` in
+menuconfig. It is deliberately conservative, because it is what an unprovisioned
+device and `config --reset` fall back to. The Python simulation library defaults
+to **100%** instead — there is no coil to protect, and a limiter would clip
+simulated output.
+
+5% is a starting point, not a safe value for your hardware. **Before connecting
+any high-voltage device, set this to a value appropriate for it:**
 
 - **DRSSTCs** — typically 5–10%; the resonant tank stores energy and even short
   bursts carry significant power

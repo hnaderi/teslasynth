@@ -13,14 +13,19 @@
 #include <optional>
 #include <string>
 
-#ifndef CONFIG_MAX_NOTES
-#define CONFIG_MAX_NOTES 4
+#ifdef ESP_PLATFORM
+#include "sdkconfig.h"
+#endif
+
+#ifndef CONFIG_TESLASYNTH_MAX_NOTES
+#define CONFIG_TESLASYNTH_MAX_NOTES 4
 #endif
 
 namespace teslasynth::synth {
 using namespace teslasynth::core;
 
-template <std::uint8_t MAX_NOTES = CONFIG_MAX_NOTES, class ELEMENT = VoiceEvent> class Voice final {
+template <std::uint8_t MAX_NOTES = CONFIG_TESLASYNTH_MAX_NOTES, class ELEMENT = VoiceEvent>
+class Voice final {
   uint8_t _size = MAX_NOTES;
   std::array<ELEMENT, MAX_NOTES> _notes;
   std::array<uint8_t, MAX_NOTES> _numbers;

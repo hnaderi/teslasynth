@@ -43,6 +43,7 @@ typedef struct {
 config_args_t config_args;
 
 UIHandle handle_;
+bool maintenance_ = false;
 
 #define cstr(value) std::string(value).c_str()
 #define instrument_value(config)                                                                   \
@@ -124,6 +125,13 @@ int config_cmd(int argc, char **argv) {
   AppConfig config = handle_.config_read();
 
   if (reset) {
+    if (!maintenance_) {
+      printf("Refusing to reset: factory defaults lift the duty limit to %g%% and would be "
+             "applied to live outputs.\nReboot into maintenance mode first (see the "
+             "'maintenance' command).\n",
+             static_cast<double>(ChannelConfig::default_max_duty));
+      return 2;
+    }
     config = AppConfig();
     printf("Reset!\n");
   }
@@ -215,8 +223,9 @@ int wificonfig_cmd(int argc, char **argv) {
 }
 } // namespace
 
-void register_configuration_commands(UIHandle handle) {
+void register_configuration_commands(UIHandle handle, bool maintenance) {
   handle_ = handle;
+  maintenance_ = maintenance;
 
   config_args.save = arg_lit0("s", "save", "Persist configuration");
   config_args.reload = arg_lit0("r", "reload", "Reload configuration");

@@ -15,8 +15,15 @@
 #include <cstdint>
 #include <functional>
 
-#ifndef CONFIG_DEFAULT_MAX_DUTY
-#define CONFIG_DEFAULT_MAX_DUTY 100
+#ifdef ESP_PLATFORM
+#include "sdkconfig.h"
+#endif
+
+// Off-target (native tests, Python simulation) there is no coil to protect and
+// the limiter should not clip simulated output, so the fallback imposes no
+// limit. On-target the Kconfig default applies and is deliberately low.
+#ifndef CONFIG_TESLASYNTH_DEFAULT_MAX_DUTY
+#define CONFIG_TESLASYNTH_DEFAULT_MAX_DUTY 100
 #endif
 
 namespace teslasynth::midisynth {
@@ -59,13 +66,13 @@ public:
 };
 
 struct ChannelConfig {
-  static constexpr uint8_t max_notes = CONFIG_MAX_NOTES;
-  static constexpr float default_max_duty = CONFIG_DEFAULT_MAX_DUTY;
+  static constexpr uint8_t max_notes = CONFIG_TESLASYNTH_MAX_NOTES;
+  static constexpr float default_max_duty = CONFIG_TESLASYNTH_DEFAULT_MAX_DUTY;
 
   Duration16 max_on_time = 100_us, min_deadtime = 100_us, duty_window = 10_ms;
   Duration16 pulse_resolution = 0_us;
   uint8_t notes = max_notes;
-  DutyCycle max_duty = DutyCycle(CONFIG_DEFAULT_MAX_DUTY);
+  DutyCycle max_duty = DutyCycle(CONFIG_TESLASYNTH_DEFAULT_MAX_DUTY);
   std::optional<uint8_t> instrument = {};
 
   constexpr bool operator==(const ChannelConfig &other) const {
