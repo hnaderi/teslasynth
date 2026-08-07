@@ -11,6 +11,7 @@ import { SysInfoSection } from './SysInfo.jsx';
 import { About } from './About.jsx';
 import { HardwareConfigSection } from './components/HardwareConfigSection.jsx';
 import { WifiConfigSection } from './components/WifiConfigSection.jsx';
+import { StatusBanner } from './components/StatusBanner.jsx';
 
 function RebootingScreen() {
     return (
@@ -68,6 +69,7 @@ export default function App() {
                 onCancel={() => openReboot(false)}
                 onConfirm={reboot}
             />
+            <StatusBanner />
             <SynthConfigSection />
             <HardwareConfigSection />
             <WifiConfigSection />

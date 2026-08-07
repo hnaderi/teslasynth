@@ -8,6 +8,7 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "helpers/maintenance.hpp"
+#include "status.hpp"
 #include "teslasynth.hpp"
 #include "web/server.hpp"
 
@@ -20,16 +21,21 @@ static Application app;
 extern "C" void app_main(void) {
   devices::storage::init();
   ESP_ERROR_CHECK(esp_event_loop_create_default());
-  const bool is_configured = app.reload_config();
-  const bool is_provisioned = configuration::hardware::read(hconfig);
+  const auto synth_outcome = app.reload_config();
+  const auto hardware_outcome = configuration::hardware::read(hconfig);
 
-  const bool maintenance = !is_provisioned || !is_configured || helpers::maintenance::check();
+  status::BootStatus boot;
+  boot.button = helpers::maintenance::check();
+  boot.synth = synth_outcome.reason;
+  boot.hardware = hardware_outcome.reason;
+  boot.maintenance = !boot.configured() || boot.button;
+  status::set(boot);
 
-  if (maintenance) {
-    if (!is_provisioned)
-      ESP_LOGW(TAG, "Hardware is not provisioned.");
-    if (!is_configured)
-      ESP_LOGW(TAG, "Synth config fallbacks to factory settings.");
+  if (boot.maintenance) {
+    if (boot.hardware)
+      ESP_LOGW(TAG, "Hardware configuration unusable: %s", boot.hardware);
+    if (boot.synth)
+      ESP_LOGW(TAG, "Synth configuration unusable: %s", boot.synth);
 
     ESP_LOGI(TAG, "Entering maintenance mode.");
     configuration::wifi::WifiConfig wconfig;
@@ -44,7 +50,7 @@ extern "C" void app_main(void) {
     devices::midi::init(sbuf);
   }
 
-  cli::init(app.ui(), maintenance);
+  cli::init(app.ui(), boot.maintenance);
 
   while (1) {
     vTaskDelay(portMAX_DELAY);

@@ -23,6 +23,7 @@ constexpr char instrument[] = "instrument";
 constexpr char routing[] = "routing";
 constexpr char percussion[] = "percussion";
 constexpr char mapping[] = "mapping";
+constexpr char version[] = "version";
 }; // namespace keys
 
 template <typename T> using Decoder = teslasynth::helpers::Result<T, const char *>;
@@ -36,4 +37,7 @@ helpers::JSONEncoder encode(const hardware::HardwareConfig &config);
 Decoder<wifi::WifiConfig> parse_wificonfig(helpers::JSONParser &parser,
                                            const wifi::WifiConfig &current);
 helpers::JSONEncoder encode(const wifi::WifiConfig &config);
+helpers::JSONEncoder encode_stored(const wifi::WifiConfig &config);
+
+bool has_version(const helpers::JSONParser &parser, uint32_t expected);
 } // namespace teslasynth::app::configuration::codec

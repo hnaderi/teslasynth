@@ -5,6 +5,7 @@
 #include "../application.hpp"
 #include "json.hpp"
 #include "../helpers/sysinfo.h"
+#include "../status.hpp"
 #include "codec.hpp"
 #include "hardware.hpp"
 #include "configuration/storage.hpp"
@@ -72,6 +73,31 @@ esp_err_t sysinfo_handler(httpd_req_t *req) {
 
 esp_err_t sys_reboot_handler(httpd_req_t *) {
   esp_restart();
+}
+
+esp_err_t sys_status_handler(httpd_req_t *req) {
+  const auto &boot = status::get();
+
+  helpers::JSONEncoder encoder;
+  auto root = encoder.object();
+  root.add_bool("maintenance", boot.maintenance);
+  root.add_bool("configured", boot.configured());
+  root.add_bool("button", boot.button);
+
+  auto reasons = root.add_object("reasons");
+  if (boot.synth)
+    reasons.add("synth", boot.synth);
+  else
+    reasons.add_null("synth");
+  if (boot.hardware)
+    reasons.add("hardware", boot.hardware);
+  else
+    reasons.add_null("hardware");
+
+  httpd_resp_set_type(req, "application/json");
+  auto json = std::move(encoder).print();
+  httpd_resp_sendstr(req, json.value);
+  return ESP_OK;
 }
 
 esp_err_t synth_config_get_handler(httpd_req_t *req) {
@@ -331,6 +357,10 @@ constexpr Resource resources[] = {
     {
         .uri = "/api/sys/reboot",
         .post = sys_reboot_handler,
+    },
+    {
+        .uri = "/api/sys/status",
+        .get = sys_status_handler,
     },
     {
         .uri = "/api/config/synth",

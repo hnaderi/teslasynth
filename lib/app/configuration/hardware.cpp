@@ -1,61 +1,44 @@
 // Copyright Hossein Naderi 2025, 2026
 // SPDX-License-Identifier: GPL-3.0-only
 
+#include "codec.hpp"
 #include "hardware.hpp"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "nvs.h"
-#include "sdkconfig.h"
-#include "soc/gpio_num.h"
-#include <cstdint>
-#include <vector>
+#include "nvs_store.hpp"
+#include "storage.hpp"
 
 namespace teslasynth::app::configuration::hardware {
 
 namespace {
 constexpr char TAG[] = "hw_config";
-constexpr char KEY[] = "config";
-
-esp_err_t init(nvs_handle_t &handle) {
-  esp_err_t err = nvs_open("hwconf", NVS_READWRITE, &handle);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
-  }
-  return err;
-}
+constexpr char NAMESPACE[] = "hwconf";
 } // namespace
 
-bool read(HardwareConfig &config) {
-  bool success = true;
-  nvs_handle_t handle;
-  ESP_ERROR_CHECK(init(handle));
-  size_t len = sizeof(config);
-  esp_err_t err = nvs_get_blob(handle, KEY, &config, &len);
-  if (err != ESP_OK || len != sizeof(config) || config.version != HardwareConfig::current_version ||
-      !config.is_valid()) {
-    ESP_LOGW(TAG, "Outdated or corrupted configuration; resetting to defaults");
-    success = false;
-    config = HardwareConfig();
-  }
-  nvs_close(handle);
-  return success;
+ReadOutcome read(HardwareConfig &config) {
+  config = HardwareConfig();
+
+  auto raw = nvs_store::load(NAMESPACE, TAG);
+  if (!raw)
+    return {false, "Hardware is not provisioned"};
+
+  helpers::JSONParser parser(raw->c_str());
+  if (parser.is_null())
+    return {false, "Stored hardware configuration is not valid JSON"};
+  if (!codec::has_version(parser, HardwareConfig::current_version))
+    return {false, "Stored hardware configuration was written by another firmware version"};
+
+  auto parsed = codec::parse_hwconfig(parser);
+  if (!parsed)
+    return {false, parsed.error()};
+  if (!parsed.value().is_valid())
+    return {false, "Stored hardware configuration is out of range"};
+
+  config = parsed.value();
+  return {};
 }
 
 esp_err_t persist(const HardwareConfig &config) {
-  static_assert(std::is_trivially_copyable<HardwareConfig>::value,
-                "HardwareConfig must be trivially copyable");
-
-  nvs_handle_t handle;
-  ESP_ERROR_CHECK(init(handle));
-
-  auto err = nvs_set_blob(handle, KEY, &config, sizeof(config));
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Couldn't persist configuration!");
-  } else {
-    nvs_commit(handle);
-  }
-  nvs_close(handle);
-  return err;
+  auto json = codec::encode(config).print();
+  return nvs_store::store(NAMESPACE, TAG, json.value);
 }
 
 } // namespace teslasynth::app::configuration::hardware

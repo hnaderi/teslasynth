@@ -20,18 +20,27 @@ public:
   Guard &operator=(const Guard &) = delete;
 };
 
+// On failure `config` is left holding factory defaults and `reason` explains
+// what was wrong, for the maintenance-mode report.
+struct ReadOutcome {
+  bool ok = true;
+  const char *reason = nullptr;
+
+  explicit operator bool() const { return ok; }
+};
+
 namespace synth {
-bool read(AppConfig &config);
+ReadOutcome read(AppConfig &config);
 esp_err_t persist(const AppConfig &config);
 } // namespace synth
 
 namespace hardware {
-bool read(HardwareConfig &config);
+ReadOutcome read(HardwareConfig &config);
 esp_err_t persist(const HardwareConfig &config);
 } // namespace hardware
 
 namespace wifi {
-bool read(WifiConfig &config);
+ReadOutcome read(WifiConfig &config);
 esp_err_t persist(const WifiConfig &config);
 } // namespace wifi
 } // namespace teslasynth::app::configuration

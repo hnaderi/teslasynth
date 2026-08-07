@@ -4,6 +4,7 @@
 #include "application.hpp"
 #include "argtable3/argtable3.h"
 #include "config_data.hpp"
+#include "../../status.hpp"
 #include "config_patch_update.hpp"
 #include "hardware.hpp"
 #include "wifi.hpp"
@@ -85,7 +86,13 @@ void print_routing_config(const AppMidiRoutingConfig &config) {
   printf("\n");
 }
 
+void print_unconfigured(const char *scope, const char *reason) {
+  if (reason)
+    printf("!! %s configuration not in use: %s\n", scope, reason);
+}
+
 int print_config(AppConfig &config) {
+  print_unconfigured("Synth", status::get().synth);
   printf("Synth configuration:\n"
          "\t%s = %s\n"
          "\t%s = <%s>\n",
@@ -165,6 +172,8 @@ int device_limits_cmd(int, char **) {
 }
 
 int hwconfig_cmd(int, char **) {
+  print_unconfigured("Hardware", status::get().hardware);
+
   configuration::hardware::HardwareConfig hconfig;
   configuration::hardware::read(hconfig);
 

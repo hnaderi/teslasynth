@@ -195,6 +195,72 @@ void test_default_wifi_config_is_valid(void) {
   TEST_ASSERT_EQUAL_STRING(CONFIG_TESLASYNTH_DEVICE_NAME, config.ssid);
 }
 
+void test_encoders_emit_the_document_version(void) {
+  const auto hw = codec::encode(hardware::HardwareConfig()).print();
+  const auto synth = codec::encode(AppConfig()).print();
+  const auto wifi_api = codec::encode(wifi::WifiConfig()).print();
+  const auto wifi_stored = codec::encode_stored(wifi::WifiConfig()).print();
+
+  for (const char *json : {hw.value, synth.value, wifi_api.value, wifi_stored.value})
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(json, "\"version\""), "every document carries a version");
+}
+
+void test_has_version_matches_only_the_current_version(void) {
+  const auto json = codec::encode(hardware::HardwareConfig()).print();
+  JSONParser parser(json.value);
+  TEST_ASSERT_TRUE(codec::has_version(parser, hardware::HardwareConfig::current_version));
+  TEST_ASSERT_FALSE(codec::has_version(parser, hardware::HardwareConfig::current_version + 1));
+
+  JSONParser missing(R"({"output":{"channels":[4,5,6,7]}})");
+  TEST_ASSERT_FALSE(codec::has_version(missing, hardware::HardwareConfig::current_version));
+}
+
+void test_stored_wifi_roundtrips_the_password(void) {
+  wifi::WifiConfig original;
+  strncpy(original.ssid, "MyCoil", sizeof(original.ssid));
+  strncpy(original.password, "hunter2hunter2", sizeof(original.password));
+  original.channel = 11;
+
+  const auto json = codec::encode_stored(original).print();
+  JSONParser parser(json.value);
+  auto parsed = codec::parse_wificonfig(parser, wifi::WifiConfig());
+
+  TEST_ASSERT_TRUE(parsed);
+  TEST_ASSERT_EQUAL_STRING("MyCoil", parsed.value().ssid);
+  TEST_ASSERT_EQUAL_STRING("hunter2hunter2", parsed.value().password);
+  TEST_ASSERT_EQUAL(11, parsed.value().channel);
+  TEST_ASSERT_TRUE(parsed.value().is_valid());
+}
+
+void test_stored_open_network_roundtrips(void) {
+  wifi::WifiConfig original;
+  original.password[0] = '\0';
+
+  const auto json = codec::encode_stored(original).print();
+  JSONParser parser(json.value);
+  auto parsed = codec::parse_wificonfig(parser, wifi::WifiConfig());
+
+  TEST_ASSERT_TRUE(parsed);
+  TEST_ASSERT_TRUE(parsed.value().is_open());
+}
+
+void test_synth_roundtrips_through_storage_encoding(void) {
+  AppConfig original;
+  original.synth().tuning = teslasynth::core::Hertz(432);
+  original.channels()[2].notes = 2;
+  original.channels()[2].max_duty = teslasynth::midisynth::DutyCycle(7.5);
+
+  const auto json = codec::encode(original).print();
+  JSONParser parser(json.value);
+  auto parsed = codec::parse_appconfig(parser);
+
+  TEST_ASSERT_TRUE_MESSAGE(parsed, parsed ? "" : parsed.error());
+  TEST_ASSERT_EQUAL_UINT8(2, parsed.value().channels()[2].notes);
+  TEST_ASSERT_TRUE(parsed.value().channels()[2].max_duty == original.channels()[2].max_duty);
+  TEST_ASSERT_TRUE(parsed.value().synth().tuning == original.synth().tuning);
+  TEST_ASSERT_TRUE(parsed.value().is_valid());
+}
+
 void test_parsers_reject_garbage(void) {
   const wifi::WifiConfig current;
   TEST_ASSERT_FALSE(parse_hw("{}"));
@@ -225,6 +291,11 @@ extern "C" void app_main(void) {
   RUN_TEST(test_wifi_omitted_password_is_kept);
   RUN_TEST(test_wifi_empty_password_opens_the_network);
   RUN_TEST(test_default_wifi_config_is_valid);
+  RUN_TEST(test_encoders_emit_the_document_version);
+  RUN_TEST(test_has_version_matches_only_the_current_version);
+  RUN_TEST(test_stored_wifi_roundtrips_the_password);
+  RUN_TEST(test_stored_open_network_roundtrips);
+  RUN_TEST(test_synth_roundtrips_through_storage_encoding);
   RUN_TEST(test_parsers_reject_garbage);
   UNITY_END();
 }

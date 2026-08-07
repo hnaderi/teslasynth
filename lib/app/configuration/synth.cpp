@@ -1,60 +1,44 @@
 // Copyright Hossein Naderi 2025, 2026
 // SPDX-License-Identifier: GPL-3.0-only
 
+#include "codec.hpp"
+#include "nvs_store.hpp"
+#include "storage.hpp"
 #include "synth.hpp"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "nvs.h"
-#include <cstring>
 
 namespace teslasynth::app::configuration::synth {
 
 namespace {
 constexpr char TAG[] = "synth_config";
-constexpr char KEY[] = "config";
-using namespace core;
-
-esp_err_t init(nvs_handle_t &handle) {
-  esp_err_t err = nvs_open("synth", NVS_READWRITE, &handle);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
-  }
-  return err;
-}
+constexpr char NAMESPACE[] = "synth";
 } // namespace
 
-bool read(AppConfig &config) {
-  bool success = true;
-  nvs_handle_t handle;
-  ESP_ERROR_CHECK(init(handle));
+ReadOutcome read(AppConfig &config) {
+  config = AppConfig();
 
-  size_t read_size = sizeof(config);
-  auto err = nvs_get_blob(handle, KEY, &config, &read_size);
-  if (err != ESP_OK || read_size != sizeof(config) ||
-      config.version() != AppConfig::current_version || !config.is_valid()) {
-    ESP_LOGW(TAG, "Outdated or corrupted configuration; resetting to defaults");
-    success = false;
-    config = AppConfig();
-  }
+  auto raw = nvs_store::load(NAMESPACE, TAG);
+  if (!raw)
+    return {false, "No synth configuration stored"};
 
-  nvs_close(handle);
-  return success;
+  helpers::JSONParser parser(raw->c_str());
+  if (parser.is_null())
+    return {false, "Stored synth configuration is not valid JSON"};
+  if (!codec::has_version(parser, AppConfig::current_version))
+    return {false, "Stored synth configuration was written by another firmware version"};
+
+  auto parsed = codec::parse_appconfig(parser);
+  if (!parsed)
+    return {false, parsed.error()};
+  if (!parsed.value().is_valid())
+    return {false, "Stored synth configuration is out of range"};
+
+  config = parsed.value();
+  return {};
 }
 
 esp_err_t persist(const AppConfig &config) {
-  static_assert(std::is_trivially_copyable<AppConfig>::value,
-                "AppConfig must be trivially copyable");
-
-  nvs_handle_t handle;
-  ESP_ERROR_CHECK(init(handle));
-
-  auto err = nvs_set_blob(handle, KEY, &config, sizeof(config));
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Couldn't persist configuration!");
-  } else {
-    nvs_commit(handle);
-  }
-  nvs_close(handle);
-  return err;
+  auto json = codec::encode(config).print();
+  return nvs_store::store(NAMESPACE, TAG, json.value);
 }
+
 } // namespace teslasynth::app::configuration::synth

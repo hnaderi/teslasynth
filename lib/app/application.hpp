@@ -114,9 +114,9 @@ public:
     impl.configuration() = config;
     impl.reload_config();
   }
-  bool reload_config() {
+  configuration::ReadOutcome reload_config() {
     AppConfig config;
-    bool res = configuration::synth::read(config);
+    auto res = configuration::synth::read(config);
     if (res)
       load(config);
     return res;

@@ -136,6 +136,7 @@ Decoder<AppConfig> parse_appconfig(helpers::JSONParser &parser) {
 JSONEncoder encode(const AppConfig &config) {
   JSONEncoder encoder;
   auto root = encoder.object();
+  root.add(keys::version, AppConfig::current_version);
   root.add(keys::tuning, config.synth().tuning);
   if (config.synth().instrument.has_value())
     root.add(keys::instrument, *config.synth().instrument);
@@ -251,6 +252,7 @@ Decoder<HardwareConfig> parse_hwconfig(JSONParser &parser) {
 JSONEncoder encode(const HardwareConfig &config) {
   JSONEncoder encoder;
   auto root = encoder.object();
+  root.add(keys::version, HardwareConfig::current_version);
   encode_hardware_output(root.add_object("output"), config.output);
   encode_hardware_input(root.add_object("input"), config.input);
   encode_hardware_led(root.add_object("led"), config.led);
@@ -321,10 +323,27 @@ Decoder<WifiConfig> parse_wificonfig(JSONParser &parser, const WifiConfig &curre
 JSONEncoder encode(const WifiConfig &config) {
   JSONEncoder encoder;
   auto root = encoder.object();
+  root.add(keys::version, WifiConfig::current_version);
   root.add("ssid", config.ssid);
   root.add("channel", config.channel);
   root.add_bool("password-set", !config.is_open());
 
   return encoder;
+}
+
+JSONEncoder encode_stored(const WifiConfig &config) {
+  JSONEncoder encoder;
+  auto root = encoder.object();
+  root.add(keys::version, WifiConfig::current_version);
+  root.add("ssid", config.ssid);
+  root.add("channel", config.channel);
+  root.add("password", config.password);
+
+  return encoder;
+}
+
+bool has_version(const JSONParser &parser, uint32_t expected) {
+  auto version = parser.root().get(keys::version).number();
+  return version.has_value() && static_cast<uint32_t>(*version) == expected;
 }
 } // namespace teslasynth::app::configuration::codec

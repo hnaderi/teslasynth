@@ -1,60 +1,44 @@
 // Copyright Hossein Naderi 2025, 2026
 // SPDX-License-Identifier: GPL-3.0-only
 
+#include "codec.hpp"
+#include "nvs_store.hpp"
+#include "storage.hpp"
 #include "wifi.hpp"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "nvs.h"
-#include <cstring>
-#include <type_traits>
 
 namespace teslasynth::app::configuration::wifi {
 
 namespace {
 constexpr char TAG[] = "wifi_config";
-constexpr char KEY[] = "config";
-
-esp_err_t init(nvs_handle_t &handle) {
-  esp_err_t err = nvs_open("wificonf", NVS_READWRITE, &handle);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
-  }
-  return err;
-}
+constexpr char NAMESPACE[] = "wificonf";
 } // namespace
 
-bool read(WifiConfig &config) {
-  bool success = true;
-  nvs_handle_t handle;
-  ESP_ERROR_CHECK(init(handle));
+ReadOutcome read(WifiConfig &config) {
+  config = WifiConfig();
 
-  size_t len = sizeof(config);
-  esp_err_t err = nvs_get_blob(handle, KEY, &config, &len);
-  if (err != ESP_OK || len != sizeof(config) || config.version != WifiConfig::current_version ||
-      !config.is_valid()) {
-    success = false;
-    config = WifiConfig();
-  }
+  auto raw = nvs_store::load(NAMESPACE, TAG);
+  if (!raw)
+    return {false, "No WiFi configuration stored"};
 
-  nvs_close(handle);
-  return success;
+  helpers::JSONParser parser(raw->c_str());
+  if (parser.is_null())
+    return {false, "Stored WiFi configuration is not valid JSON"};
+  if (!codec::has_version(parser, WifiConfig::current_version))
+    return {false, "Stored WiFi configuration was written by another firmware version"};
+
+  auto parsed = codec::parse_wificonfig(parser, WifiConfig());
+  if (!parsed)
+    return {false, parsed.error()};
+  if (!parsed.value().is_valid())
+    return {false, "Stored WiFi configuration is out of range"};
+
+  config = parsed.value();
+  return {};
 }
 
 esp_err_t persist(const WifiConfig &config) {
-  static_assert(std::is_trivially_copyable<WifiConfig>::value,
-                "WifiConfig must be trivially copyable");
-
-  nvs_handle_t handle;
-  ESP_ERROR_CHECK(init(handle));
-
-  auto err = nvs_set_blob(handle, KEY, &config, sizeof(config));
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Couldn't persist configuration!");
-  } else {
-    nvs_commit(handle);
-  }
-  nvs_close(handle);
-  return err;
+  auto json = codec::encode_stored(config).print();
+  return nvs_store::store(NAMESPACE, TAG, json.value);
 }
 
 } // namespace teslasynth::app::configuration::wifi

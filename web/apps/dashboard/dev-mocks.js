@@ -48,6 +48,16 @@ function wifiResponse({ ssid, channel, password }) {
     return { ssid, channel, 'password-set': password !== '' };
 }
 
+const sysStatus = {
+    maintenance: true,
+    configured: false,
+    button: false,
+    reasons: {
+        synth: null,
+        hardware: 'Hardware is not provisioned',
+    },
+};
+
 const sysInfo = {
     model: 1,
     cores: 2,
@@ -134,6 +144,10 @@ export function mockApi() {
                 try {
                     if (req.url === '/api/sys/info' && req.method === 'GET') {
                         return send(res, 200, sysInfo);
+                    }
+
+                    if (req.url === '/api/sys/status' && req.method === 'GET') {
+                        return send(res, 200, sysStatus);
                     }
 
                     if (
