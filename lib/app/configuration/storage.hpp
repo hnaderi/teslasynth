@@ -11,6 +11,15 @@
 namespace teslasynth::app::configuration {
 using teslasynth::midisynth::ChannelConfig;
 
+class Guard {
+public:
+  Guard();
+  ~Guard();
+
+  Guard(const Guard &) = delete;
+  Guard &operator=(const Guard &) = delete;
+};
+
 namespace synth {
 bool read(AppConfig &config);
 esp_err_t persist(const AppConfig &config);

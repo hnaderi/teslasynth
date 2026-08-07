@@ -25,13 +25,32 @@ esp_err_t init(nvs_handle_t &handle) {
 }
 } // namespace
 
+namespace {
+bool valid_pin(gpio_num_t pin) {
+  return pin >= gpio_num_t::GPIO_NUM_NC && pin < gpio_num_t::GPIO_NUM_MAX;
+}
+} // namespace
+
+bool HardwareConfig::is_valid() const {
+  for (const auto &channel : output.channels)
+    if (!valid_pin(channel.pin))
+      return false;
+
+  if (!valid_pin(input.maintenance) || !valid_pin(led.pin))
+    return false;
+
+  return led.logic == LogicType::active_high || led.logic == LogicType::active_low;
+}
+
 bool read(HardwareConfig &config) {
   bool success = true;
   nvs_handle_t handle;
   ESP_ERROR_CHECK(init(handle));
   size_t len = sizeof(config);
   esp_err_t err = nvs_get_blob(handle, KEY, &config, &len);
-  if (err != ESP_OK || len != sizeof(config) || config.version != HardwareConfig::current_version) {
+  if (err != ESP_OK || len != sizeof(config) || config.version != HardwareConfig::current_version ||
+      !config.is_valid()) {
+    ESP_LOGW(TAG, "Outdated or corrupted configuration; resetting to defaults");
     success = false;
     config = HardwareConfig();
   }

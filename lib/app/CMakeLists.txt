@@ -10,6 +10,7 @@ idf_component_register(
     "cli/commands/system.cpp"
     "configuration/codec.cpp"
     "configuration/factory_settings.cpp"
+    "configuration/guard.cpp"
     "configuration/hardware.cpp"
     "configuration/synth.cpp"
     "configuration/wifi.cpp"

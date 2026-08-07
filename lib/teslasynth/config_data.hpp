@@ -144,6 +144,19 @@ public:
 
   constexpr uint8_t channels_size() const { return OUTPUTS; }
 
+  constexpr bool is_valid() const {
+    if (!(static_cast<float>(synth_.tuning) > 0))
+      return false;
+
+    for (const auto &channel : channels_) {
+      if (channel.notes < 1 || channel.notes > ChannelConfig::max_notes)
+        return false;
+      if (channel.max_duty.value() > DutyCycle::max().value())
+        return false;
+    }
+    return true;
+  }
+
   constexpr bool operator==(const Configuration<OUTPUTS> &other) const {
     return synth_ == other.synth_ && channels_ == other.channels_ && routing_ == other.routing_;
   }

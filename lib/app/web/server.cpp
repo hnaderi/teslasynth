@@ -221,6 +221,7 @@ esp_err_t wifi_config_put_handler(httpd_req_t *req) {
   JSONParser parser;
   ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
 
+  configuration::Guard guard;
   configuration::wifi::WifiConfig current;
   configuration::wifi::read(current);
 
@@ -244,6 +245,7 @@ esp_err_t wifi_config_put_handler(httpd_req_t *req) {
 }
 
 esp_err_t wifi_config_del_handler(httpd_req_t *req) {
+  configuration::Guard guard;
   httpd_resp_set_type(req, "application/json");
 
   configuration::wifi::WifiConfig config;

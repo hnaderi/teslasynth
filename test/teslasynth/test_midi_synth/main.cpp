@@ -253,6 +253,47 @@ void test_instrument_override_ignored_when_channel_is_unrouted(void) {
   TEST_ASSERT_EQUAL(5, tsynth.instrument_number(11));
 }
 
+void test_default_config_is_valid(void) {
+  TEST_ASSERT_TRUE(Configuration<1>().is_valid());
+  TEST_ASSERT_TRUE(Configuration<4>().is_valid());
+  TEST_ASSERT_TRUE(Configuration<8>().is_valid());
+}
+
+void test_config_validation_rejects_corrupt_values(void) {
+  {
+    Configuration<2> config;
+    config.channels()[1].notes = ChannelConfig::max_notes + 1;
+    TEST_ASSERT_FALSE(config.is_valid());
+  }
+  {
+    Configuration<2> config;
+    config.channels()[1].notes = 0;
+    TEST_ASSERT_FALSE(config.is_valid());
+  }
+  {
+    Configuration<2> config;
+    config.synth().tuning = Hertz(0);
+    TEST_ASSERT_FALSE(config.is_valid());
+  }
+  {
+    Configuration<2> config;
+    config.synth().tuning = Hertz(-440);
+    TEST_ASSERT_FALSE(config.is_valid());
+  }
+}
+
+void test_config_validation_accepts_every_settable_value(void) {
+  Configuration<2> config;
+  for (uint8_t n = 1; n <= ChannelConfig::max_notes; n++) {
+    config.channels()[0].notes = n;
+    TEST_ASSERT_TRUE(config.is_valid());
+  }
+  for (float duty = 0.5; duty <= 100; duty += 0.5) {
+    config.channels()[0].max_duty = DutyCycle(duty);
+    TEST_ASSERT_TRUE(config.is_valid());
+  }
+}
+
 void test_non_existing_instrument_number_falls_back_to_default(void) {
   Teslasynth<1, FakeNotes> tsynth;
   TEST_ASSERT_EQUAL(0, tsynth.instrument_number(0));
@@ -479,6 +520,9 @@ extern "C" void app_main(void) {
   RUN_TEST(test_config_instrument_overrides_runtime_instrument);
   RUN_TEST(test_instrument_override_follows_the_routed_output);
   RUN_TEST(test_instrument_override_ignored_when_channel_is_unrouted);
+  RUN_TEST(test_default_config_is_valid);
+  RUN_TEST(test_config_validation_rejects_corrupt_values);
+  RUN_TEST(test_config_validation_accepts_every_settable_value);
   RUN_TEST(test_non_existing_instrument_number_falls_back_to_default);
   RUN_TEST(test_should_turnoff_when_needed);
   RUN_TEST(test_should_start_playing_the_first_note_on_message);

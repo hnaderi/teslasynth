@@ -118,7 +118,7 @@ Parser<Unit> update(const ConfigPath &path, const ConfigValue value, SynthConfig
 
 Parser<uint8_t> notes(const ConfigPath &path, const ConfigValue value) {
   auto n = parser::parse_number<uint8_t>(value);
-  if (n && *n < ChannelConfig::max_notes && *n >= 1) {
+  if (n && *n <= ChannelConfig::max_notes && *n >= 1) {
     return *n;
   }
   return invalid_value(path, value, "Must be an unsigned integer between 1 and max notes.");

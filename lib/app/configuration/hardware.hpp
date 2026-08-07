@@ -8,20 +8,22 @@
 #include <array>
 #include <cstdint>
 #include <optional>
+#include <type_traits>
 
 namespace teslasynth::app::configuration::hardware {
 struct OutputChannelConfig {
   gpio_num_t pin = gpio_num_t::GPIO_NUM_NC;
 };
 
-enum class LogicType : bool {
-  active_high = true,
-  active_low = false,
+enum class LogicType : uint8_t {
+  active_high = 1,
+  active_low = 0,
 };
 
 struct LEDConfig {
   gpio_num_t pin;
   LogicType logic;
+  uint8_t reserved[3] = {};
 
   LEDConfig();
 };
@@ -43,6 +45,11 @@ struct HardwareConfig {
   LEDConfig led;
 
   HardwareConfig();
+
+  bool is_valid() const;
 };
+
+static_assert(std::has_unique_object_representations_v<HardwareConfig>,
+              "HardwareConfig is persisted as a blob and must have no padding");
 
 } // namespace teslasynth::app::configuration::hardware

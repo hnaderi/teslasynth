@@ -24,6 +24,7 @@ using namespace teslasynth::midisynth::config::parser;
     TEST_ASSERT_FALSE(config::patch::update(key, config));                                         \
   }
 
+
 void test_empty(void) {
   Configuration<3> config;
   auto res = config::patch::update("", config);
@@ -74,6 +75,21 @@ void test_channel_config_error(void) {
   Configuration<3> config;
 
   ASSERT_NO_UPDATES("output.4.instrument=3 ", config);
+}
+
+void test_channel_notes_bounds(void) {
+  Configuration<3> config;
+  const uint8_t max = ChannelConfig::max_notes;
+
+  ASSERT_UPDATES("output.1.notes=1", config);
+  TEST_ASSERT_EQUAL_UINT8(1, config.channels()[0].notes);
+
+  ASSERT_UPDATES("output.1.notes=" + std::to_string(max), config);
+  TEST_ASSERT_EQUAL_UINT8(max, config.channels()[0].notes);
+
+  ASSERT_NO_UPDATES("output.1.notes=0", config);
+  ASSERT_NO_UPDATES("output.1.notes=" + std::to_string(max + 1), config);
+  TEST_ASSERT_EQUAL_UINT8(max, config.channels()[0].notes);
 }
 
 void test_channel_selector_out_of_range(void) {
@@ -166,6 +182,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_channel_config_multiple);
   RUN_TEST(test_channel_config_wildcard);
   RUN_TEST(test_channel_config_error);
+  RUN_TEST(test_channel_notes_bounds);
   RUN_TEST(test_channel_selector_out_of_range);
   RUN_TEST(test_routing_selector_out_of_range);
   RUN_TEST(test_channel_pulse_resolution);

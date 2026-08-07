@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <type_traits>
 
 namespace teslasynth::app::configuration::wifi {
 
@@ -20,11 +21,15 @@ struct WifiConfig {
   char ssid[ssid_size];
   char password[password_size];
   uint8_t channel;
+  uint8_t reserved[2] = {};
 
   WifiConfig();
 
   bool is_open() const { return password[0] == '\0'; }
   bool is_valid() const;
 };
+
+static_assert(std::has_unique_object_representations_v<WifiConfig>,
+              "WifiConfig is persisted as a blob and must have no padding");
 
 } // namespace teslasynth::app::configuration::wifi

@@ -45,7 +45,7 @@ Decoder<Hertz> parse_frequency(const JSONParser::JSONObjectView &j) {
 
 Decoder<uint8_t> parse_notes(const JSONParser::JSONObjectView &j) {
   auto notes = j.number();
-  if (notes.has_value() && *notes >= 1 && *notes <= OutputConfig::size) {
+  if (notes.has_value() && *notes >= 1 && *notes <= ChannelConfig::max_notes) {
     return *notes;
   } else
     return "Invalid notes";
