@@ -61,6 +61,32 @@ void test_envelope_const_full(void) {
   TEST_ASSERT_TRUE(env.is_off());
 }
 
+void test_envelope_default_release_terminates(void) {
+  Envelope env;
+  TEST_ASSERT_FALSE(env.is_off());
+  assert_level_equal(env.update(1_us, false), EnvelopeLevel(0));
+  TEST_ASSERT_TRUE(env.is_off());
+}
+
+void test_envelope_const_release_terminates_for_any_delta(void) {
+  const std::array<Duration32, 4> deltas{0_us, 1_us, 10_ms, 3000_ms};
+  for (const auto delta : deltas) {
+    Envelope env(EnvelopeLevel(0.5));
+    assert_level_equal(env.update(delta, false), EnvelopeLevel(0));
+    TEST_ASSERT_TRUE(env.is_off());
+    assert_level_equal(env.update(delta, false), EnvelopeLevel(0));
+    TEST_ASSERT_TRUE(env.is_off());
+  }
+}
+
+void test_envelope_const_release_after_hold(void) {
+  Envelope env(EnvelopeLevel(0.5));
+  assert_level_equal(env.update(3000_ms, true), EnvelopeLevel(0.5));
+  TEST_ASSERT_FALSE(env.is_off());
+  assert_level_equal(env.update(500_ms, false), EnvelopeLevel(0));
+  TEST_ASSERT_TRUE(env.is_off());
+}
+
 void test_envelope_const_zero(void) {
   Envelope env(EnvelopeLevel(0));
   TEST_ASSERT_EQUAL(0, env.stage());
@@ -154,6 +180,9 @@ extern "C" void app_main(void) {
   RUN_TEST(test_envelope_lin_full);
   RUN_TEST(test_envelope_exp_full);
   RUN_TEST(test_envelope_const_full);
+  RUN_TEST(test_envelope_default_release_terminates);
+  RUN_TEST(test_envelope_const_release_terminates_for_any_delta);
+  RUN_TEST(test_envelope_const_release_after_hold);
   RUN_TEST(test_envelope_const_zero);
   RUN_TEST(test_envelope_const_value);
   RUN_TEST(test_envelope_comparison);

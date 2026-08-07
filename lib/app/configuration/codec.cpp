@@ -22,6 +22,7 @@
 namespace teslasynth::app::configuration::codec {
 using namespace helpers;
 using namespace teslasynth::helpers;
+using namespace teslasynth::midisynth;
 using namespace core;
 using namespace hardware;
 

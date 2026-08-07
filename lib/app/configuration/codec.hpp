@@ -4,7 +4,6 @@
 #pragma once
 
 #include "../helpers/json.hpp"
-#include "application.hpp"
 #include "configuration/hardware.hpp"
 #include "configuration/synth.hpp"
 #include "configuration/wifi.hpp"

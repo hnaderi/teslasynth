@@ -156,15 +156,12 @@ template <typename Traits> class EnvelopeEngine {
 
     while (!is_off() && (dt.has_value() || (_current.hold() && !on))) {
       if (_index < size - 1) {
-        if (_current.hold()) {
-          dt = remained;
-        }
         _current = Traits::stages[++_index](_config);
       } else {
         _index = size;
         _current = Curve(EnvelopeLevel(0));
       }
-      remained = *dt;
+      remained = dt.value_or(remained);
       dt = _current.how_much_remains_after(remained);
     }
     return remained;
