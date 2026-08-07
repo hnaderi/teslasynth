@@ -77,6 +77,7 @@ public:
     return data_[ch.value];
   }
   OutputNumberOpt<OUTPUTS> &operator[](midi::MidiChannelNumber ch) { return data_[ch.value]; }
+  constexpr bool operator==(const ChannelMapping<OUTPUTS> &b) const { return data_ == b.data_; }
   constexpr const Mapping &data() const { return data_; }
   constexpr auto size() const { return data_.size(); }
   constexpr auto begin() { return data_.begin(); }

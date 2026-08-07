@@ -108,6 +108,10 @@ struct SynthConfig {
 template <std::uint8_t OUTPUTS = 1> struct MidiRoutingConfig final {
   ChannelMapping<OUTPUTS> mapping;
   bool percussion = false;
+
+  constexpr bool operator==(const MidiRoutingConfig<OUTPUTS> &b) const {
+    return mapping == b.mapping && percussion == b.percussion;
+  }
 };
 
 template <std::uint8_t OUTPUTS = 1> class Configuration {

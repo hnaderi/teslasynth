@@ -132,6 +132,7 @@ void test_persist_failure_is_a_server_error(void) {
   TEST_ASSERT_EQUAL(status_code::server_error, hardware_put(hardware_body()).status);
   TEST_ASSERT_EQUAL(status_code::server_error, hardware_reset().status);
   TEST_ASSERT_EQUAL(status_code::server_error, wifi_reset().status);
+  TEST_ASSERT_EQUAL(status_code::server_error, synth_reset(nullptr).status);
 }
 
 void test_hardware_reset_persists_defaults(void) {
@@ -142,6 +143,18 @@ void test_hardware_reset_persists_defaults(void) {
   TEST_ASSERT_TRUE(configuration::hardware::read(loaded));
   TEST_ASSERT_EQUAL(configuration::hardware::HardwareConfig().output.channels[0].pin,
                     loaded.output.channels[0].pin);
+}
+
+void test_synth_reset_persists_defaults(void) {
+  TEST_ASSERT_EQUAL(status_code::ok, synth_put(synth_body(), nullptr).status);
+
+  auto res = synth_reset(&record_apply);
+  TEST_ASSERT_EQUAL(status_code::ok, res.status);
+  TEST_ASSERT_EQUAL(1, applied);
+
+  AppConfig loaded;
+  TEST_ASSERT_TRUE(configuration::synth::read(loaded));
+  TEST_ASSERT_TRUE(loaded == AppConfig());
 }
 
 void test_synth_put_applies_before_persisting(void) {
@@ -213,6 +226,7 @@ extern "C" void app_main(void) {
   RUN_TEST(test_hardware_put_persists_and_echoes);
   RUN_TEST(test_persist_failure_is_a_server_error);
   RUN_TEST(test_hardware_reset_persists_defaults);
+  RUN_TEST(test_synth_reset_persists_defaults);
   RUN_TEST(test_synth_put_applies_before_persisting);
   RUN_TEST(test_synth_put_does_not_apply_a_rejected_body);
   RUN_TEST(test_wifi_put_keeps_the_stored_password);

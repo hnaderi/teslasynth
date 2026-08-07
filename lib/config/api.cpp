@@ -93,7 +93,8 @@ Response synth_reset(ApplyConfig apply) {
   const AppConfig config;
   if (apply)
     apply(config);
-  return ok(configuration::codec::encode(config));
+  return saved_or_error(configuration::synth::persist(config),
+                        configuration::codec::encode(config));
 }
 
 Response hardware_get() {
