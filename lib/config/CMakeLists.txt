@@ -6,6 +6,7 @@ idf_component_register(
     "codec.cpp"
     "factory_settings.cpp"
     "json.cpp"
+    "persistence.cpp"
   INCLUDE_DIRS "."
   REQUIRES
     teslasynth

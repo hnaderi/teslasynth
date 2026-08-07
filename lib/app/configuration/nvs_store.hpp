@@ -3,13 +3,6 @@
 
 #pragma once
 
-#include "esp_err.h"
-#include <optional>
-#include <string>
-
 namespace teslasynth::app::configuration::nvs_store {
-
-std::optional<std::string> load(const char *ns, const char *tag);
-esp_err_t store(const char *ns, const char *tag, const char *json);
-
+void install();
 } // namespace teslasynth::app::configuration::nvs_store

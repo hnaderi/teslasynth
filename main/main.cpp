@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #include "application.hpp"
+#include "configuration/nvs_store.hpp"
 #include "configuration/storage.hpp"
 #include "devices/signal_led.hpp"
 #include "devices/access_point.hpp"
@@ -20,6 +21,7 @@ static Application app;
 
 extern "C" void app_main(void) {
   devices::storage::init();
+  configuration::nvs_store::install();
   ESP_ERROR_CHECK(esp_event_loop_create_default());
   const auto synth_outcome = app.reload_config();
   const auto hardware_outcome = configuration::hardware::read(hconfig);

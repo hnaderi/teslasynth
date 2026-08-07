@@ -143,15 +143,15 @@ esp_err_t synth_config_put_handler(httpd_req_t *req) {
   if (parsed) {
     auto config = parsed.value();
     ui.config_set(config, true);
-    auto res = configuration::synth::persist(config);
-    if (res == ESP_OK) {
+    const bool saved = configuration::synth::persist(config);
+    if (saved) {
       auto json = configuration::codec::encode(config).print();
       httpd_resp_sendstr(req, json.value);
     } else {
       httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
                           "Error while setting configuration");
     }
-    return res;
+    return saved ? ESP_OK : ESP_FAIL;
   } else {
     httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
     return ESP_FAIL;
@@ -202,15 +202,15 @@ esp_err_t hardware_config_put_handler(httpd_req_t *req) {
   auto parsed = configuration::codec::parse_hwconfig(parser);
   if (parsed) {
     const auto config = parsed.value();
-    auto res = configuration::hardware::persist(config);
-    if (res == ESP_OK) {
+    const bool saved = configuration::hardware::persist(config);
+    if (saved) {
       auto json = configuration::codec::encode(config).print();
       httpd_resp_sendstr(req, json.value);
     } else {
       httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
                           "Error while setting configuration");
     }
-    return res;
+    return saved ? ESP_OK : ESP_FAIL;
   } else {
     httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
     return ESP_FAIL;
@@ -222,14 +222,14 @@ esp_err_t hardware_config_del_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "application/json");
 
   configuration::hardware::HardwareConfig config;
-  auto res = configuration::hardware::persist(config);
-  if (res == ESP_OK) {
+  const bool saved = configuration::hardware::persist(config);
+  if (saved) {
     auto json = configuration::codec::encode(config).print();
     httpd_resp_sendstr(req, json.value);
   } else {
     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error while setting configuration");
   }
-  return res;
+  return saved ? ESP_OK : ESP_FAIL;
 }
 
 esp_err_t wifi_config_get_handler(httpd_req_t *req) {
@@ -255,15 +255,15 @@ esp_err_t wifi_config_put_handler(httpd_req_t *req) {
   auto parsed = configuration::codec::parse_wificonfig(parser, current);
   if (parsed) {
     const auto config = parsed.value();
-    auto res = configuration::wifi::persist(config);
-    if (res == ESP_OK) {
+    const bool saved = configuration::wifi::persist(config);
+    if (saved) {
       auto json = configuration::codec::encode(config).print();
       httpd_resp_sendstr(req, json.value);
     } else {
       httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
                           "Error while setting configuration");
     }
-    return res;
+    return saved ? ESP_OK : ESP_FAIL;
   } else {
     httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
     return ESP_FAIL;
@@ -275,14 +275,14 @@ esp_err_t wifi_config_del_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "application/json");
 
   configuration::wifi::WifiConfig config;
-  auto res = configuration::wifi::persist(config);
-  if (res == ESP_OK) {
+  const bool saved = configuration::wifi::persist(config);
+  if (saved) {
     auto json = configuration::codec::encode(config).print();
     httpd_resp_sendstr(req, json.value);
   } else {
     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error while setting configuration");
   }
-  return res;
+  return saved ? ESP_OK : ESP_FAIL;
 }
 
 esp_err_t index_handler(httpd_req_t *req) {

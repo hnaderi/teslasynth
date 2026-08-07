@@ -54,9 +54,13 @@ std::string repeat_channels(int count) {
   return out;
 }
 
-std::string ascii(size_t len, char c = 'a') { return std::string(len, c); }
+std::string ascii(size_t len, char c = 'a') {
+  return std::string(len, c);
+}
 
-std::string wifi_json(const std::string &body) { return "{" + body + "}"; }
+std::string wifi_json(const std::string &body) {
+  return "{" + body + "}";
+}
 
 } // namespace
 
@@ -132,10 +136,8 @@ void test_wifi_ssid_bounds(void) {
   const wifi::WifiConfig current;
   TEST_ASSERT_FALSE(parse_wifi(wifi_json(R"("ssid":"","channel":1)"), current));
   TEST_ASSERT_TRUE(parse_wifi(wifi_json(R"("ssid":"a","channel":1)"), current));
-  TEST_ASSERT_TRUE(
-      parse_wifi(wifi_json(R"("ssid":")" + ascii(32) + R"(","channel":1)"), current));
-  TEST_ASSERT_FALSE(
-      parse_wifi(wifi_json(R"("ssid":")" + ascii(33) + R"(","channel":1)"), current));
+  TEST_ASSERT_TRUE(parse_wifi(wifi_json(R"("ssid":")" + ascii(32) + R"(","channel":1)"), current));
+  TEST_ASSERT_FALSE(parse_wifi(wifi_json(R"("ssid":")" + ascii(33) + R"(","channel":1)"), current));
 }
 
 void test_wifi_password_bounds(void) {

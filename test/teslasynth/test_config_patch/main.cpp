@@ -24,7 +24,6 @@ using namespace teslasynth::midisynth::config::parser;
     TEST_ASSERT_FALSE(config::patch::update(key, config));                                         \
   }
 
-
 void test_empty(void) {
   Configuration<3> config;
   auto res = config::patch::update("", config);

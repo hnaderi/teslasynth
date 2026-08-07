@@ -219,7 +219,7 @@ int wificonfig_cmd(int argc, char **argv) {
   configuration::Guard guard;
   configuration::wifi::WifiConfig wconfig;
   if (wificonfig_args.reset->count > 0) {
-    if (configuration::wifi::persist(wconfig) != ESP_OK) {
+    if (!configuration::wifi::persist(wconfig)) {
       printf("Couldn't reset WiFi configuration.\n");
       return 1;
     }

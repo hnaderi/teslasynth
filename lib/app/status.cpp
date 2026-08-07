@@ -9,7 +9,11 @@ namespace {
 BootStatus current;
 }
 
-void set(const BootStatus &status) { current = status; }
-const BootStatus &get() { return current; }
+void set(const BootStatus &status) {
+  current = status;
+}
+const BootStatus &get() {
+  return current;
+}
 
 } // namespace teslasynth::app::status

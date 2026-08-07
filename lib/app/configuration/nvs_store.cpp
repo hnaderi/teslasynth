@@ -1,27 +1,41 @@
 // Copyright Hossein Naderi 2025, 2026
 // SPDX-License-Identifier: GPL-3.0-only
 
-#include "nvs_store.hpp"
 #include "esp_log.h"
 #include "nvs.h"
+#include "nvs_store.hpp"
+#include "persistence.hpp"
+#include <cstring>
 
 namespace teslasynth::app::configuration::nvs_store {
 
 namespace {
+constexpr char TAG[] = "config_store";
 constexpr char KEY[] = "config";
 
-esp_err_t open(const char *ns, const char *tag, nvs_open_mode_t mode, nvs_handle_t &handle) {
-  esp_err_t err = nvs_open(ns, mode, &handle);
-  if (err != ESP_OK) {
-    ESP_LOGE(tag, "Error (%s) opening NVS handle!", esp_err_to_name(err));
+// NVS namespaces are capped at 15 characters and predate the scope names, so
+// they are mapped rather than used directly.
+const char *nvs_namespace(const char *scope) {
+  if (strcmp(scope, "hardware") == 0)
+    return "hwconf";
+  if (strcmp(scope, "wifi") == 0)
+    return "wificonf";
+  return "synth";
+}
+
+esp_err_t open(const char *scope, nvs_open_mode_t mode, nvs_handle_t &handle) {
+  esp_err_t err = nvs_open(nvs_namespace(scope), mode, &handle);
+  if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) {
+    ESP_LOGE(TAG, "Error (%s) opening NVS handle for %s!", esp_err_to_name(err), scope);
   }
   return err;
 }
 } // namespace
 
-std::optional<std::string> load(const char *ns, const char *tag) {
+namespace {
+std::optional<std::string> load(const char *scope) {
   nvs_handle_t handle;
-  if (open(ns, tag, NVS_READONLY, handle) != ESP_OK)
+  if (open(scope, NVS_READONLY, handle) != ESP_OK)
     return {};
 
   size_t len = 0;
@@ -41,20 +55,24 @@ std::optional<std::string> load(const char *ns, const char *tag) {
   return json;
 }
 
-esp_err_t store(const char *ns, const char *tag, const char *json) {
+bool save(const char *scope, const char *json) {
   nvs_handle_t handle;
-  esp_err_t err = open(ns, tag, NVS_READWRITE, handle);
-  if (err != ESP_OK)
-    return err;
+  if (open(scope, NVS_READWRITE, handle) != ESP_OK)
+    return false;
 
-  err = nvs_set_str(handle, KEY, json);
+  esp_err_t err = nvs_set_str(handle, KEY, json);
   if (err != ESP_OK) {
-    ESP_LOGE(tag, "Couldn't persist configuration: %s", esp_err_to_name(err));
+    ESP_LOGE(TAG, "Couldn't persist %s configuration: %s", scope, esp_err_to_name(err));
   } else {
     err = nvs_commit(handle);
   }
   nvs_close(handle);
-  return err;
+  return err == ESP_OK;
+}
+} // namespace
+
+void install() {
+  store::install(&load, &save);
 }
 
 } // namespace teslasynth::app::configuration::nvs_store
