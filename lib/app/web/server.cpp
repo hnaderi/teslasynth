@@ -6,6 +6,7 @@
 #include "json.hpp"
 #include "../helpers/sysinfo.h"
 #include "../status.hpp"
+#include "api.hpp"
 #include "codec.hpp"
 #include "hardware.hpp"
 #include "configuration/storage.hpp"
@@ -19,8 +20,7 @@
 #include "esp_system.h"
 #include "http_parser.h"
 #include <optional>
-#include <string_view>
-#include <vector>
+#include <string>
 
 extern const uint8_t index_html_gz[];
 extern const size_t index_html_gz_len;
@@ -29,12 +29,10 @@ namespace teslasynth::app::web::server {
 
 using namespace core;
 using namespace configuration::codec;
-using helpers::JSONParser;
 
 namespace {
 
 constexpr char TAG[] = "WEBSERVER";
-constexpr size_t max_body_length = 4096;
 static UIHandle ui;
 
 #define cstr(value) std::string(value).c_str()
@@ -75,96 +73,59 @@ esp_err_t sys_reboot_handler(httpd_req_t *) {
   esp_restart();
 }
 
+esp_err_t send(httpd_req_t *req, const api::Response &res) {
+  if (res.is_ok()) {
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, res.body.c_str());
+    return ESP_OK;
+  }
+
+  httpd_err_code_t code = HTTPD_500_INTERNAL_SERVER_ERROR;
+  if (res.status == api::status_code::bad_request)
+    code = HTTPD_400_BAD_REQUEST;
+  else if (res.status == api::status_code::too_large)
+    code = HTTPD_413_CONTENT_TOO_LARGE;
+
+  httpd_resp_send_err(req, code, res.body.c_str());
+  return ESP_FAIL;
+}
+
+esp_err_t read_body(httpd_req_t *req, std::string &body) {
+  const size_t length = req->content_len;
+  if (!api::body_length_ok(length)) {
+    send(req, {api::status_code::too_large, "Invalid content"});
+    return ESP_FAIL;
+  }
+
+  body.resize(length);
+  if (httpd_req_recv(req, body.data(), length) != static_cast<int>(length)) {
+    send(req, {api::status_code::server_error, "Incomplete body"});
+    return ESP_FAIL;
+  }
+  return ESP_OK;
+}
+
+void apply_synth(const AppConfig &config) {
+  ui.config_set(config, true);
+}
+
 esp_err_t sys_status_handler(httpd_req_t *req) {
   const auto &boot = status::get();
-
-  helpers::JSONEncoder encoder;
-  auto root = encoder.object();
-  root.add_bool("maintenance", boot.maintenance);
-  root.add_bool("configured", boot.configured());
-  root.add_bool("button", boot.button);
-
-  auto reasons = root.add_object("reasons");
-  if (boot.synth)
-    reasons.add("synth", boot.synth);
-  else
-    reasons.add_null("synth");
-  if (boot.hardware)
-    reasons.add("hardware", boot.hardware);
-  else
-    reasons.add_null("hardware");
-
-  httpd_resp_set_type(req, "application/json");
-  auto json = std::move(encoder).print();
-  httpd_resp_sendstr(req, json.value);
-  return ESP_OK;
+  return send(req, api::sys_status(boot.maintenance, boot.button, boot.synth, boot.hardware));
 }
 
 esp_err_t synth_config_get_handler(httpd_req_t *req) {
-  AppConfig config = ui.config_read();
-
-  httpd_resp_set_type(req, "application/json");
-  auto json = configuration::codec::encode(config).print();
-  httpd_resp_sendstr(req, json.value);
-  return ESP_OK;
-}
-
-esp_err_t parseBody(httpd_req_t *req, std::vector<char> &body, JSONParser &parser) {
-  size_t content_len = req->content_len;
-  if (content_len > max_body_length || content_len < 1) {
-    httpd_resp_send_err(req, HTTPD_413_CONTENT_TOO_LARGE, "Invalid content");
-    return ESP_FAIL;
-  }
-
-  body.resize(content_len + 1);
-  size_t received = httpd_req_recv(req, body.data(), content_len);
-  if (received != content_len) {
-    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Incomplete body");
-    return ESP_FAIL;
-  }
-  body[content_len] = '\0';
-
-  parser = JSONParser(body.data());
-  if (parser.is_null()) {
-    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
-    return ESP_FAIL;
-  }
-
-  return ESP_OK;
+  return send(req, api::synth_get(ui.config_read()));
 }
 
 esp_err_t synth_config_put_handler(httpd_req_t *req) {
-  std::vector<char> body;
-  JSONParser parser;
-  ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
-
-  httpd_resp_set_type(req, "application/json");
-  auto parsed = configuration::codec::parse_appconfig(parser);
-  if (parsed) {
-    auto config = parsed.value();
-    ui.config_set(config, true);
-    const bool saved = configuration::synth::persist(config);
-    if (saved) {
-      auto json = configuration::codec::encode(config).print();
-      httpd_resp_sendstr(req, json.value);
-    } else {
-      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                          "Error while setting configuration");
-    }
-    return saved ? ESP_OK : ESP_FAIL;
-  } else {
-    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
-    return ESP_FAIL;
-  }
+  std::string body;
+  ESP_RETURN_ON_ERROR(read_body(req, body), TAG, "Invalid body.");
+  return send(req, api::synth_put(body, &apply_synth));
 }
 
 esp_err_t synth_config_del_handler(httpd_req_t *req) {
-  std::vector<char> body;
-  httpd_resp_set_type(req, "application/json");
-  auto config = ui.config_reset();
-  auto json = configuration::codec::encode(config).print();
-  httpd_resp_sendstr(req, json.value);
-  return ESP_FAIL;
+  return send(req, api::synth_reset(&apply_synth));
 }
 
 helpers::JSONEncoder instruments_list_json() {
@@ -177,112 +138,40 @@ helpers::JSONEncoder instruments_list_json() {
 }
 
 esp_err_t synth_instruments_get_handler(httpd_req_t *req) {
-  std::vector<char> body;
   httpd_resp_set_type(req, "application/json");
   httpd_resp_sendstr(req, instruments_list_json().print().value);
-  return ESP_FAIL;
+  return ESP_OK;
 }
 
 esp_err_t hardware_config_get_handler(httpd_req_t *req) {
-  configuration::hardware::HardwareConfig hwconfg;
-  configuration::hardware::read(hwconfg);
-
-  httpd_resp_set_type(req, "application/json");
-  auto json = configuration::codec::encode(hwconfg).print();
-  httpd_resp_sendstr(req, json.value);
-  return ESP_OK;
+  return send(req, api::hardware_get());
 }
 
 esp_err_t hardware_config_put_handler(httpd_req_t *req) {
-  std::vector<char> body;
-  JSONParser parser;
-  ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
-
-  httpd_resp_set_type(req, "application/json");
-  auto parsed = configuration::codec::parse_hwconfig(parser);
-  if (parsed) {
-    const auto config = parsed.value();
-    const bool saved = configuration::hardware::persist(config);
-    if (saved) {
-      auto json = configuration::codec::encode(config).print();
-      httpd_resp_sendstr(req, json.value);
-    } else {
-      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                          "Error while setting configuration");
-    }
-    return saved ? ESP_OK : ESP_FAIL;
-  } else {
-    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
-    return ESP_FAIL;
-  }
+  std::string body;
+  ESP_RETURN_ON_ERROR(read_body(req, body), TAG, "Invalid body.");
+  return send(req, api::hardware_put(body));
 }
 
 esp_err_t hardware_config_del_handler(httpd_req_t *req) {
-  std::vector<char> body;
-  httpd_resp_set_type(req, "application/json");
-
-  configuration::hardware::HardwareConfig config;
-  const bool saved = configuration::hardware::persist(config);
-  if (saved) {
-    auto json = configuration::codec::encode(config).print();
-    httpd_resp_sendstr(req, json.value);
-  } else {
-    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error while setting configuration");
-  }
-  return saved ? ESP_OK : ESP_FAIL;
+  return send(req, api::hardware_reset());
 }
 
 esp_err_t wifi_config_get_handler(httpd_req_t *req) {
-  configuration::wifi::WifiConfig config;
-  configuration::wifi::read(config);
-
-  httpd_resp_set_type(req, "application/json");
-  auto json = configuration::codec::encode(config).print();
-  httpd_resp_sendstr(req, json.value);
-  return ESP_OK;
+  return send(req, api::wifi_get());
 }
 
 esp_err_t wifi_config_put_handler(httpd_req_t *req) {
-  std::vector<char> body;
-  JSONParser parser;
-  ESP_RETURN_ON_ERROR(parseBody(req, body, parser), TAG, "Invalid json body.");
+  std::string body;
+  ESP_RETURN_ON_ERROR(read_body(req, body), TAG, "Invalid body.");
 
   configuration::Guard guard;
-  configuration::wifi::WifiConfig current;
-  configuration::wifi::read(current);
-
-  httpd_resp_set_type(req, "application/json");
-  auto parsed = configuration::codec::parse_wificonfig(parser, current);
-  if (parsed) {
-    const auto config = parsed.value();
-    const bool saved = configuration::wifi::persist(config);
-    if (saved) {
-      auto json = configuration::codec::encode(config).print();
-      httpd_resp_sendstr(req, json.value);
-    } else {
-      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                          "Error while setting configuration");
-    }
-    return saved ? ESP_OK : ESP_FAIL;
-  } else {
-    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, parsed.error());
-    return ESP_FAIL;
-  }
+  return send(req, api::wifi_put(body));
 }
 
 esp_err_t wifi_config_del_handler(httpd_req_t *req) {
   configuration::Guard guard;
-  httpd_resp_set_type(req, "application/json");
-
-  configuration::wifi::WifiConfig config;
-  const bool saved = configuration::wifi::persist(config);
-  if (saved) {
-    auto json = configuration::codec::encode(config).print();
-    httpd_resp_sendstr(req, json.value);
-  } else {
-    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Error while setting configuration");
-  }
-  return saved ? ESP_OK : ESP_FAIL;
+  return send(req, api::wifi_reset());
 }
 
 esp_err_t index_handler(httpd_req_t *req) {

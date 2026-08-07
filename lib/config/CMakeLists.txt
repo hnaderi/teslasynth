@@ -3,6 +3,7 @@
 
 idf_component_register(
   SRCS
+    "api.cpp"
     "codec.cpp"
     "factory_settings.cpp"
     "json.cpp"
