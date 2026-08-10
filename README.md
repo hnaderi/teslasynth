@@ -65,4 +65,6 @@ Get a feeling of what Teslasynth can do before committing your time:
 3. [Example Plot 2](https://raw.githubusercontent.com/hnaderi/teslasynth/assets/plot-2-screenshot.png)
 4. [Multi-channel wav file render](https://raw.githubusercontent.com/hnaderi/teslasynth/assets/simulated-music-output-multi-channel.zip)
 5. [Single-channel wav file render](https://raw.githubusercontent.com/hnaderi/teslasynth/assets/simulated-music-output-single-channel.zip)
-6. [DRSSTC Playing Beetlejuice theme<br> ![](https://img.youtube.com/vi/sDNqZdVtxII/0.jpg)](https://youtu.be/sDNqZdVtxII)
+6. [DRSSTC duo playing Game of Thrones theme<br> ![](https://img.youtube.com/vi/EMcCHgwPdj4/0.jpg)](https://youtu.be/EMcCHgwPdj4)
+7. [DRSSTC duo playing Bach's Badinerie - BWV 1067<br> ![](https://img.youtube.com/vi/ZdFTF22KcUk/0.jpg)](https://youtu.be/ZdFTF22KcUk)
+8. [DRSSTC Playing Beetlejuice theme<br> ![](https://img.youtube.com/vi/sDNqZdVtxII/0.jpg)](https://youtu.be/sDNqZdVtxII)
