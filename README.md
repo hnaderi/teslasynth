@@ -20,7 +20,7 @@ high-power lasers — into musical instruments.
 
 If you find Teslasynth useful, a [GitHub star](https://github.com/hnaderi/teslasynth) helps others discover the project.
 
-## ⚠ Safety
+## ⚠️ Safety
 
 The firmware has no awareness of what it is connected to. Safe operation is the responsibility of the builder and operator.
 
@@ -35,7 +35,7 @@ The firmware has no awareness of what it is connected to. Safe operation is the 
 4. Configure the device using the web dashboard.
 5. Connect a MIDI source and play.
 
-## ⚠ Before connecting high-voltage hardware
+## ⚠️ Before connecting high-voltage hardware
 
 **Please read the [Configuration](https://teslasynth.hnaderi.dev/configuration) page carefully before any
 high-voltage tests.**
