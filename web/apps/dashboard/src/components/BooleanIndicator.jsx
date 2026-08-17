@@ -10,7 +10,7 @@ export function BooleanIndicator({ value, label }) {
             aria-label={`${label}: ${value ? 'available' : 'not available'}`}
             class={value ? 'bool-yes' : 'bool-no'}
         >
-            {value ? '✓' : '✕'}
+            {value ? '✅' : '❌'}
         </span>
     );
 }
