@@ -68,3 +68,16 @@ Get a feeling of what Teslasynth can do before committing your time:
 6. [DRSSTC duo playing Game of Thrones theme<br> ![](https://img.youtube.com/vi/EMcCHgwPdj4/0.jpg)](https://youtu.be/EMcCHgwPdj4)
 7. [DRSSTC duo playing Bach's Badinerie - BWV 1067<br> ![](https://img.youtube.com/vi/ZdFTF22KcUk/0.jpg)](https://youtu.be/ZdFTF22KcUk)
 8. [DRSSTC Playing Beetlejuice theme<br> ![](https://img.youtube.com/vi/sDNqZdVtxII/0.jpg)](https://youtu.be/sDNqZdVtxII)
+
+## LLM Usage Policy
+This is software built by a human, for humans. LLMs are used only where they are helpful, without offloading my thinking to them, unlike what's unfortunately the norm now , in the AI craze era.
+
+### Proofreading & Standardization
+LLMs are used for proofreading documents and standardizing special symbols to specific Unicode characters. For example greek letters for units.
+
+### Code Review
+LLMs may be used occasionally for code reviews, merely as a suggestion source, or to find possible issues.
+
+### Core Development
+All other aspects of design, implementation, and maintenance are and will remain handled exclusively by human expertise. 
+I will not bet my own safety or equipment on trusting a statistical word generator.
