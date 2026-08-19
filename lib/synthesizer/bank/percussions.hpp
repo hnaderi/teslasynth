@@ -46,91 +46,91 @@ constexpr std::array<const char *, percussion_size> percussion_names = {{
 }};
 
 constexpr std::array<Percussion, percussion_size> percussion_kit{{
-    // Kick — tonal body + small noise, long decay
+    // Kick: tonal body + small noise, long decay
     {.burst = 200_ms,
      .prf = 55_hz,
      .noise = Probability(0.10),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 180_ms)},
 
-    // Snare — strong noise + mid body
+    // Snare: strong noise + mid body
     {.burst = 150_ms,
      .prf = 180_hz,
      .noise = Probability(0.95),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(2_ms, 220_ms)},
 
-    // Clap — pure noise, short-mid decay
+    // Clap: pure noise, short-mid decay
     {.burst = 100_ms,
      .prf = 0_hz, // noise-only mode
      .noise = Probability(1.0),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 80_ms)},
 
-    // Closed Hat — bright, short, crisp
+    // Closed Hat: bright, short, crisp
     {.burst = 20_ms,
      .prf = 0_hz, // noise-only mode
      .noise = Probability(1.0),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 30_ms)},
 
-    // Open Hat — long noise shimmer
+    // Open Hat: long noise shimmer
     {.burst = 300_ms, // long enough for full decay
      .prf = 0_hz,     // noise-only mode
      .noise = Probability(1.0),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(2_ms, 280_ms)},
 
-    // Low Tom — tonal, deep, resonant
+    // Low Tom: tonal, deep, resonant
     {.burst = 185_ms,
      .prf = 110_hz,
      .noise = Probability(0.15),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 200_ms)},
 
-    // Mid Tom — tonal, punchy
+    // Mid Tom: tonal, punchy
     {.burst = 155_ms,
      .prf = 180_hz,
      .noise = Probability(0.10),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 170_ms)},
 
-    // High Tom — tonal, bright
+    // High Tom: tonal, bright
     {.burst = 125_ms,
      .prf = 260_hz,
      .noise = Probability(0.08),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 140_ms)},
 
-    // Rimshot — sharp, bright, noisy transient
+    // Rimshot: sharp, bright, noisy transient
     {.burst = 70_ms,
      .prf = 900_hz,
      .noise = Probability(0.40),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 80_ms)},
 
-    // Cowbell — tonal metallic ring
+    // Cowbell: tonal metallic ring
     {.burst = 280_ms,
      .prf = 540_hz,
      .noise = Probability(0.05),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(2_ms, 300_ms)},
 
-    // Shaker — pure noise, short burst
+    // Shaker: pure noise, short burst
     {.burst = 18_ms,
      .prf = 0_hz, // noise-only mode
      .noise = Probability(1.0),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(1_ms, 20_ms)},
 
-    // Crash — long broadband noise
+    // Crash: long broadband noise
     {.burst = 1100_ms,
      .prf = 0_hz, // noise-only mode
      .noise = Probability(1.0),
      .skip = Probability(0.0),
      .envelope = envelopes::AD::exponential(5_ms, 1200_ms)},
 
-    // Ride — long metallic noise wash
+    // Ride: long metallic noise wash
     {.burst = 850_ms,
      .prf = 0_hz, // noise-only mode
      .noise = Probability(1.0),
@@ -140,7 +140,7 @@ constexpr std::array<Percussion, percussion_size> percussion_kit{{
 
 constexpr PercussionId midi_to_percussion(uint8_t note) {
   switch (note) {
-  // 35–36: Kicks
+  // 35-36: Kicks
   case 35: // Acoustic Bass Drum
   case 36: // Bass Drum 1
     return PercussionId::Kick;
@@ -202,7 +202,7 @@ constexpr PercussionId midi_to_percussion(uint8_t note) {
   case 56: // Cowbell
     return PercussionId::Cowbell;
 
-  // 58: Vibraslap → map to Shaker
+  // 58: Vibraslap -> map to Shaker
   case 58: // Vibraslap
     return PercussionId::Shaker;
 

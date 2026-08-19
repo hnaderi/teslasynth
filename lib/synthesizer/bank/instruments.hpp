@@ -130,22 +130,22 @@ constexpr std::array<Instrument, instruments_size> instruments{{
     // Leads
     // ====================
 
-    // 1 — Mono Lead
+    // 1: Mono Lead
     {.envelope = envelopes::ADSR::exponential(5_ms, 10_ms, EnvelopeLevel(0.85), 20_ms),
      .vibrato = {5_hz, 1.5_hz}},
 
-    // 2 — Soft Lead
+    // 2: Soft Lead
     {.envelope = envelopes::ADSR::linear(15_ms, 20_ms, EnvelopeLevel(0.70), 40_ms),
      .vibrato = {3_hz, 1_hz}},
 
-    // 3 — Bright Lead
+    // 3: Bright Lead
     {.envelope = EnvelopeLevel(0.90), .vibrato = {6_hz, 2_hz}},
 
-    // 4 — Sync Lead
+    // 4: Sync Lead
     {.envelope = envelopes::ADSR::exponential(8_ms, 5_ms, EnvelopeLevel(1.0), 10_ms),
      .vibrato = {7_hz, 3_hz}},
 
-    // 5 — Saw Lead
+    // 5: Saw Lead
     {.envelope = envelopes::ADSR::linear(10_ms, 10_ms, EnvelopeLevel(0.80), 25_ms),
      .vibrato = {4_hz, 1.5_hz}},
 
@@ -153,23 +153,23 @@ constexpr std::array<Instrument, instruments_size> instruments{{
     // Plucks & Keys
     // ====================
 
-    // 6 — Synth Pluck
+    // 6: Synth Pluck
     {.envelope = envelopes::ADSR::exponential(2_ms, 20_ms, EnvelopeLevel(0.20), 15_ms),
      .vibrato = Vibrato::none()},
 
-    // 7 — Harp Pluck
+    // 7: Harp Pluck
     {.envelope = envelopes::ADSR::linear(3_ms, 30_ms, EnvelopeLevel(0.15), 40_ms),
      .vibrato = {1_hz, 0.3_hz}},
 
-    // 8 — Electric Pluck
+    // 8: Electric Pluck
     {.envelope = envelopes::ADSR::linear(5_ms, 15_ms, EnvelopeLevel(0.35), 25_ms),
      .vibrato = {2_hz, 0.5_hz}},
 
-    // 9 — Flute: soft breath attack, gentle sustain, subtle vibrato
+    // 9: Flute: soft breath attack, gentle sustain, subtle vibrato
     {.envelope = envelopes::ADSR::linear(20_ms, 30_ms, EnvelopeLevel(0.70), 50_ms),
      .vibrato = {3_hz, 0.5_hz}},
 
-    // 10 — Bell Key
+    // 10: Bell Key
     {.envelope = envelopes::ADSR::exponential(2_ms, 40_ms, EnvelopeLevel(0.10), 80_ms),
      .vibrato = {6_hz, 2_hz}},
 
@@ -177,19 +177,19 @@ constexpr std::array<Instrument, instruments_size> instruments{{
     // Bass
     // ====================
 
-    // 11 — Sub Bass
+    // 11: Sub Bass
     {.envelope = envelopes::ADSR::linear(10_ms, 20_ms, EnvelopeLevel(0.95), 60_ms),
      .vibrato = Vibrato::none()},
 
-    // 12 — Analog Bass
+    // 12: Analog Bass
     {.envelope = envelopes::ADSR::exponential(25_ms, 15_ms, EnvelopeLevel(0.80), 45_ms),
      .vibrato = {1_hz, 1.5_hz}},
 
-    // 13 — Rubber Bass
+    // 13: Rubber Bass
     {.envelope = envelopes::ADSR::linear(15_ms, 25_ms, EnvelopeLevel(0.65), 30_ms),
      .vibrato = {3_hz, 2_hz}},
 
-    // 14 — Slap Bass: sharp percussive click, near-zero sustain, no vibrato
+    // 14: Slap Bass: sharp percussive click, near-zero sustain, no vibrato
     {.envelope = envelopes::ADSR::exponential(2_ms, 8_ms, EnvelopeLevel(0.08), 15_ms),
      .vibrato = Vibrato::none()},
 
@@ -197,23 +197,23 @@ constexpr std::array<Instrument, instruments_size> instruments{{
     // Pads
     // ====================
 
-    // 15 — Warm Pad
+    // 15: Warm Pad
     {.envelope = envelopes::ADSR::exponential(40_ms, 60_ms, EnvelopeLevel(0.70), 80_ms),
      .vibrato = {0.8_hz, 2_hz}},
 
-    // 16 — Slow Pad
+    // 16: Slow Pad
     {.envelope = envelopes::ADSR::exponential(80_ms, 100_ms, EnvelopeLevel(0.60), 120_ms),
      .vibrato = {0.5_hz, 3_hz}},
 
-    // 17 — Choir Pad
+    // 17: Choir Pad
     {.envelope = envelopes::ADSR::linear(60_ms, 50_ms, EnvelopeLevel(0.65), 90_ms),
      .vibrato = {1.2_hz, 4_hz}},
 
-    // 18 — Glass Pad
+    // 18: Glass Pad
     {.envelope = envelopes::ADSR::exponential(30_ms, 40_ms, EnvelopeLevel(0.50), 70_ms),
      .vibrato = {2_hz, 2_hz}},
 
-    // 19 — Motion Pad
+    // 19: Motion Pad
     {.envelope = envelopes::ADSR::exponential(25_ms, 35_ms, EnvelopeLevel(0.55), 60_ms),
      .vibrato = {3_hz, 2.5_hz}},
 
@@ -221,14 +221,14 @@ constexpr std::array<Instrument, instruments_size> instruments{{
     // Organs & Brass
     // ====================
 
-    // 20 — Organ
+    // 20: Organ
     {.envelope = EnvelopeLevel(1.0), .vibrato = {5_hz, 1_hz}},
 
-    // 21 — Brass
+    // 21: Brass
     {.envelope = envelopes::ADSR::linear(30_ms, 20_ms, EnvelopeLevel(0.85), 40_ms),
      .vibrato = {4_hz, 2_hz}},
 
-    // 22 — Soft Brass
+    // 22: Soft Brass
     {.envelope = envelopes::ADSR::linear(45_ms, 30_ms, EnvelopeLevel(0.75), 60_ms),
      .vibrato = {2_hz, 1.5_hz}},
 
@@ -236,11 +236,11 @@ constexpr std::array<Instrument, instruments_size> instruments{{
     // Strings
     // ====================
 
-    // 23 — Strings
+    // 23: Strings
     {.envelope = envelopes::ADSR::exponential(50_ms, 40_ms, EnvelopeLevel(0.80), 70_ms),
      .vibrato = {1.5_hz, 3_hz}},
 
-    // 24 — Staccato Strings
+    // 24: Staccato Strings
     {.envelope = envelopes::ADSR::linear(15_ms, 10_ms, EnvelopeLevel(0.70), 20_ms),
      .vibrato = {3_hz, 1_hz}},
 
@@ -248,19 +248,19 @@ constexpr std::array<Instrument, instruments_size> instruments{{
     // Percussive / FX
     // ====================
 
-    // 25 — Synth Hit
+    // 25: Synth Hit
     {.envelope = envelopes::ADSR::exponential(2_ms, 10_ms, EnvelopeLevel(0.30), 15_ms),
      .vibrato = Vibrato::none()},
 
-    // 26 — Ping: instant attack, fast complete decay, no vibrato (mallet character)
+    // 26: Ping: instant attack, fast complete decay, no vibrato (mallet character)
     {.envelope = envelopes::ADSR::exponential(1_ms, 40_ms, EnvelopeLevel(0.04), 10_ms),
      .vibrato = Vibrato::none()},
 
-    // 27 — Rise FX: slow build over 200ms, then decays away
+    // 27: Rise FX: slow build over 200ms, then decays away
     {.envelope = envelopes::ADSR::linear(200_ms, 80_ms, EnvelopeLevel(0.15), 60_ms),
      .vibrato = {2_hz, 1_hz}},
 
-    // 28 — Fall FX: instant peak, slow fade to near-silence
+    // 28: Fall FX: instant peak, slow fade to near-silence
     {.envelope = envelopes::ADSR::exponential(2_ms, 280_ms, EnvelopeLevel(0.05), 60_ms),
      .vibrato = {1.5_hz, 1.5_hz}},
 }};
