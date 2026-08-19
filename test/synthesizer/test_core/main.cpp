@@ -285,7 +285,7 @@ void test_clip(void) {
   TEST_ASSERT_EQUAL_FLOAT(0.0f, clip(-0.1f, 0.0f, 1.0f));
   TEST_ASSERT_EQUAL_FLOAT(1.0f, clip(1.1f, 0.0f, 1.0f));
 
-  // Hertz — same bounds used by hit.cpp frequency clamping
+  // Hertz
   assert_hertz_equal(clip(50_hz, 20_hz, 4_khz), 50_hz);
   assert_hertz_equal(clip(10_hz, 20_hz, 4_khz), 20_hz);
   assert_hertz_equal(clip(5_khz, 20_hz, 4_khz), 4_khz);

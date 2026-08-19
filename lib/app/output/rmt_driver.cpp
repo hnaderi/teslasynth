@@ -147,7 +147,7 @@ void pulse_write(const midisynth::Pulse *pulse, size_t len, uint8_t ch) {
 
   esp_err_t err = rmt_transmit(channels[ch], encoders[ch], pulse, len * sizeof(Pulse), &tx_config);
   // ESP_ERR_INVALID_STATE means the TX queue is full in non-blocking mode.
-  // Drop the batch gracefully — the synthesizer clock keeps running and
+  // Drop the batch gracefully. The synthesizer clock keeps running and
   // playback resumes on the next iteration. Any other error is a real fault.
   if (err == ESP_ERR_INVALID_STATE) {
 #if CONFIG_TESLASYNTH_DEBUG

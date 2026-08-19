@@ -59,7 +59,7 @@ public:
 };
 
 #ifndef _MSC_VER
-// GCC/Clang statement-expression shortcuts — used in firmware-only code.
+// GCC/Clang statement-expression shortcuts, used in firmware-only code.
 // Do not use in files compiled for the Python bindings (MSVC incompatible).
 #define TRY(expr)                                                                                  \
   ({                                                                                               \

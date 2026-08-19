@@ -158,7 +158,7 @@ void test_envelope_ad_exp(void) {
   TEST_ASSERT_TRUE(env.is_off());
 }
 
-// AD has no hold stage — the 'on' flag should not stall progression
+// AD has no hold stage, the 'on' flag should not stall progression
 void test_envelope_ad_ignores_on_flag(void) {
   Envelope env(lin_ad);
 

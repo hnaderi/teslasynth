@@ -9,7 +9,8 @@ CONFIG_BT_NIMBLE_ENABLED=y
 CONFIG_BT_NIMBLE_SVC_GAP_DEVICE_NAME="Teslasynth"
 CONFIG_NIMBLE_SVC_GAP_DEVICE_NAME="Teslasynth"
 
-# Enable security for BLE MIDI — Apple BLE MIDI spec requires Security Mode 1,
+# Enable security for BLE MIDI
+# Apple BLE MIDI spec requires Security Mode 1,
 # Level 2 (unauthenticated pairing with encryption, i.e. Just Works).
 # Without this, Linux/bluez disconnects with auth failure when it tries to
 # encrypt the link before enabling notifications on the MIDI characteristic.
@@ -17,7 +18,7 @@ CONFIG_BT_NIMBLE_SECURITY_ENABLE=y
 CONFIG_BT_NIMBLE_SM_LEGACY=y
 CONFIG_BT_NIMBLE_SM_SC=y
 
-# Disable host privacy — a fixed embedded device has no reason to hide
+# Disable host privacy, a fixed embedded device has no reason to hide
 # its address with a Resolvable Private Address.
 CONFIG_BT_NIMBLE_HS_PVCY=n
 
@@ -36,7 +37,7 @@ CONFIG_BTDM_CONTROLLER_BLE_MAX_CONN_EFF=1
 # Kernel
 CONFIG_FREERTOS_HZ=1000
 
-# Task watchdog — output task subscribes to this; panic resets the MCU on hang
+# Task watchdog, output task subscribes to this; panic resets the MCU on hang
 CONFIG_ESP_TASK_WDT_EN=y
 CONFIG_ESP_TASK_WDT_INIT=y
 CONFIG_ESP_TASK_WDT_PANIC=y

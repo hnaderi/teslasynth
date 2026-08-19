@@ -486,13 +486,14 @@ void test_all_notes_off_preserves_channel_state(void) {
 void test_sample_all_should_write_each_output_to_its_own_buffer_slot(void) {
   // Regression: `start = ch * BUFSIZE` was a uint8_t in sample_all, so for
   // OUTPUTS=8, BUFSIZE=200 (the Python-binding configuration) ch * BUFSIZE
-  // overflowed for ch >= 2. Writes for those channels landed in the wrong
-  // slice of the buffer, while at(ch, i) (size_t arithmetic) read the
-  // never-written region — yielding default {on=0, off=0} pulses.
+  // overflowed for ch >= 2.
+  // Writes for those channels landed in the wrong slice of the buffer,
+  // while at(ch, i) (size_t arithmetic) read the never-written region,
+  // yielding default {on=0, off=0} pulses.
   Teslasynth<8> tsynth;
   PulseBuffer<8, 200> buf;
 
-  // Default routing maps MIDI ch N → output N for N=0..7. Trigger every output.
+  // Default routing maps MIDI ch N -> output N for N=0..7. Trigger every output.
   for (uint8_t ch = 0; ch < 8; ch++) {
     tsynth.handle(MidiChannelMessage::note_on(ch, 69, 127), Duration::zero());
   }

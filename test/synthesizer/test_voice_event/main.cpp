@@ -99,7 +99,7 @@ void test_release_on_hit_is_noop(void) {
   TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Hit);
   TEST_ASSERT_TRUE(event.is_active());
 
-  event.release(1_s); // no-op for Hit — no release stage
+  event.release(1_s); // no-op for Hit, no release stage
   TEST_ASSERT_TRUE(event.type() == VoiceEvent::Type::Hit);
   TEST_ASSERT_TRUE(event.is_active());
 }
