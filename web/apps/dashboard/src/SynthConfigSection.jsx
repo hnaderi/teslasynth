@@ -30,7 +30,7 @@ function SynthChannelConfigSection({
                 value={channel.notes}
                 onChange={(n) => onChange(channelIdx, 'notes', n)}
                 min="1"
-                max="4"
+                max="10"
                 step="1"
             />
 

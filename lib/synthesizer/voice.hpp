@@ -18,7 +18,7 @@
 #endif
 
 #ifndef CONFIG_TESLASYNTH_MAX_NOTES
-#define CONFIG_TESLASYNTH_MAX_NOTES 4
+#define CONFIG_TESLASYNTH_MAX_NOTES 10
 #endif
 
 namespace teslasynth::synth {

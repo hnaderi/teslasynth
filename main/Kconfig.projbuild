@@ -72,8 +72,8 @@ menu "Synth"
 
 config TESLASYNTH_MAX_NOTES
     int "Max notes"
-    default 4
-    range 1 8
+    default 10
+    range 1 20
     help
         This is the maximum size possible for notes.
         You can configure max concurrent notes up to this value.
