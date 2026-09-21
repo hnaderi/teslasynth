@@ -393,7 +393,7 @@ void test_note_pitchbend(void) {
     assert_duration_equal(note.current().period, period);
 
     note.next();
-    freq = lerp(freq, state.pitch_bend * base_freq, 0.1);
+    freq = lerp<Hertz>(freq, state.pitch_bend * base_freq, 0.1);
   }
 }
 
