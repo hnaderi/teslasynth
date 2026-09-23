@@ -44,6 +44,9 @@
           : ''${1:?Usage: fw-menuconfig <target>  (e.g. fw-menuconfig esp32s3)}
           idf.py -B build/$1 menuconfig
         '';
+        fw-flash-release = pkgs.writeShellScriptBin "fw-flash-release" ''
+          esp-idf-env python flash-release.py "$@"
+        '';
       in
       {
         devShells.default = pkgs.mkShell {
@@ -75,6 +78,7 @@
             format-cpp-check
             fw-build
             fw-flash
+            fw-flash-release
             fw-monitor
             fw-menuconfig
           ];
