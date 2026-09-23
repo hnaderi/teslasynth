@@ -49,7 +49,7 @@ void output(void *pvParams) {
   ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
   ESP_ERROR_CHECK(esp_task_wdt_status(NULL));
 
-  constexpr TickType_t loopTime = pdMS_TO_TICKS(10);
+  constexpr TickType_t loopTime = pdMS_TO_TICKS(20);
   TickType_t lastTime = xTaskGetTickCount();
 
   int64_t processed = esp_timer_get_time();

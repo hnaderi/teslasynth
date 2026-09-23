@@ -73,10 +73,12 @@ menu "Synth"
 config TESLASYNTH_MAX_NOTES
     int "Max notes"
     default 10
-    range 1 20
+    range 1 10
     help
         This is the maximum size possible for notes.
         You can configure max concurrent notes up to this value.
+        Past this the duty limiter, not the voice count, sets how many
+        pulses reach the coil, so extra voices only thin out each note.
 
 config TESLASYNTH_DEFAULT_MAX_DUTY
     int "Default max duty for all channels"
