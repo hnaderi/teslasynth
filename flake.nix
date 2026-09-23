@@ -50,7 +50,7 @@
           packages = with pkgs; [
             (espidf.lib.mkEspIdf {
               inherit pkgs;
-              idfVersion = "v6.0";
+              idfVersion = "v6.1";
             })
             # Native tests and linting (PlatformIO native env)
             platformio

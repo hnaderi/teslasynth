@@ -46,7 +46,7 @@ jobs:
       - name: Build firmware
         uses: espressif/esp-idf-ci-action@v1
         with:
-          esp_idf_version: v6.0
+          esp_idf_version: v6.1
           target: ${{ matrix.target }}
           command: idf.py -B build/${{ matrix.target }} build
 
