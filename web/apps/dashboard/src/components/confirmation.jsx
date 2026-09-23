@@ -24,6 +24,7 @@ export function ConfirmDialog({
 
                 <footer>
                     <button
+                        type="button"
                         class="secondary"
                         onClick={onCancel}
                         disabled={busy}
@@ -32,6 +33,7 @@ export function ConfirmDialog({
                     </button>
 
                     <button
+                        type="button"
                         class="contrast"
                         onClick={onConfirm}
                         disabled={busy}

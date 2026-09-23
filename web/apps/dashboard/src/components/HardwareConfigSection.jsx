@@ -40,7 +40,6 @@ export function HardwareConfigSection() {
                 busy={busy}
                 setBusy={setBusy}
                 onUpdate={setCfg}
-                onReset={setCfg}
             />
         </article>
     );

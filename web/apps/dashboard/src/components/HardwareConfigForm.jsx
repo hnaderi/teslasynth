@@ -8,49 +8,20 @@ import { InputConfigSection } from './InputConfig';
 import { LedConfigSection } from './LEDConfig';
 import { OutputConfigSection } from './OutputConfig';
 import { ImportExportButtons } from './ImportExport';
+import { ConfigForm, ConfigFormActions, useConfigEndpoint } from './ConfigForm';
 
-export function HardwareConfigForm({
-    config,
-    busy,
-    setBusy,
-    onUpdate,
-    onReset,
-}) {
+export function HardwareConfigForm({ config, busy, setBusy, onUpdate }) {
     const [draft, setDraft] = useState(config);
-    const [confirmOpen, setConfirmOpen] = useState(false);
+    const { error, save, reset } = useConfigEndpoint(
+        '/api/config/hardware',
+        setBusy,
+        onUpdate
+    );
 
     useEffect(() => setDraft(config), [config]);
 
-    async function save(e) {
-        e.preventDefault();
-        setBusy(true);
-        try {
-            const res = await fetch('/api/config/hardware', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(draft),
-            });
-            onUpdate(await res.json());
-        } finally {
-            setBusy(false);
-        }
-    }
-
-    async function reset() {
-        setBusy(true);
-        try {
-            const res = await fetch('/api/config/hardware', {
-                method: 'DELETE',
-            });
-            onReset(await res.json());
-        } finally {
-            setBusy(false);
-            setConfirmOpen(false);
-        }
-    }
-
     return (
-        <form onSubmit={save}>
+        <ConfigForm>
             <OutputConfigSection
                 channels={draft.output.channels}
                 onChange={(channels) =>
@@ -71,26 +42,21 @@ export function HardwareConfigForm({
                 onChange={(led) => setDraft({ ...draft, led })}
             />
 
-            <footer>
-                <div class="grid">
-                    <button type="submit" disabled={busy}>
-                        Save
-                    </button>
-                    <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => setConfirmOpen(true)}
-                    >
-                        Reset
-                    </button>
-                    <ImportExportButtons
-                        filename="hardware-config.json"
-                        data={draft}
-                        onImport={setDraft}
-                        busy={busy}
-                    />
-                </div>
-            </footer>
-        </form>
+            <ConfigFormActions
+                busy={busy}
+                error={error}
+                onSave={() => save(draft)}
+                onReset={reset}
+                resetTitle="Reset hardware configuration?"
+                resetMessage="This restores the factory GPIO assignments. Continue?"
+            >
+                <ImportExportButtons
+                    filename="hardware-config.json"
+                    data={draft}
+                    onImport={setDraft}
+                    busy={busy}
+                />
+            </ConfigFormActions>
+        </ConfigForm>
     );
 }

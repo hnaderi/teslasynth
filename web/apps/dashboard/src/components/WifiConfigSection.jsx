@@ -4,16 +4,20 @@
  */
 
 import { useEffect, useState } from 'preact/hooks';
-import { ConfirmDialog } from './confirmation';
+import { ConfigForm, ConfigFormActions, useConfigEndpoint } from './ConfigForm';
 
 const CHANNELS = Array.from({ length: 13 }, (_, i) => i + 1);
 const MIN_PASSWORD_LENGTH = 8;
 
-function WifiConfigForm({ config, busy, setBusy, onChange }) {
+function WifiConfigForm({ config, busy, setBusy, onUpdate }) {
     const [draft, setDraft] = useState(config);
     const [password, setPassword] = useState('');
     const [open, setOpen] = useState(!config['password-set']);
-    const [confirmOpen, setConfirmOpen] = useState(false);
+    const { error, save, reset } = useConfigEndpoint(
+        '/api/config/wifi',
+        setBusy,
+        onUpdate
+    );
 
     useEffect(() => {
         setDraft(config);
@@ -25,38 +29,15 @@ function WifiConfigForm({ config, busy, setBusy, onChange }) {
     // submission when there is already one stored.
     const passwordRequired = !open && !config['password-set'];
 
-    async function save(e) {
-        e.preventDefault();
-        setBusy(true);
-        try {
-            const body = { ssid: draft.ssid, channel: draft.channel };
-            if (open) body.password = '';
-            else if (password !== '') body.password = password;
-
-            const res = await fetch('/api/config/wifi', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
-            });
-            onChange(await res.json());
-        } finally {
-            setBusy(false);
-        }
-    }
-
-    async function reset() {
-        setBusy(true);
-        try {
-            const res = await fetch('/api/config/wifi', { method: 'DELETE' });
-            onChange(await res.json());
-        } finally {
-            setBusy(false);
-            setConfirmOpen(false);
-        }
+    function payload() {
+        const body = { ssid: draft.ssid, channel: draft.channel };
+        if (open) body.password = '';
+        else if (password !== '') body.password = password;
+        return body;
     }
 
     return (
-        <form onSubmit={save}>
+        <ConfigForm>
             <label for="wifi-ssid">
                 Network name (SSID)
                 <input
@@ -127,30 +108,15 @@ function WifiConfigForm({ config, busy, setBusy, onChange }) {
                 </select>
             </label>
 
-            <footer>
-                <div class="grid">
-                    <button type="submit" disabled={busy}>
-                        Save
-                    </button>
-                    <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => setConfirmOpen(true)}
-                    >
-                        Reset
-                    </button>
-                </div>
-            </footer>
-
-            <ConfirmDialog
-                open={confirmOpen}
-                title="Reset Wi-Fi settings"
-                message="This restores the factory network name, password and channel. Continue?"
+            <ConfigFormActions
                 busy={busy}
-                onCancel={() => setConfirmOpen(false)}
-                onConfirm={reset}
+                error={error}
+                onSave={() => save(payload())}
+                onReset={reset}
+                resetTitle="Reset Wi-Fi settings"
+                resetMessage="This restores the factory network name, password and channel. Continue?"
             />
-        </form>
+        </ConfigForm>
     );
 }
 
@@ -185,7 +151,7 @@ export function WifiConfigSection() {
                 config={cfg}
                 busy={busy}
                 setBusy={setBusy}
-                onChange={setCfg}
+                onUpdate={setCfg}
             />
 
             <footer>

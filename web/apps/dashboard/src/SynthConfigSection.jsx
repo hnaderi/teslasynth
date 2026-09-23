@@ -5,11 +5,14 @@
 
 import { useEffect, useState } from 'preact/hooks';
 import { NumberInput } from './components/NumberInput';
-import { ConfirmDialog } from './components/confirmation';
 import { InstrumentSelect } from './components/InstrumentSelect';
 import { RoutingConfigSection } from './components/RoutingConfigSection';
 import { ImportExportButtons } from './components/ImportExport';
-const synthConfig = (init) => fetch('/api/config/synth', init);
+import {
+    ConfigForm,
+    ConfigFormActions,
+    useConfigEndpoint,
+} from './components/ConfigForm';
 
 function SynthChannelConfigSection({
     channel,
@@ -48,7 +51,7 @@ function SynthChannelConfigSection({
                 help="Maximum allowed on-time for each pulse in microseconds"
                 value={channel['max-on-time']}
                 min="0"
-                max="65536"
+                max="65535"
                 step="1"
                 onChange={(n) => onChange(channelIdx, 'max-on-time', n)}
             />
@@ -59,7 +62,7 @@ function SynthChannelConfigSection({
                 help="Minimum deadtime that must be guaranteed in microseconds"
                 value={channel['min-deadtime']}
                 min="0"
-                max="65536"
+                max="65535"
                 step="1"
                 onChange={(n) => onChange(channelIdx, 'min-deadtime', n)}
             />
@@ -69,7 +72,7 @@ function SynthChannelConfigSection({
                 title="Max Duty (%)"
                 help="Maximum allowed duty cycle for this channel in percent"
                 value={channel['max-duty']}
-                min="0"
+                min="0.5"
                 max="100"
                 step="0.5"
                 slider={true}
@@ -82,7 +85,7 @@ function SynthChannelConfigSection({
                 help="Time frame that the duty cycle limitation is enforced in microseconds."
                 value={channel['duty-window']}
                 min="10000"
-                max="65536"
+                max="65535"
                 step="1"
                 onChange={(n) => onChange(channelIdx, 'duty-window', n)}
             />
@@ -101,57 +104,20 @@ function SynthChannelConfigSection({
     );
 }
 
-function SynthConfigForm({
-    config,
-    busy,
-    onUpdate,
-    onReset,
-    setBusy,
-    instruments,
-}) {
+function SynthConfigForm({ config, busy, setBusy, onUpdate, instruments }) {
     const [draft, setDraft] = useState(config);
-    const [confirmOpen, setConfirmOpen] = useState(false);
+    const { error, save, reset } = useConfigEndpoint(
+        '/api/config/synth',
+        setBusy,
+        onUpdate
+    );
 
     useEffect(() => {
         setDraft(config);
     }, [config]);
 
-    async function save(e) {
-        e.preventDefault();
-
-        const form = e.currentTarget.form;
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-        setBusy(true);
-        try {
-            const res = await synthConfig({
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(draft),
-            });
-            const updated = await res.json();
-            onUpdate(updated);
-        } finally {
-            setBusy(false);
-        }
-    }
-
-    async function reset() {
-        setBusy(true);
-        try {
-            const res = await synthConfig({ method: 'DELETE' });
-            const updated = await res.json();
-            onReset(updated);
-        } finally {
-            setBusy(false);
-            setConfirmOpen(false);
-        }
-    }
-
     return (
-        <form>
+        <ConfigForm>
             <NumberInput
                 id="tuning"
                 title="Tuning Frequency (A4)"
@@ -190,35 +156,22 @@ function SynthConfigForm({
                 onChange={(routing) => setDraft({ ...draft, routing })}
             />
 
-            <footer>
-                <div class="grid">
-                    <button type="submit" onClick={save} disabled={busy}>
-                        Save
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setConfirmOpen(true)}
-                        disabled={busy}
-                    >
-                        Reset
-                    </button>
-                    <ImportExportButtons
-                        filename="synth-config.json"
-                        data={draft}
-                        onImport={setDraft}
-                        busy={busy}
-                    />
-                    <ConfirmDialog
-                        open={confirmOpen}
-                        title="Reset configuration?"
-                        message="This will erase all settings permanently."
-                        busy={busy}
-                        onCancel={() => setConfirmOpen(false)}
-                        onConfirm={reset}
-                    />
-                </div>
-            </footer>
-        </form>
+            <ConfigFormActions
+                busy={busy}
+                error={error}
+                onSave={() => save(draft)}
+                onReset={reset}
+                resetTitle="Reset configuration?"
+                resetMessage="This will erase all settings permanently."
+            >
+                <ImportExportButtons
+                    filename="synth-config.json"
+                    data={draft}
+                    onImport={setDraft}
+                    busy={busy}
+                />
+            </ConfigFormActions>
+        </ConfigForm>
     );
 }
 
@@ -228,7 +181,7 @@ export function SynthConfigSection() {
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
-        synthConfig()
+        fetch('/api/config/synth')
             .then((r) => r.json())
             .then(setCfg);
 
@@ -254,7 +207,6 @@ export function SynthConfigSection() {
                 </header>
                 <SynthConfigForm
                     config={cfg}
-                    onReset={setCfg}
                     onUpdate={setCfg}
                     busy={busy}
                     setBusy={setBusy}
