@@ -309,7 +309,7 @@ NB_MODULE(_teslasynth, m) {
           "Effective pulse on-time quantum at the bridge output (microseconds). "
           "Set to half the resonant period for DRSSTC coils to make the duty "
           "limiter charge for what the bridge actually delivers. 0 = no quantization.")
-      .def_rw("notes", &ChannelConfig::notes, "Polyphony limit (1-4)")
+      .def_rw("notes", &ChannelConfig::notes, "Polyphony limit (1 to max_notes)")
       .def_prop_rw(
           "instrument",
           [](const ChannelConfig &c) -> std::optional<uint8_t> { return c.instrument; },
