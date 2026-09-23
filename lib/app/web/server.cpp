@@ -97,10 +97,24 @@ esp_err_t read_body(httpd_req_t *req, std::string &body) {
     return ESP_FAIL;
   }
 
+  // httpd_req_recv hands over whatever has arrived so far, so keep asking for
+  // the rest until the body is complete.
+  constexpr int max_timeouts = 3;
+  int timeouts = 0;
+  size_t received = 0;
+
   body.resize(length);
-  if (httpd_req_recv(req, body.data(), length) != static_cast<int>(length)) {
-    send(req, {api::status_code::server_error, "Incomplete body"});
-    return ESP_FAIL;
+  while (received < length) {
+    const int read = httpd_req_recv(req, body.data() + received, length - received);
+    if (read == HTTPD_SOCK_ERR_TIMEOUT && ++timeouts <= max_timeouts)
+      continue;
+    if (read <= 0) {
+      ESP_LOGE(TAG, "Body receive failed (%d) after %u of %u bytes", read, (unsigned)received,
+               (unsigned)length);
+      send(req, {api::status_code::server_error, "Incomplete body"});
+      return ESP_FAIL;
+    }
+    received += read;
   }
   return ESP_OK;
 }
