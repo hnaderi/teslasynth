@@ -4,21 +4,20 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs-esp-dev.url = "github:HTunne/nixpkgs-esp-dev";
+    espidf.url = "github:hnaderi/espidf-nix";
   };
 
   outputs =
     {
       nixpkgs,
       flake-utils,
-      nixpkgs-esp-dev,
+      espidf,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        esp-idf = nixpkgs-esp-dev.packages.${system}.esp-idf-full;
         add-headers = pkgs.writeShellScriptBin "add-headers" ''
           copywrite headers "$@"
           (cd python && copywrite headers "$@")
@@ -49,8 +48,10 @@
       {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            esp-idf
-
+            (espidf.lib.mkEspIdf {
+              inherit pkgs;
+              idfVersion = "v6.0";
+            })
             # Native tests and linting (PlatformIO native env)
             platformio
 
