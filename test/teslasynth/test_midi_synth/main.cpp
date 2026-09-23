@@ -508,6 +508,102 @@ void test_sample_all_should_write_each_output_to_its_own_buffer_slot(void) {
   }
 }
 
+void test_sample_all_should_not_outrun_its_budget(void) {
+  // Regression: a pulse is emitted whole, so the last one of a window overshoots
+  // it. That surplus used to be added to the timeline every window, so generated
+  // signal drifted ahead of the wall clock it is queued against and the RMT
+  // transaction queue crept towards full until transmits were dropped.
+  constexpr uint16_t budget_us = 10'000;
+  constexpr uint16_t windows = 200;
+  // one pulse may overshoot the window it completes, but the drift must not grow
+  constexpr uint64_t tolerance = 200;
+
+  Teslasynth<1> tsynth;
+  auto &channel = tsynth.configuration().channels()[0];
+  channel.max_on_time = 100_us;
+  channel.min_deadtime = 100_us;
+  channel.pulse_resolution = 0_us;
+  channel.max_duty = DutyCycle(100);
+  tsynth.reload_config();
+
+  PulseBuffer<1, 200> buf;
+  tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), Duration::zero());
+
+  uint64_t generated = 0;
+  for (uint16_t w = 1; w <= windows; w++) {
+    tsynth.sample_all(Duration16::micros(budget_us), buf);
+    for (uint8_t i = 0; i < buf.written[0]; i++)
+      generated += buf.at(0, i).length().micros();
+    TEST_ASSERT_LESS_OR_EQUAL_UINT64(static_cast<uint64_t>(budget_us) * w + tolerance, generated);
+  }
+  TEST_ASSERT_GREATER_OR_EQUAL_UINT64(static_cast<uint64_t>(budget_us) * windows - tolerance,
+                                      generated);
+}
+
+void test_sample_all_should_skip_windows_the_carry_already_covers(void) {
+  // A pulse longer than the budget must be paid back by staying silent, so the
+  // average output rate still matches the budget.
+  constexpr uint16_t budget_us = 1'000;
+
+  Teslasynth<1> tsynth;
+  auto &channel = tsynth.configuration().channels()[0];
+  channel.max_on_time = 2000_us;
+  channel.min_deadtime = 2000_us;
+  channel.pulse_resolution = 0_us;
+  channel.max_duty = DutyCycle(100);
+  tsynth.reload_config();
+
+  PulseBuffer<1, 200> buf;
+  tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), Duration::zero());
+
+  tsynth.sample_all(Duration16::micros(budget_us), buf);
+  uint32_t first = 0;
+  for (uint8_t i = 0; i < buf.written[0]; i++)
+    first += buf.at(0, i).length().micros();
+  TEST_ASSERT_GREATER_THAN_UINT32(budget_us, first);
+
+  // the overshoot is owed back before anything else is emitted
+  uint32_t owed = first - budget_us;
+  while (owed >= budget_us) {
+    tsynth.sample_all(Duration16::micros(budget_us), buf);
+    TEST_ASSERT_EQUAL_UINT8(0, buf.written[0]);
+    owed -= budget_us;
+  }
+}
+
+void test_sample_all_carry_should_reset_when_silenced(void) {
+  // A carry left over from the previous track would mute the start of the next.
+  // Deadtime alone exceeds two budgets, so the first pulse always owes back more
+  // than one window no matter where the envelope starts.
+  constexpr uint16_t budget_us = 1'000;
+
+  Teslasynth<1> tsynth;
+  auto &channel = tsynth.configuration().channels()[0];
+  channel.max_on_time = 2000_us;
+  channel.min_deadtime = 3000_us;
+  channel.pulse_resolution = 0_us;
+  channel.max_duty = DutyCycle(100);
+  tsynth.reload_config();
+
+  PulseBuffer<1, 200> buf;
+  tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), Duration::zero());
+
+  tsynth.sample_all(Duration16::micros(budget_us), buf);
+  uint32_t first = 0;
+  for (uint8_t i = 0; i < buf.written[0]; i++)
+    first += buf.at(0, i).length().micros();
+  TEST_ASSERT_GREATER_OR_EQUAL_UINT32(2 * budget_us, first - budget_us);
+
+  tsynth.sample_all(Duration16::micros(budget_us), buf);
+  TEST_ASSERT_EQUAL_UINT8(0, buf.written[0]);
+
+  // still owes at least one window, so an inherited carry would mute the restart
+  tsynth.off();
+  tsynth.handle(MidiChannelMessage::note_on(0, 69, 127), Duration::zero());
+  tsynth.sample_all(Duration16::micros(budget_us), buf);
+  TEST_ASSERT_GREATER_THAN_UINT8(0, buf.written[0]);
+}
+
 extern "C" void app_main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_note_pulse_empty);
@@ -538,6 +634,9 @@ extern "C" void app_main(void) {
   RUN_TEST(test_all_sound_off_preserves_channel_state);
   RUN_TEST(test_all_notes_off_preserves_channel_state);
   RUN_TEST(test_sample_all_should_write_each_output_to_its_own_buffer_slot);
+  RUN_TEST(test_sample_all_should_not_outrun_its_budget);
+  RUN_TEST(test_sample_all_should_skip_windows_the_carry_already_covers);
+  RUN_TEST(test_sample_all_carry_should_reset_when_silenced);
 
   UNITY_END();
 }

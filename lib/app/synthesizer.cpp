@@ -53,7 +53,7 @@ void output(void *pvParams) {
   TickType_t lastTime = xTaskGetTickCount();
 
   int64_t processed = esp_timer_get_time();
-  PulseBuffer<OutputConfig::size, 64> buffer;
+  PulseBuffer<OutputConfig::size, 128> buffer;
 
   while (true) {
     vTaskDelayUntil(&lastTime, loopTime);

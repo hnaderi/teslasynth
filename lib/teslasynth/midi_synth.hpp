@@ -162,6 +162,7 @@ template <std::uint8_t OUTPUTS = 1, class N = Voice<>> class Teslasynth final {
   size_t _instruments_size = instruments.size();
   std::array<N, OUTPUTS> _voices;
   std::array<DutyLimiter, OUTPUTS> _limiters;
+  std::array<uint16_t, OUTPUTS> _carry{};
   InstrumentMapping current_instrument_;
   MidiChannels channels_;
 
@@ -226,6 +227,7 @@ public:
     for (auto &note : _voices) {
       note.off();
     }
+    _carry.fill(0);
   }
 
   inline void reload_config() {
@@ -345,17 +347,20 @@ public:
       output.clean();
       return;
     }
-    uint16_t now = max.micros();
+    const int32_t now = max.micros();
     for (uint8_t ch = 0; ch < OUTPUTS; ch++) {
-      uint16_t processed = 0;
+      const int32_t target = now - _carry[ch];
+      int32_t processed = 0;
       uint8_t i = 0;
       const size_t start = static_cast<size_t>(ch) * BUFSIZE;
-      for (; processed < now && i < BUFSIZE; i++) {
-        auto left = Duration16::micros(now - processed);
+      for (; processed < target && i < BUFSIZE; i++) {
+        auto left = Duration16::micros(static_cast<uint16_t>(target - processed));
         output.pulses[start + i] = sample(ch, left);
         processed += output.pulses[start + i].length().micros();
       }
       output.written[ch] = i;
+      const int32_t surplus = processed - target;
+      _carry[ch] = surplus > 0 ? static_cast<uint16_t>(std::min<int32_t>(surplus, UINT16_MAX)) : 0;
     }
   }
 
