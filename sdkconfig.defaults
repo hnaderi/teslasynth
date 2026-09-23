@@ -18,6 +18,10 @@ CONFIG_BT_NIMBLE_SECURITY_ENABLE=y
 CONFIG_BT_NIMBLE_SM_LEGACY=y
 CONFIG_BT_NIMBLE_SM_SC=y
 
+# Keep bonding keys across reboots, otherwise bluez has to forget the device
+# and pair again after every restart before it can encrypt the link.
+CONFIG_BT_NIMBLE_NVS_PERSIST=y
+
 # Disable host privacy, a fixed embedded device has no reason to hide
 # its address with a Resolvable Private Address.
 CONFIG_BT_NIMBLE_HS_PVCY=n
