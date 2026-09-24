@@ -1,6 +1,7 @@
 {
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@12.3.4",
   "author": "Hossein Naderi <hossein-naderi@hotmail.com>",
   "scripts": {
     "build": "pnpm -r build",

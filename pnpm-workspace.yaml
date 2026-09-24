@@ -5,3 +5,6 @@ packages:
   - web/apps/*
   - web/packages/*
 
+allowBuilds:
+  '@parcel/watcher': false
+  esbuild: false
