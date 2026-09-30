@@ -34,7 +34,7 @@
         '';
         fw-flash = pkgs.writeShellScriptBin "fw-flash" ''
           : ''${1:?Usage: fw-flash <target>  (e.g. fw-flash esp32s3)}
-          idf.py -B build/$1 flash
+          idf.py -B build/$1 -D IDF_TARGET=$1 flash
         '';
         fw-monitor = pkgs.writeShellScriptBin "fw-monitor" ''
           : ''${1:?Usage: fw-monitor <target>  (e.g. fw-monitor esp32s3)}
