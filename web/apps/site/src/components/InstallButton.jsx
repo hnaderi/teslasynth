@@ -12,6 +12,9 @@ const CHIP_FAMILY = {
     esp32: 'ESP32',
     esp32s2: 'ESP32-S2',
     esp32s3: 'ESP32-S3',
+    esp32c3: 'ESP32-C3',
+    esp32c5: 'ESP32-C5',
+    esp32c6: 'ESP32-C6',
 };
 
 export function toEspWebToolsManifest(manifest, version) {

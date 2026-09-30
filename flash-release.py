@@ -52,6 +52,12 @@ def normalize_chip(chip_str):
         return "esp32s3"
     if "ESP32S2" in s:
         return "esp32s2"
+    if "ESP32C3" in s:
+        return "esp32c3"
+    if "ESP32C5" in s:
+        return "esp32c5"
+    if "ESP32C6" in s:
+        return "esp32c6"
     if "ESP32" in s:
         return "esp32"
     return s.lower()
@@ -69,7 +75,8 @@ def find_port():
 
     if not candidates:
         candidates = [
-            p for p in list_ports.comports()
+            p
+            for p in list_ports.comports()
             if "USB" in p.device.upper() or "ACM" in p.device.upper()
         ]
 
@@ -88,14 +95,28 @@ def detect_chip(port, baud):
     print(f"Detecting chip on {port}...")
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "esptool", "--port", port, "--baud", str(baud),
-             "--after", "no-reset", "chip-id"],
+            [
+                sys.executable,
+                "-m",
+                "esptool",
+                "--port",
+                port,
+                "--baud",
+                str(baud),
+                "--after",
+                "no-reset",
+                "chip-id",
+            ],
             capture_output=True,
             text=True,
         )
         output = result.stdout + result.stderr
         # matches "Chip is ESP32-S2", "Chip type: ESP32-S2FNR2", "Connected to ESP32-S2 on"
-        m = re.search(r"(?:Chip\s+(?:is|type:)\s*|Connected to\s+)(ESP32[\w-]*)", output, re.IGNORECASE)
+        m = re.search(
+            r"(?:Chip\s+(?:is|type:)\s*|Connected to\s+)(ESP32[\w-]*)",
+            output,
+            re.IGNORECASE,
+        )
         if not m:
             fail(f"Could not detect chip from esptool output:\n{output}")
         return normalize_chip(m.group(1))
@@ -128,7 +149,9 @@ def flash(port, baud, version, chip_override=None):
     extra = target["extra_esptool_args"]
 
     cmd = [
-        sys.executable, "-m", "esptool",
+        sys.executable,
+        "-m",
+        "esptool",
         "--port",
         port,
         "--baud",
@@ -158,7 +181,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Flash Teslasynth firmware from the published release."
     )
-    parser.add_argument("--port", "-p", default=None, help="Serial port (auto-detected if omitted)")
+    parser.add_argument(
+        "--port", "-p", default=None, help="Serial port (auto-detected if omitted)"
+    )
     parser.add_argument(
         "--baud", "-b", type=int, default=DEFAULT_BAUD, help="Baud rate"
     )
