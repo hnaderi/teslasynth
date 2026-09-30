@@ -12,10 +12,11 @@ have predictable auto-reset. Avoid boards where the chip's native USB pins
 (D+/D−) are wired straight to the USB connector — they require manual
 button presses or a workaround for every flash.
 
-**At least 4 usable GPIO pins.** Teslasynth uses 4 output channels plus 1
-optional status LED by default. Make sure the board exposes that many pins
-that aren't strapping pins, aren't reserved for the on-board USB-UART, and
-aren't already wired to a built-in LED, button, or peripheral.
+**Enough usable GPIO pins.** Teslasynth supports up to 4 output channels 
+(based on the chipset capability), plus 1 optional status LED by default. 
+Make sure the board exposes enough pins that aren't strapping pins,
+aren't reserved for the on-board USB-UART, 
+and aren't already wired to a built-in LED, button, or peripheral.
 
 **3.3 V logic.** All ESP32 family chips are 3.3 V. Confirm your interrupter
 input accepts 3.3 V logic, or plan for a level shifter / opto-isolator
@@ -27,14 +28,16 @@ breadboards than tiny castellated edge pads.
 ## What to skip
 
 - **Boards with native-USB-only wiring** (no UART bridge IC). The web
-  installer can't put these into download mode — see the
-  [troubleshooting note](/getting-started#esp32-s2-boards-with-native-usb-s2-mini-s2-saola).
+  installer can't put these into download mode and you need to flash the device manually.
+  See the [troubleshooting note](/getting-started#esp32-s2-boards-with-native-usb-s2-mini-s2-saola).
   ESP32-S2-Mini and S2-Saola fall into this category.
 - **2 MB flash variants.** The firmware fits but leaves no room for future growth.
 - **Modules with sub-20 exposed pins.** Once you subtract strapping pins,
   USB pins, and the boot/reset buttons, you may not have enough free GPIOs.
 
 ## Recommended boards
+
+ESP32-S3 and ESP32-S2 are the most performant and capable variants, and are the preferred variants, as they use USB Midi which is more robust and is not prone to jitter, specially near strong electrical fields.
 
 ### ESP32
 
@@ -48,6 +51,11 @@ breadboards than tiny castellated edge pads.
 ### ESP32-S3
 
 - devkit (two USB C variant)
+
+### ESP32-C3, C5, C6
+
+These are not recommended if you want an easy to use serial interface.
+
 
 ## Connection options recap
 

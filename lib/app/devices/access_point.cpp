@@ -66,6 +66,7 @@ void wifi_init_softap(const WifiConfig &config) {
                   {
                       .required = true,
                   },
+              .sae_pwe_h2e = WPA3_SAE_PWE_HASH_TO_ELEMENT,
 #ifdef CONFIG_ESP_WIFI_BSS_MAX_IDLE_SUPPORT
               .bss_max_idle_cfg =
                   {
@@ -73,7 +74,6 @@ void wifi_init_softap(const WifiConfig &config) {
                       .protected_keep_alive = 1,
                   },
 #endif
-              .sae_pwe_h2e = WPA3_SAE_PWE_HASH_TO_ELEMENT,
           },
   };
 

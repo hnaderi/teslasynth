@@ -65,16 +65,25 @@ to reach for anything else.
 
 ## Supported hardware
 
-| Chip     | USB MIDI | Bluetooth MIDI |
-|----------|----------|----------------|
-| ESP32    | ❌        | ✅              |
-| ESP32-S2 | ✅        | ❌              |
-| ESP32-S3 | ✅        | ❌¹             |
+| Chip     | USB MIDI | Bluetooth MIDI | Max outputs |
+|----------|----------|----------------|-------------|
+| ESP32    | ❌        | ✅             |  4 |
+| ESP32-S2 | ✅        | ❌             |  4 |
+| ESP32-S3 | ✅        | ❌¹            |  4 |
+| ESP32-C3² | ❌        | ✅            | 2 |
+| ESP32-C5² | ❌        | ✅            | 2 |
+| ESP32-C6² | ❌        | ✅            | 2 |
 
 ¹ The ESP32-S3 supports Bluetooth in hardware, but this firmware builds for
 USB only on S3. USB is the recommended connection for any serious coil
 ensemble — Bluetooth MIDI introduces jitter on fast note runs and is
 unreliable in the presence of strong electric fields.
+
+² These variants are not as general purpose as the classic variant and S2, S3 series.
+These are also less capable computationally and peripheral-wise. 
+They are supported and bench tested occasionally, but they are not what I use personally for my coils, 
+so treat them as somewhat experimental versions.
+These are not recommended if you want an easy to use serial interface.
 
 Any development board based on these chips works. The firmware has been tested
 on standard 4 MB flash modules. See [Choosing a board](/boards) for

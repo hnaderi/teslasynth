@@ -116,8 +116,7 @@ with the serial console open alongside it.
 Boards where the chip's USB-OTG pins are wired directly to the USB connector
 (no USB-to-UART bridge chip) **cannot be flashed through the web installer**.
 The web installer relies on toggling the DTR/RTS control lines to put the chip
-into download mode, but USB-OTG CDC doesn't expose those signals — the call
-fails with `Failed to set control signals` and the flash aborts before sync.
+into download mode, but USB-OTG CDC doesn't expose those signals.
 
 `esptool.py` works around this with a magic-baud-rate reset that triggers the
 chip's USB stack to reboot into download mode. The JavaScript port of esptool
