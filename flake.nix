@@ -76,6 +76,7 @@
 
             # MIDI testing
             rosegarden
+            vmpk
             alsa-utils
 
             add-headers
