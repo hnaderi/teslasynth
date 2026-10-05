@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include <midi_core.hpp>
-#include <voice.hpp>
+#include <../midi/midi_core.hpp>
+#include <../synthesizer/voice.hpp>
 #include <bank/instruments.hpp>
 #include <core/duration.hpp>
-#include "channel_mapping.hpp"
+#include <channel_mapping.hpp>
 #include <array>
 #include <cassert>
 #include <cstdint>
