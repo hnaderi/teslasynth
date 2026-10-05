@@ -5,8 +5,6 @@
 
 #include <cmath>
 #include <cstdint>
-#include <limits>
-#include <optional>
 #include <stdint.h>
 #include <string>
 #include "duration.hpp"

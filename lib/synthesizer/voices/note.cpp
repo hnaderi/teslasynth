@@ -2,16 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #include "note.hpp"
-#include "core.hpp"
 #include "core/envelope_level.hpp"
 #include "core/functions.hpp"
 #include "core/hertz.hpp"
 #include "envelope.hpp"
 #include "bank/instruments.hpp"
 #include "lfo.hpp"
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
 #include <cstdint>
 
 namespace teslasynth::synth {

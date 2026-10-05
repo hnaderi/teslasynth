@@ -2,11 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #include "config_parser.hpp"
-#include <cerrno>
-#include <charconv>
 #include <cstdint>
 #include <optional>
-#include <string_view>
 
 namespace teslasynth::midisynth::config::parser {
 

@@ -32,6 +32,10 @@
           : ''${1:?Usage: fw-build <target>  (e.g. fw-build esp32s3)}
           idf.py -B build/$1 -D IDF_TARGET=$1 build
         '';
+        fw-clean = pkgs.writeShellScriptBin "fw-clean" ''
+          : ''${1:?Usage: fw-build <target>  (e.g. fw-build esp32s3)}
+          idf.py -B build/$1 -D IDF_TARGET=$1 clean
+        '';
         fw-flash = pkgs.writeShellScriptBin "fw-flash" ''
           : ''${1:?Usage: fw-flash <target>  (e.g. fw-flash esp32s3)}
           idf.py -B build/$1 -D IDF_TARGET=$1 flash
@@ -55,6 +59,7 @@
               inherit pkgs;
               idfVersion = "v6.1";
             })
+            cmake-language-server
             # Native tests and linting (PlatformIO native env)
             platformio
 
@@ -77,6 +82,7 @@
             format-cpp
             format-cpp-check
             fw-build
+            fw-clean
             fw-flash
             fw-flash-release
             fw-monitor

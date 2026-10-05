@@ -1,20 +1,17 @@
 // Copyright Hossein Naderi 2025, 2026
 // SPDX-License-Identifier: GPL-3.0-only
 
-#include "application.hpp"
+#include <application.hpp>
 #include "argtable3/argtable3.h"
-#include "config_data.hpp"
+#include <config_data.hpp>
 #include "../../status.hpp"
-#include "config_patch_update.hpp"
+#include <config_patch_update.hpp>
 #include "console.hpp"
 #include "hardware.hpp"
 #include "wifi.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
-#include "soc/gpio_num.h"
-#include <cstdint>
 #include <cstdio>
-#include <cstdlib>
 #include <stdio.h>
 #include <string>
 

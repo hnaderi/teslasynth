@@ -4,19 +4,13 @@
 #pragma once
 
 #include "../channel_state.hpp"
-#include "core.hpp"
 #include "core/duration.hpp"
 #include "core/hertz.hpp"
 #include "envelope.hpp"
 #include "bank/instruments.hpp"
 #include "lfo.hpp"
 #include "pulse.hpp"
-#include <algorithm>
-#include <array>
-#include <cstddef>
 #include <cstdint>
-#include <optional>
-#include <string>
 
 namespace teslasynth::synth {
 using namespace teslasynth::core;

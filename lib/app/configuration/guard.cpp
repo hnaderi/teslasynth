@@ -1,8 +1,8 @@
 // Copyright Hossein Naderi 2025, 2026
 // SPDX-License-Identifier: GPL-3.0-only
 
+#include <freertos/FreeRTOS.h>
 #include "esp_log.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "storage.hpp"
 

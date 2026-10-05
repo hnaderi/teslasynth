@@ -3,13 +3,10 @@
 
 #pragma once
 
-#include "core.hpp"
 #include "core/envelope_level.hpp"
 #include "curve.hpp"
 #include <array>
-#include <cmath>
 #include <cstdint>
-#include <optional>
 #include <string>
 #include <variant>
 

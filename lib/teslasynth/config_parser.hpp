@@ -3,15 +3,13 @@
 
 #pragma once
 
-#include "result.hpp"
+#include <string_view>
 #include <cerrno>
 #include <charconv>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <midi_synth.hpp>
 #include <optional>
-#include <string_view>
 
 namespace teslasynth::midisynth {
 namespace config::parser {

@@ -3,18 +3,12 @@
 
 #pragma once
 
-#include "./config_parser.hpp"
 #include "channel_mapping.hpp"
+#include "./config_parser.hpp"
 #include "config_data.hpp"
 #include "result.hpp"
-#include <cerrno>
-#include <charconv>
 #include <cstdint>
-#include <cstdio>
-#include <cstdlib>
 #include <midi_synth.hpp>
-#include <optional>
-#include <string_view>
 
 namespace teslasynth::midisynth {
 namespace config::patch {

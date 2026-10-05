@@ -7,7 +7,6 @@
 #include <core.hpp>
 #include <core/duration.hpp>
 #include <core/probability.hpp>
-#include <cstdint>
 #include <stddef.h>
 
 namespace teslasynth::synth {

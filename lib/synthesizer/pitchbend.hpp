@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "core.hpp"
-#include "core/hertz.hpp"
+#include <cmath>
+#include <core/hertz.hpp>
 #include <string>
 
 namespace teslasynth::synth {

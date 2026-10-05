@@ -8,10 +8,7 @@
 #include "voice_event.hpp"
 #include <algorithm>
 #include <array>
-#include <cstddef>
 #include <cstdint>
-#include <optional>
-#include <string>
 
 #ifdef ESP_PLATFORM
 #include "sdkconfig.h"

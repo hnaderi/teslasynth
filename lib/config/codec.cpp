@@ -16,7 +16,6 @@
 #include <cstring>
 #include <limits>
 #include <optional>
-#include <string_view>
 #include <sys/types.h>
 
 namespace teslasynth::app::configuration::codec {

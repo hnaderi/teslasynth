@@ -3,17 +3,14 @@
 
 #pragma once
 
-#include "../midi/midi_core.hpp"
-#include "../synthesizer/voice.hpp"
+#include <midi_core.hpp>
+#include <voice.hpp>
+#include <bank/instruments.hpp>
+#include <core/duration.hpp>
 #include "channel_mapping.hpp"
-#include "core.hpp"
-#include "bank/instruments.hpp"
-#include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
-#include <functional>
 
 #ifdef ESP_PLATFORM
 #include "sdkconfig.h"

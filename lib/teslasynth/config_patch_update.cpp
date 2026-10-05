@@ -3,7 +3,6 @@
 
 #include "./config_patch_update.hpp"
 #include "config_data.hpp"
-#include "config_parser.hpp"
 #include <cstdint>
 
 namespace teslasynth::midisynth {

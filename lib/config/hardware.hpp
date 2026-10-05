@@ -7,7 +7,6 @@
 #include "soc/gpio_num.h"
 #include <array>
 #include <cstdint>
-#include <optional>
 
 namespace teslasynth::app::configuration::hardware {
 struct OutputChannelConfig {

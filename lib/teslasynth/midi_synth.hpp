@@ -9,7 +9,6 @@
 #include "config_data.hpp"
 #include "core/envelope_level.hpp"
 #include "bank/instruments.hpp"
-#include "pitchbend.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>

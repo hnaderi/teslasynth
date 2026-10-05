@@ -3,11 +3,9 @@
 
 #pragma once
 
-#include "core.hpp"
-#include <cmath>
-#include <cstdint>
+#include "core/duration.hpp"
+#include "core/envelope_level.hpp"
 #include <optional>
-#include <string>
 
 namespace teslasynth::synth {
 using namespace teslasynth::core;

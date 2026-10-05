@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include "midi_synth.hpp"
 #include "config_data.hpp"
 #include "hardware.hpp"
-#include "midi_synth.hpp"
 
 using AppConfig = teslasynth::midisynth::Configuration<
     teslasynth::app::configuration::hardware::OutputConfig::size>;

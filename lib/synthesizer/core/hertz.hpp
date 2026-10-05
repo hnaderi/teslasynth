@@ -4,10 +4,7 @@
 #pragma once
 
 #include "duration.hpp"
-#include <cmath>
 #include <cstdint>
-#include <limits>
-#include <optional>
 #include <stdint.h>
 #include <string>
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #include "console.hpp"
-#include "config_patch_update.hpp"
+#include <config_patch_update.hpp>
 #include <cstdarg>
 #include <cstdio>
 

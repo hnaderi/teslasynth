@@ -4,8 +4,6 @@
 #include "bank/instruments.hpp"
 #include "esp_console.h"
 #include "freertos/task.h"
-#include "helpers/maintenance.hpp"
-#include "helpers/sysinfo.h"
 #include <cstddef>
 #include <stdio.h>
 #include <string.h>

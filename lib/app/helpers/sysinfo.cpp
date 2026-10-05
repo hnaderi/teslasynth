@@ -5,7 +5,6 @@
 #include "esp_chip_info.h"
 #include "esp_err.h"
 #include "esp_flash.h"
-#include "sdkconfig.h"
 #include <cstddef>
 #include <stdint.h>
 

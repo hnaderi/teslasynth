@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "core.hpp"
+#include "core/hertz.hpp"
+#include "core/duration.hpp"
 
 namespace teslasynth::synth {
 using namespace teslasynth::core;

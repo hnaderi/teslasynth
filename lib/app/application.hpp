@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "configuration/storage.hpp"
+#include <configuration/storage.hpp>
 #include "esp_event.h"
 #include "freertos/idf_additions.h"
 #include "midi_synth.hpp"

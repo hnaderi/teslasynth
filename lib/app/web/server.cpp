@@ -7,10 +7,8 @@
 #include "../helpers/sysinfo.h"
 #include "../status.hpp"
 #include "api.hpp"
-#include "codec.hpp"
-#include "hardware.hpp"
+#include <codec.hpp>
 #include "configuration/storage.hpp"
-#include "wifi.hpp"
 #include "esp_app_desc.h"
 #include "esp_check.h"
 #include "esp_err.h"
@@ -19,7 +17,6 @@
 #include "esp_log.h"
 #include "esp_system.h"
 #include "http_parser.h"
-#include <optional>
 #include <string>
 
 extern const uint8_t index_html_gz[];

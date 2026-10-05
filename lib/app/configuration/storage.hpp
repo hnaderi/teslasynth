@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "persistence.hpp"
+#include <persistence.hpp>
 
 namespace teslasynth::app::configuration {
 using teslasynth::midisynth::ChannelConfig;

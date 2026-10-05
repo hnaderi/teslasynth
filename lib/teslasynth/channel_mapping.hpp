@@ -6,7 +6,6 @@
 #include "../midi/midi_core.hpp"
 #include "channel_state.hpp"
 #include <array>
-#include <cstddef>
 #include <cstdint>
 
 namespace teslasynth::midisynth {
